@@ -48,3 +48,7 @@ vim.keymap.set('n', '<A-j>', ':m .+1<CR>==', { desc = 'Move Line Up (Normal)', s
 vim.keymap.set('n', '<A-k>', ':m .-2<CR>==', { desc = 'Move Line down (Normal)', silent = true })
 vim.keymap.set('v', '<A-j>', ":m '>+1<CR>gv=gv", { desc = 'Move Line Up (Visual)', silent = true })
 vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv", { desc = 'Move Line Down (Visual)', silent = true })
+
+-- Liver Server
+vim.keymap.set('n', '<leader>ls', ':LiveServerStart<CR>', { desc = 'Start Live Server', silent = true })
+vim.keymap.set('n', '<leader>sl', ':LiveServerStop<CR>', { desc = 'Stop Live Server', silent = true })
