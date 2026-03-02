@@ -19,17 +19,18 @@
     "clock",
     "separator",
     "tray",
+    "network"
   ],
   "custom/power": {
     "format": "⏻ ",
     "on-click": "nwg-bar",
   },
-
   "tray": {
     "icon-size": 16,
     "icon-theme": "Papirus",
     "spacing": 2,
   },
+
   "custom/spacer": {
     "format": " ", // Empty space
     "tooltip": false,
@@ -122,6 +123,7 @@
     "tooltip": false,
     "format-muted": "<span color='#f38ba8'>󰝟</span>",
     "on-click": "wpctl set-mute @DEFAULT_SINK@ toggle",
+    "on-click-right": "kitty --class wiremix --title wiremix -e wiremix",
     "on-scroll-up": "wpctl set-volume @DEFAULT_SINK@ 10%+",
     "on-scroll-down": "wpctl set-volume @DEFAULT_SINK@ 10%-",
     "format-icons": {
@@ -156,4 +158,13 @@
     "format": "<span color='#a6e3a1'> </span><span color='#cdd6f4'>{free}</span>",
     "unit": "GB",
   },
+  "network": {
+    "format-wifi": "  {essid} ({signalStrength}%)",
+    "format-ethernet": "󰈀  {ipaddr}",
+    "format-disconnected": "  Desconectado",
+    "tooltip-format": "{ifname}\nIP: {ipaddr}\nGateway: {gwaddr}",
+    "interval": 5,
+    "on-click": "kitty --class impala --title impala -e impala",
+  },
+
 }
