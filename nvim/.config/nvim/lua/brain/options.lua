@@ -10,6 +10,10 @@ vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
 
+-- Spell
+vim.opt.spell = true
+vim.opt.spelllang = { 'pt_br', 'en_us' }
+
 -- Indentation settings
 vim.opt.tabstop = 2 -- Number of spaces a <Tab> in the file counts for
 vim.opt.shiftwidth = 2 -- Indentation size for << and >> commands

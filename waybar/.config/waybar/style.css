@@ -1,7 +1,7 @@
 * {
   border: none;
   border-radius: 10px;
-  font-family: "JetBrainsMono Nerd Font";
+  font-family: "JetBrains Mono Nerd Font", "Font Awesome 6 Free", "Noto Color Emoji";
   font-weight: bold;
   font-size: 12px;
   min-height: 0;
@@ -71,7 +71,8 @@ tooltip {
 #memory,
 #disk,
 #custom-power,
-#tray {
+#tray,
+#network {
   background: #1e1e2e;
   opacity: 1;
   padding: 1.5px 7px 1.5px 7px;
