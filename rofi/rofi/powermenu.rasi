@@ -1,0 +1,81 @@
+@theme "default"
+
+* {
+    font: "JetBrainsMono Nerd Font 14";
+
+    bg: rgba ( 30, 30, 46, 100% );
+    fg: rgba ( 205, 214, 244, 100% );
+    accent: rgba ( 137, 180, 250, 100% );
+}
+
+/* janela */
+window {
+    width: 420px;
+    background-color: @bg;
+    border: 2px;
+    border-color: rgba ( 4, 165, 229, 100% );
+    border-radius: 10px;
+}
+
+/* remove branco de TODOS containers */
+mainbox,
+listview,
+inputbar,
+textbox-prompt-colon,
+textbox,
+prompt {
+    background-color: @bg;
+    text-color: @fg;
+}
+
+/* lista */
+listview {
+    lines: 4;
+    spacing: 8px;
+}
+
+/* itens */
+element {
+    padding: 12px;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+/* 🔥 estados corrigidos */
+element normal.normal {
+    background-color: transparent;
+    text-color: @fg;
+}
+
+element selected.normal {
+    background-color: rgba ( 49, 50, 68, 100% );
+    text-color: @fg;
+}
+
+/* texto */
+element-text {
+    horizontal-align: 0.5;
+    text-color: @fg;
+}
+
+/* prompt */
+prompt {
+    text-color: @accent;
+}
+
+/* TODOS os estados possíveis */
+element normal.normal,
+element alternate.normal,
+element selected.normal,
+element selected.active,
+element active.normal,
+element urgent.normal {
+
+    background-color: transparent;
+    text-color: rgba ( 205, 214, 244, 100% );
+}
+
+element selected.normal {
+    border: 1px;
+    border-color: rgba ( 4, 165, 229, 100% );
+  }
