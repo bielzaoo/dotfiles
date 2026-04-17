@@ -1,92 +1,170 @@
 {
-  "layer": "top", // Waybar at top layer
-  "position": "top", // Waybar position (top|bottom|left|right)
-  // "width": 1280, // Waybar width
-  // Choose the order of the modules
-  "modules-left": ["hyprland/workspaces"],
-  "modules-center": ["custom/music"],
+  "position": "top",
+  "exlusive": "true",
+  "passthrough": "true",
+  "gtk-layer-shell": "true",
+  "margin-top": 10,
+  "margin-left": 10,
+  "margin-right": 10,
+  "height": 41,
+  "modules-left": ["custom/weather", "cpu", "memory", "disk"],
+  "modules-center": ["hyprland/workspaces"],
   "modules-right": [
+    "hyprland/language",
     "pulseaudio",
-    "backlight",
+    "pulseaudio#microphone",
     "battery",
-    "clock",
-    "tray",
-    "custom/lock",
+    "battery#bat2",
     "custom/power",
+    "clock",
+    "separator",
+    "tray",
+    "network"
   ],
-  "hyprland/workspaces": {
-    "disable-scroll": true,
-    "sort-by-name": true,
-    "format": " {icon} ",
-    "format-icons": {
-      "default": "",
-    },
+  "custom/power": {
+    "format": "⏻ ",
+    "on-click": "nwg-bar",
   },
   "tray": {
-    "icon-size": 21,
-    "spacing": 10,
+    "icon-size": 16,
+    "icon-theme": "Papirus",
+    "spacing": 2,
   },
-  "custom/music": {
-    "format": "  {}",
-    "escape": true,
-    "interval": 5,
+
+  "custom/spacer": {
+    "format": " ", // Empty space
     "tooltip": false,
-    "exec": "playerctl metadata --format='{{ title }}'",
-    "on-click": "playerctl play-pause",
-    "max-length": 50,
   },
-  "clock": {
-    "timezone": "Asia/Dubai",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-    "format-alt": " {:%d/%m/%Y}",
-    "format": " {:%H:%M}",
+  "separator": {
+    "format": " | ",
   },
-  "backlight": {
-    "device": "intel_backlight",
+  "hyprland/window": {
+    "format": "{}",
+    "max-length": 35,
+    "rewrite": {
+      "": "Harsh",
+    },
+    "separate-outputs": true,
+  },
+  "hyprland/workspaces": {
     "format": "{icon}",
-    "format-icons": ["", "", "", "", "", "", "", "", ""],
+    "on-click": "activate",
+    "format-icons": {
+      "1": "",
+      "2": "",
+      "3": "",
+      "4": "",
+      "5": "",
+      "6": "",
+      "7": "",
+      "8": "",
+      "9": "",
+      "active": "",
+      "urgent": "",
+      "persistent": "",
+      "focused": "",
+      "default": "",
+    },
+    "sort-by-number": true,
+    "persistent-workspaces": {
+      "*": 9,
+      "DP-1": 9,
+    },
   },
+
   "battery": {
     "states": {
+      // "good": 95,
       "warning": 30,
       "critical": 15,
     },
-    "format": "{icon}",
-    "format-charging": "",
-    "format-plugged": "",
-    "format-alt": "{icon}",
-    "format-icons": [
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-    ],
+    "format": "{capacity}% {icon}",
+    "format-full": "{capacity}% {icon}",
+    "format-charging": "{capacity}% ",
+    "format-plugged": "{capacity}% ",
+    "format-alt": "{time} {icon}",
+    // "format-good": "", // An empty format will hide the module
+    // "format-full": "",
+    "format-icons": ["", "", "", "", ""],
   },
+  "battery#bat2": {
+    "bat": "BAT2",
+  },
+
+  "clock": {
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "format": "<span color='#89b4fa'>󰥔 </span><span color='#cdd6f4'>{:%H:%M | %a %d %b}</span>",
+    "format-alt": "{:%Y-%m-%d}",
+  },
+
+  "cpu": {
+    "format": "<span color='#89b4fa'>󰍛</span> <span color='#cdd6f4'>{usage}%</span>",
+    "interval": 1,
+    "format-alt-click": "click",
+    "format-alt": "<span color='#00FF00'>{icon0}{icon1}{icon2}{icon3}</span> <span color='#FFFFFF'>{usage:>2}%</span> <span color='#00FF00'>󰍛</span>",
+    "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"],
+    "on-click": "gnome-system-monitor",
+  },
+  "memory": {
+    "interval": 3,
+    "format": "<span color='#f38ba8'> </span> <span color='#cdd6f4'>{used:0.1f}G</span>",
+  },
+
+  "custom/weather": {
+    "exec": "~/.config/hypr/scripts/weather.sh",
+    "return-type": "json",
+    "interval": 600,
+    "format": "{text}",
+  },
+
   "pulseaudio": {
-    // "scroll-step": 1, // %, can be a float
-    "format": "{icon} {volume}%",
-    "format-muted": "",
+    "format": "<span color='#a6e3a1'>{icon} </span><span color='#cdd6f4'>{volume}%</span>",
+    "format-bluetooth": "<span color='#a6e3a1'>{icon}</span>  <span color='#cdd6f4'>{volume}%</span>",
+    "tooltip": false,
+    "format-muted": "<span color='#f38ba8'>󰝟</span>",
+    "on-click": "wpctl set-mute @DEFAULT_SINK@ toggle",
+    "on-click-right": "ghostty --class=com.wiremix --title=wiremix -e wiremix",
+    "on-scroll-up": "wpctl set-volume @DEFAULT_SINK@ 10%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_SINK@ 10%-",
     "format-icons": {
-      "default": ["", "", " "],
+      "headphone": "",
+      "hands-free": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["", "", ""],
     },
-    "on-click": "pavucontrol",
   },
-  "custom/lock": {
-    "tooltip": false,
-    "on-click": "sh -c '(sleep 0.5s; swaylock --grace 0)' & disown",
-    "format": "",
+  "pulseaudio#microphone": {
+    "format": "{format_source}",
+    "format-source": "<span color='#f38ba8'> </span><span color='#cdd6f4'>{volume}%</span>",
+    "format-source-muted": "",
+    "on-click": "wpctl set-mute @DEFAULT_SOURCE@ toggle",
+    "on-scroll-up": "wpctl set-volume @DEFAULT_SOURCE@ 5%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_SOURCE@ 5%-",
   },
-  "custom/power": {
-    "tooltip": false,
-    "on-click": "wlogout &",
-    "format": "襤",
+
+  "hyprland/language": {
+    "format": "<span color='#f9e2af'>󰌌</span> <span color='#cdd6f4'>{}</span>",
+
+    "format-ar": "ara",
+
+    "format-en": "eng",
   },
+  "disk": {
+    "interval": 3,
+    "path": "/home",
+    "format": "<span color='#a6e3a1'> </span><span color='#cdd6f4'>{free}</span>",
+    "unit": "GB",
+  },
+  "network": {
+    "format-wifi": "  {essid} ({signalStrength}%)",
+    "format-ethernet": "󰈀  {ipaddr}",
+    "format-disconnected": "  Desconectado",
+    "tooltip-format": "{ifname}\nIP: {ipaddr}\nGateway: {gwaddr}",
+    "interval": 5,
+    "on-click": "ghostty --class=com.impala --title=impala -e impala",
+  },
+
 }

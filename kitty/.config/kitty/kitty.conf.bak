@@ -2953,7 +2953,7 @@ notify_on_cmd_finish invisible 20
 
 
 # BEGIN_KITTY_THEME
-# Catppuccin-Mocha
+# Alucard
 include current-theme.conf
 # END_KITTY_THEME
 
@@ -2964,4 +2964,3 @@ bold_font        auto
 italic_font      auto
 bold_italic_font auto
 # END_KITTY_FONTS
-
