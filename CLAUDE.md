@@ -25,7 +25,7 @@ Deploy via **GNU Stow**. Comando padrão: `cd ~/dotfiles/profiles && stow -t ~ <
 
 ## Projeto ativo: migração waybar/wofi/mako → Quickshell
 
-**Status: bar e notificações migradas e validadas via boot completo. Faltam OSD (volume/brilho) e launcher (substitui wofi).**
+**Status: bar, notificações e OSD (volume/brilho) migrados e validados. Falta launcher (substitui wofi).**
 
 Motivação: Hyprland "puro" ficava visualmente engessado; Quickshell (Qt6/QML) permite animações e widgets mais ricos. Decisão consciente de abrir mão de parte da modularidade em troca disso.
 
@@ -61,6 +61,7 @@ Definido em `Colors.qml` (singleton) e `Fonts.qml` (singleton, fonte JetBrainsMo
 - **PowerMenu.qml** — usa `PopupWindow` (não `Rectangle` filho da PanelWindow — ver seção Popups abaixo). Lock/Logout/Reboot/Shutdown, todos via `Process`.
 - **BluetoothPanel.qml** — usa `Quickshell.Bluetooth` nativo (`Bluetooth.defaultAdapter`, `.devices`, propriedade `.paired`, `.connected` gravável). Toggle de power via `Process` + `bluetoothctl power on/off` (não confirmamos se `adapter.enabled` é gravável, então não arriscamos).
 - **NotificationPopup.qml** — usa `Quickshell.Services.Notifications` (`NotificationServer`, `trackedNotifications`). Só pode haver UM servidor D-Bus de notificações ativo — **mako foi desativado do autostart**, não rodam em paralelo.
+- **VolumeOSD.qml / BrightnessOSD.qml** (`modules/osd/`) — popup de overlay (`components/OSDBar.qml`, compartilhado) que aparece ~1.5s ao mudar volume/brilho. Volume usa binding nativo `Quickshell.Services.Pipewire` (`Pipewire.defaultAudioSink.audio.volume`/`.muted`, com `PwObjectTracker` pra manter o node "vivo") — sem `Process`, totalmente reativo. Brilho não tem binding nativo no Quickshell; usa `Process` chamando `brightnessctl -m set ...` e parseia o output machine-readable (`device,class,current,percent%,max`) pra atualizar a barra. Acionados via `IpcHandler { target: "osd" }` no `shell.qml`, chamado pelos binds do Hyprland com `qs ipc call osd <funcao>` (ver `hyprland.lua`/`keybinds.lua`).
 
 ### ⚠️ Descoberta crítica: Hyprland 0.55+ (Lua) quebra dispatch externo
 
@@ -90,6 +91,30 @@ Uma `PanelWindow` no Wayland/layer-shell tem superfície de tamanho fixo — con
 
 Ver `PowerMenu.qml` e `BluetoothPanel.qml` como referência de implementação.
 
+### ⚠️ `PanelWindow.layer` não existe — usar attached property `WlrLayershell.layer`
+
+O tipo `PanelWindow` (via `import Quickshell.Wayland`, que reexporta `Quickshell._Window`) é a abstração cross-platform e **não tem** propriedade `layer` própria — só `anchors`, `margins`, `exclusiveZone`, `exclusionMode`, `aboveWindows`, `focusable`. A propriedade de layer-shell (`Background`/`Bottom`/`Top`/`Overlay`) é uma **attached property** do tipo `WlrLayershell` (`Quickshell.Wayland._WlrLayerShell`, importado transitivamente por `Quickshell.Wayland`):
+
+```qml
+PanelWindow {
+    WlrLayershell.layer: WlrLayer.Overlay   // não "layer: WlrLayer.Overlay"
+}
+```
+
+Erro sintoma se usar a forma errada: `Cannot assign to non-existent property "layer"`.
+
+### Quickshell recarrega QML sozinho ao salvar (hot-reload)
+
+Diferente do autostart do Hyprland (que só recarrega em boot real — ver Pendências), o **Quickshell observa os próprios arquivos QML e recarrega a config automaticamente ao detectar mudança salva em disco**. Não precisa matar/reiniciar o processo pra testar uma alteração de módulo. Log confirma com `INFO: Reloading configuration...` / `INFO: Configuration Loaded` em `~/.local/state` ou via `journalctl`/log do processo.
+
+⚠️ Matar o processo `quickshell` manualmente (pra forçar um restart limpo, por exemplo) **dispara o D-Bus a auto-ativar o `mako`** como fallback do serviço `org.freedesktop.Notifications` enquanto o quickshell está fora do ar — mesmo com o autostart do mako desativado. Se isso acontecer, rodar `pkill -x mako` depois que o quickshell voltar (ele detecta o nome D-Bus livre e registra de novo sozinho).
+
+### Brilho: `brightnessctl` e sintaxe de delta
+
+`brightnessctl` funciona nesta máquina **sem precisar de sudo ou grupo `video`** — ele usa o D-Bus do `logind` quando disponível, caindo pro sysfs direto só se não houver. Adicionar o usuário ao grupo `video` (feito durante a implementação do OSD) não foi estritamente necessário, mas serve de fallback caso o logind não esteja disponível (ex: fora de uma sessão gráfica).
+
+Sintaxe de delta é **sufixo, não prefixo**: `5%-` (diminuir 5%) e `+5%` (aumentar 5%). `-5%` é inválido — `brightnessctl` interpreta como flag desconhecida e falha silenciosamente do ponto de vista do QML (Process só reporta erro se você checar `exitCode`/stderr).
+
 ### Sobre ícones Nerd Font
 
 Nunca copiar/colar o glyph visual direto no código — o codepoint pode corromper no processo de clipboard. Preferir escape Unicode explícito (`"\uf293"`) ou, quando a certeza do codepoint for baixa, usar texto simples como fallback temporário em vez de travar o progresso.
@@ -106,7 +131,6 @@ Nunca copiar/colar o glyph visual direto no código — o codepoint pode corromp
 
 ## Módulos restantes do plano de migração
 
-- **OSD** (volume/brilho) — não iniciado.
 - **Launcher** (substitui wofi) — não iniciado.
 
 ## Preferências de trabalho

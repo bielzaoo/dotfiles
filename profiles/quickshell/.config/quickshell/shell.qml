@@ -1,8 +1,10 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Io
 import "modules/bar"
 import "modules/notifications"
+import "modules/osd"
 
 ShellRoot {
     PanelWindow {
@@ -44,4 +46,32 @@ ShellRoot {
     }
 
     NotificationPopup {}
+
+    VolumeOSD {
+        id: volumeOsd
+    }
+
+    BrightnessOSD {
+        id: brightnessOsd
+    }
+
+    IpcHandler {
+        target: "osd"
+
+        function volumeUp() {
+            volumeOsd.nudge(0.05)
+        }
+        function volumeDown() {
+            volumeOsd.nudge(-0.05)
+        }
+        function volumeMuteToggle() {
+            volumeOsd.toggleMute()
+        }
+        function brightnessUp() {
+            brightnessOsd.nudge(5)
+        }
+        function brightnessDown() {
+            brightnessOsd.nudge(-5)
+        }
+    }
 }
