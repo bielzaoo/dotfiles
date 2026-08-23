@@ -1,0 +1,80 @@
+* {
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 13px;
+    min-height: 0;
+}
+window#waybar {
+    background-color: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(196, 30, 30, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+/* --- Logo --- */
+#custom-logo {
+    color: #c41e1e;
+    font-size: 17px;
+    padding: 0 14px;
+    border-right: 1px solid #241010;
+}
+#custom-logo:hover {
+    color: #ff3b3b;
+}
+/* --- Workspaces --- */
+#workspaces {
+    padding: 0 6px;
+}
+#workspaces button {
+    padding: 0 6px;
+    color: #3a1c1c;
+    font-size: 10px;
+}
+#workspaces button.active {
+    color: #ff3b3b;
+    font-size: 14px;
+}
+#workspaces button.empty {
+    color: #241010;
+}
+#workspaces button:hover {
+    color: #e98fa8;
+}
+/* --- Clock (centro, destaque sutil) --- */
+#clock {
+    color: #f9f6f0;
+    font-weight: bold;
+    padding: 0 16px;
+}
+/* --- Módulos da direita: estilo "pill" individual --- */
+#cpu, #memory, #network, #bluetooth, #pulseaudio, #battery, #custom-power, #tray {
+    padding: 0 10px;
+    margin: 4px 2px;
+    border-radius: 8px;
+    color: #d8d3c9;
+    transition: all 0.2s ease-in-out;
+}
+#cpu:hover, #memory:hover, #network:hover, #bluetooth:hover, #pulseaudio:hover, #battery:hover, #custom-power:hover {
+    background-color: #241010;
+    color: #f9f6f0;
+}
+/* --- Estados especiais --- */
+#battery.critical {
+    color: #ff3b3b;
+}
+#battery.charging {
+    color: #4e9a51;
+}
+#network.disconnected {
+    color: #ff5252;
+}
+#bluetooth.disabled {
+    color: #8f8b85;
+}
+#pulseaudio.muted {
+    color: #8f8b85;
+}
+#custom-power {
+    color: #ff3b3b;
+}
+#tray {
+    padding: 0 10px;
+}
