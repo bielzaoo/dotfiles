@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "modules/bar"
+import "modules/notifications"
 
 ShellRoot {
     PanelWindow {
@@ -41,4 +42,6 @@ ShellRoot {
             }
         }
     }
+
+    NotificationPopup {}
 }
