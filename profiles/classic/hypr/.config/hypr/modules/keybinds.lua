@@ -11,7 +11,6 @@ hl.bind("CTRL + SUPER + mouse_up", hl.dsp.exec_cmd("bash ~/.config/hypr/zoom.sh 
 hl.bind("CTRL + SUPER + mouse_down", hl.dsp.exec_cmd("bash ~/.config/hypr/zoom.sh '- 0.5'"))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/screenshot.sh area"))
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/screenshot.sh full"))
-hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("bash ~/.config/hypr/scripts/appmenu.sh"))
 -- hl.bind(mainMod .. " + V",         hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 hl.bind(
 	mainMod .. " + SHIFT + V",
