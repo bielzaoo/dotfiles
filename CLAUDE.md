@@ -126,6 +126,8 @@ Sintaxe de delta é **sufixo, não prefixo**: `5%-` (diminuir 5%) e `+5%` (aumen
 
 Nunca copiar/colar o glyph visual direto no código — o codepoint pode corromper no processo de clipboard. Preferir escape Unicode explícito (`"\uf293"`) ou, quando a certeza do codepoint for baixa, usar texto simples como fallback temporário em vez de travar o progresso.
 
+**Como validar um codepoint com confiança:** gerar o caractere programaticamente (ex.: `chr(0xf303)` em Python, escrito num arquivo — nunca colado direto num comando de shell/heredoc, isso já corrompeu um teste real e virou uma caixa vazia/tofu box em vez do glyph esperado) e renderizar num terminal com a fonte certa pra confirmar visualmente antes de usar o valor de verdade. Logo do Arch Linux confirmado assim: codepoint U+F303 (usado no `starship.toml`, módulo `os.symbols`).
+
 ### Deprecations conhecidas (Quickshell 0.3.0)
 
 - `PanelWindow.height` → usar `implicitHeight`
