@@ -3,8 +3,8 @@ hl.config({
 		gaps_in = 4,
 		gaps_out = 8,
 		border_size = 2,
-		["col.active_border"] = "rgba(c41e1eee)",
-		["col.inactive_border"] = "rgba(241010aa)",
+		["col.active_border"] = "rgba(00f0ffee)",
+		["col.inactive_border"] = "rgba(0090a0aa)",
 		layout = "dwindle",
 	},
 	decoration = {
@@ -16,7 +16,7 @@ hl.config({
 			enabled = true,
 			range = 12,
 			render_power = 3,
-			color = "rgba(ff3b3b55)",
+			color = "rgba(00f0ff55)",
 		},
 	},
 	dwindle = {

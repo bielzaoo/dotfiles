@@ -12,14 +12,18 @@ Este arquivo dá contexto ao Claude Code sobre o setup e as convenções deste r
 
 ```
 dotfiles/
-├── common/              # nvim, kitty, tmux — usado em qualquer profile
+├── common/              # nvim, tmux — usado em qualquer profile
 ├── profiles/
 │   ├── classic/hypr/    # stack hypr+waybar completo (LEGADO, em migração)
 │   │   └── .config/hypr/   # ⚠️ NÃO é symlinkado via Stow ainda — ver "Pendências"
 │   └── quickshell/       # projeto Quickshell (ATIVO — ver abaixo)
-│       └── .config/quickshell/   # symlinkado via Stow, funcionando corretamente
+│       ├── .config/quickshell/   # symlinkado via Stow, funcionando corretamente
+│       ├── .config/kitty/        # tema ciano (kitty.conf + theme.conf), symlinkado
+│       └── .config/starship.toml # tema ciano, symlinkado
 └── archive/              # rofi, nwg-bar (descontinuados)
 ```
+
+`kitty` e `starship.toml` são **profile-specific** (moraram em `common/` antes, mas foram movidos pra dentro de `profiles/quickshell` porque o tema de cores é amarrado ao profile visual em uso — se o profile `classic` for reativado um dia, ele precisa do seu próprio tema, não do ciano).
 
 Deploy via **GNU Stow**. Comando padrão: `cd ~/dotfiles/profiles && stow -t ~ <pacote>`.
 
@@ -31,13 +35,15 @@ Motivação: Hyprland "puro" ficava visualmente engessado; Quickshell (Qt6/QML) 
 
 ### Paleta do projeto Quickshell
 
-**Diferente** da paleta Vanta Black + Crimson + Rose usada no resto do setup (waybar/hyprland legado):
+**Diferente** da paleta Vanta Black + Crimson + Rose que o setup usava antes (waybar/hyprland legado — só relevante se o profile `classic` for reativado):
 - Base: preto (`#000000` / `#0a0a0a` alt)
 - Accent: azul neon (`#00f0ff`, dim `#0090a0`)
 - Texto: `#e0e0e0` primário, `#808080` muted
 - Estados: danger `#ff3b3b`, success `#00ff9c`
 
-Definido em `Colors.qml` (singleton) e `Fonts.qml` (singleton, fonte JetBrainsMono Nerd Font).
+Definido em `Colors.qml` (singleton) e `Fonts.qml` (singleton, fonte JetBrainsMono Nerd Font). Essa paleta **não é mais exclusiva do Quickshell**: também é usada em `profiles/quickshell/.config/kitty/theme.conf` (terminal), `profiles/quickshell/.config/starship.toml` (prompt) e nas cores de borda/sombra do Hyprland (`modules/appearance.lua`, `col.active_border`/`col.inactive_border`/`decoration.shadow.color`) — o accent ciano é o tema visual do profile inteiro, não só da bar.
+
+⚠️ **Descoberta:** `~/.config/kitty/` nunca tinha sido stowado — eram arquivos reais (`kitty.conf`/`theme.conf`) com a paleta Vanta Black+Crimson+Rose antiga, completamente desincronizados do que estava no repo (`common/kitty` tinha um `kitty.conf` padrão genérico do próprio kitty + tema Catppuccin Mocha, nunca usado de fato). Resolvido: conteúdo real foi migrado pra `profiles/quickshell/.config/kitty/` com o tema ciano, `common/kitty` (obsoleto) foi removido do repo.
 
 ### Arquitetura QML
 

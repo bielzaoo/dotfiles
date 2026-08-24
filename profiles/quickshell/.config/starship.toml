@@ -1,0 +1,32 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+$directory$git_branch$git_status
+$character"""
+
+palette = "quickshell"
+
+[palettes.quickshell]
+accent = "#00f0ff"
+accent_dim = "#0090a0"
+muted = "#808080"
+danger = "#ff3b3b"
+success = "#00ff9c"
+
+[directory]
+style = "bold accent"
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path ]($style)"
+
+[git_branch]
+style = "accent_dim"
+format = "[on $branch ]($style)"
+
+[git_status]
+style = "bold danger"
+format = "[$all_status$ahead_behind ]($style)"
+
+[character]
+success_symbol = "[❯](bold success)"
+error_symbol = "[❯](bold danger)"
