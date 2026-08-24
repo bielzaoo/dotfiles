@@ -105,10 +105,29 @@ PanelWindow {
                     radius: 4
                     color: index === root.selectedIndex ? Colors.accentDim : "transparent"
 
+                    Image {
+                        id: iconImage
+                        readonly property string iconName: delegateRoot.modelData.icon || ""
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 18
+                        height: 18
+                        sourceSize: Qt.size(18, 18)
+                        fillMode: Image.PreserveAspectFit
+                        asynchronous: true
+                        visible: status === Image.Ready
+                        source: iconName.length === 0
+                            ? ""
+                            : iconName.startsWith("/") ? "file://" + iconName : "image://icon/" + iconName
+                    }
+
                     Text {
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        verticalAlignment: Text.AlignVCenter
+                        anchors.left: iconImage.left
+                        anchors.leftMargin: iconImage.visible ? iconImage.width + 8 : 0
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
                         text: delegateRoot.modelData.name
                         color: Colors.textPrimary
                         font.family: Fonts.family
