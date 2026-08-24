@@ -25,7 +25,7 @@ Deploy via **GNU Stow**. Comando padrão: `cd ~/dotfiles/profiles && stow -t ~ <
 
 ## Projeto ativo: migração waybar/wofi/mako → Quickshell
 
-**Status: bar, notificações e OSD (volume/brilho) migrados e validados. Falta launcher (substitui wofi).**
+**Status: bar, notificações, OSD (volume/brilho) e launcher de apps (substitui `wofi --show drun`) migrados e validados. `appmenu.sh` (menu categorizado com webapps, SUPER+A) continua em wofi — não estava no escopo desta rodada.**
 
 Motivação: Hyprland "puro" ficava visualmente engessado; Quickshell (Qt6/QML) permite animações e widgets mais ricos. Decisão consciente de abrir mão de parte da modularidade em troca disso.
 
@@ -62,6 +62,7 @@ Definido em `Colors.qml` (singleton) e `Fonts.qml` (singleton, fonte JetBrainsMo
 - **BluetoothPanel.qml** — usa `Quickshell.Bluetooth` nativo (`Bluetooth.defaultAdapter`, `.devices`, propriedade `.paired`, `.connected` gravável). Toggle de power via `Process` + `bluetoothctl power on/off` (não confirmamos se `adapter.enabled` é gravável, então não arriscamos).
 - **NotificationPopup.qml** — usa `Quickshell.Services.Notifications` (`NotificationServer`, `trackedNotifications`). Só pode haver UM servidor D-Bus de notificações ativo — **mako foi desativado do autostart**, não rodam em paralelo.
 - **VolumeOSD.qml / BrightnessOSD.qml** (`modules/osd/`) — popup de overlay (`components/OSDBar.qml`, compartilhado) que aparece ~1.5s ao mudar volume/brilho. Volume usa binding nativo `Quickshell.Services.Pipewire` (`Pipewire.defaultAudioSink.audio.volume`/`.muted`, com `PwObjectTracker` pra manter o node "vivo") — sem `Process`, totalmente reativo. Brilho não tem binding nativo no Quickshell; usa `Process` chamando `brightnessctl -m set ...` e parseia o output machine-readable (`device,class,current,percent%,max`) pra atualizar a barra. Acionados via `IpcHandler { target: "osd" }` no `shell.qml`, chamado pelos binds do Hyprland com `qs ipc call osd <funcao>` (ver `hyprland.lua`/`keybinds.lua`).
+- **Launcher.qml** (`modules/launcher/`) — substitui `wofi --show drun` (SUPER+D). Usa o singleton **nativo** `Quickshell.DesktopEntries` (`.applications.values`, cada `DesktopEntry` com `name`/`icon`/`noDisplay`/`execute()`) — não precisou de script externo nem `gtk-launch`, o próprio `execute()` já trata `Terminal=`/`Exec=`/working directory. Busca é filtro simples (`name.toLowerCase().includes(query)`) sobre os não-`noDisplay`, navegação por `Keys.onUpPressed`/`onDownPressed`/`onReturnPressed`/`onEscapePressed` num `TextInput`. É um `PanelWindow` cobrindo a tela inteira (`anchors` nas 4 bordas, `color: "transparent"`, `focusable` ligado só quando aberto) com o conteúdo real centralizado por dentro (`Rectangle` com `anchors.centerIn: parent`) — padrão diferente do `PopupWindow` ancorado à bar (ver seção Popups); usar esse padrão pra qualquer modal futuro que precise cobrir a tela toda (ex.: menu categorizado, se um dia substituir o `appmenu.sh`). Acionado via `IpcHandler { target: "launcher" }` + `qs ipc call launcher toggle`.
 
 ### ⚠️ Descoberta crítica: Hyprland 0.55+ (Lua) quebra dispatch externo
 
@@ -131,7 +132,7 @@ Nunca copiar/colar o glyph visual direto no código — o codepoint pode corromp
 
 ## Módulos restantes do plano de migração
 
-- **Launcher** (substitui wofi) — não iniciado.
+- **Menu categorizado do `appmenu.sh`** (SUPER+A, webapps/scripts por categoria) — ainda em wofi, não portado. O launcher de apps (SUPER+D) já foi migrado.
 
 ## Preferências de trabalho
 

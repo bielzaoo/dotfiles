@@ -5,6 +5,7 @@ import Quickshell.Io
 import "modules/bar"
 import "modules/notifications"
 import "modules/osd"
+import "modules/launcher"
 
 ShellRoot {
     PanelWindow {
@@ -55,6 +56,10 @@ ShellRoot {
         id: brightnessOsd
     }
 
+    Launcher {
+        id: launcher
+    }
+
     IpcHandler {
         target: "osd"
 
@@ -72,6 +77,14 @@ ShellRoot {
         }
         function brightnessDown() {
             brightnessOsd.nudge(-5)
+        }
+    }
+
+    IpcHandler {
+        target: "launcher"
+
+        function toggle() {
+            launcher.toggle()
         }
     }
 }
