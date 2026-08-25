@@ -12,18 +12,19 @@ Este arquivo dá contexto ao Claude Code sobre o setup e as convenções deste r
 
 ```
 dotfiles/
-├── common/              # nvim, tmux — usado em qualquer profile
+├── common/              # nvim — usado em qualquer profile (⚠️ ver "Pendências": não confirmado que está stowado)
 ├── profiles/
 │   ├── classic/hypr/    # stack hypr+waybar completo (LEGADO, em migração)
 │   │   └── .config/hypr/   # ⚠️ NÃO é symlinkado via Stow ainda — ver "Pendências"
 │   └── quickshell/       # projeto Quickshell (ATIVO — ver abaixo)
 │       ├── .config/quickshell/   # symlinkado via Stow, funcionando corretamente
 │       ├── .config/kitty/        # tema ciano (kitty.conf + theme.conf), symlinkado
-│       └── .config/starship.toml # tema ciano, symlinkado
+│       ├── .config/starship.toml # tema ciano, symlinkado
+│       └── .tmux.conf            # tema vantablack + accent ciano, symlinkado
 └── archive/              # rofi, nwg-bar (descontinuados)
 ```
 
-`kitty` e `starship.toml` são **profile-specific** (moraram em `common/` antes, mas foram movidos pra dentro de `profiles/quickshell` porque o tema de cores é amarrado ao profile visual em uso — se o profile `classic` for reativado um dia, ele precisa do seu próprio tema, não do ciano).
+`kitty`, `starship.toml` e `.tmux.conf` são **profile-specific** (moraram em `common/` antes, mas foram movidos pra dentro de `profiles/quickshell` porque o tema de cores é amarrado ao profile visual em uso — se o profile `classic` for reativado um dia, ele precisa do seu próprio tema, não do ciano). O tmux usava a base do tema "vantablack" (bjarneo/vantablack.nvim, monocromático) adaptado antes com accent crimson (paleta antiga); a adaptação atual troca esse accent por ciano (`#00f0ff`), mantendo a estrutura de segmentos/separadores do tema original.
 
 Deploy via **GNU Stow**. Comando padrão: `cd ~/dotfiles/profiles && stow -t ~ <pacote>`.
 
@@ -44,6 +45,8 @@ Motivação: Hyprland "puro" ficava visualmente engessado; Quickshell (Qt6/QML) 
 Definido em `Colors.qml` (singleton) e `Fonts.qml` (singleton, fonte JetBrainsMono Nerd Font). Essa paleta **não é mais exclusiva do Quickshell**: também é usada em `profiles/quickshell/.config/kitty/theme.conf` (terminal), `profiles/quickshell/.config/starship.toml` (prompt) e nas cores de borda/sombra do Hyprland (`modules/appearance.lua`, `col.active_border`/`col.inactive_border`/`decoration.shadow.color`) — o accent ciano é o tema visual do profile inteiro, não só da bar.
 
 ⚠️ **Descoberta:** `~/.config/kitty/` nunca tinha sido stowado — eram arquivos reais (`kitty.conf`/`theme.conf`) com a paleta Vanta Black+Crimson+Rose antiga, completamente desincronizados do que estava no repo (`common/kitty` tinha um `kitty.conf` padrão genérico do próprio kitty + tema Catppuccin Mocha, nunca usado de fato). Resolvido: conteúdo real foi migrado pra `profiles/quickshell/.config/kitty/` com o tema ciano, `common/kitty` (obsoleto) foi removido do repo.
+
+⚠️ **Mesma descoberta, agora no tmux:** `~/.tmux.conf` também nunca tinha sido stowado — era um arquivo real em `common/tmux/.tmux.conf` (tema vantablack + accent **crimson**, herdado do tema antigo do profile `classic`). Resolvido: movido pra `profiles/quickshell/.tmux.conf` (mesma lógica do kitty/starship — tema de cor é do profile), accent trocado de crimson pra ciano, `~/.tmux.conf` real foi apagado e re-stowado como symlink de verdade.
 
 ### Arquitetura QML
 
@@ -137,6 +140,7 @@ Nunca copiar/colar o glyph visual direto no código — o codepoint pode corromp
 1. **`profiles/classic/hypr` não é symlinkado via Stow.** `~/.config/hypr/` são arquivos reais soltos, desincronizados do repo por padrão — qualquer edição precisa ser copiada manualmente pro repo antes do commit (já aconteceu 2x: `autostart.lua` pra waybar e pra mako). Antes de rodar `stow` nesse pacote, validar se há mais divergências além do `autostart.lua`, pra não perder config real.
 2. **SystemStats.qml spawna um processo bash a cada 2s** — funcional, mas não é a abordagem mais leve. Candidato a otimização futura (ler `/proc/stat` direto em QML/JS).
 3. **Autostart do Hyprland só recarrega em boot real**, não em `hyprctl reload`. Qualquer mudança em `hl.on("hyprland.start", ...)` exige logout/login ou reboot completo pra validar — não adianta só editar e recarregar config.
+4. **`~/.config/nvim` também não é symlink** (é diretório real) — descoberto de passagem ao investigar o mesmo problema no tmux (o `.tmux.conf` tinha o mesmo problema e já foi corrigido nesta sessão). Ainda não comparado com `common/nvim` no repo pra saber se divergiu; validar diffs antes de rodar `stow` nesse pacote, mesmo cuidado do item 1.
 
 ## Preferências de trabalho
 
