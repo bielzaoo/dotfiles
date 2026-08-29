@@ -10,6 +10,10 @@ Row {
     property real cpuUsage: 0
     property real ramUsage: 0
 
+    // snapshot anterior de /proc/stat, pra calcular o delta de CPU
+    property real _prevTotal: -1
+    property real _prevIdle: -1
+
     Row {
         spacing: 4
         Text {
@@ -40,31 +44,40 @@ Row {
         }
     }
 
-    Process {
-        id: statsProc
-        command: ["bash", "-c",
-            "cpu1=($(grep '^cpu ' /proc/stat)); " +
-            "sleep 0.4; " +
-            "cpu2=($(grep '^cpu ' /proc/stat)); " +
-            "idle1=${cpu1[4]}; idle2=${cpu2[4]}; " +
-            "total1=0; for v in ${cpu1[@]:1}; do total1=$((total1+v)); done; " +
-            "total2=0; for v in ${cpu2[@]:1}; do total2=$((total2+v)); done; " +
-            "dtotal=$((total2-total1)); didle=$((idle2-idle1)); " +
-            "cpupct=$(awk -v dt=$dtotal -v di=$didle 'BEGIN { if (dt>0) printf \"%.1f\", (dt-di)/dt*100; else print 0 }'); " +
-            "mem=$(free | grep Mem); " +
-            "mtotal=$(echo $mem | awk '{print $2}'); " +
-            "mused=$(echo $mem | awk '{print $3}'); " +
-            "mpct=$(awk -v u=$mused -v t=$mtotal 'BEGIN { printf \"%.1f\", u/t*100 }'); " +
-            "echo \"$cpupct,$mpct\""
-        ]
+    FileView {
+        id: statFile
+        path: "/proc/stat"
+        watchChanges: false
+        onLoaded: {
+            var line = text().split("\n")[0] // primeira linha: "cpu  user nice system idle iowait irq softirq ..."
+            var parts = line.trim().split(/\s+/).slice(1).map(Number)
+            var idle = parts[3]
+            var total = parts.reduce((a, b) => a + b, 0)
 
-        stdout: SplitParser {
-            onRead: data => {
-                var parts = data.trim().split(",")
-                if (parts.length === 2) {
-                    root.cpuUsage = parseFloat(parts[0])
-                    root.ramUsage = parseFloat(parts[1])
+            if (root._prevTotal >= 0) {
+                var dTotal = total - root._prevTotal
+                var dIdle = idle - root._prevIdle
+                if (dTotal > 0) {
+                    root.cpuUsage = (dTotal - dIdle) / dTotal * 100
                 }
+            }
+            root._prevTotal = total
+            root._prevIdle = idle
+        }
+    }
+
+    FileView {
+        id: memFile
+        path: "/proc/meminfo"
+        watchChanges: false
+        onLoaded: {
+            var content = text()
+            var totalMatch = content.match(/MemTotal:\s+(\d+)/)
+            var availMatch = content.match(/MemAvailable:\s+(\d+)/)
+            if (totalMatch && availMatch) {
+                var total = parseFloat(totalMatch[1])
+                var avail = parseFloat(availMatch[1])
+                root.ramUsage = (total - avail) / total * 100
             }
         }
     }
@@ -74,6 +87,9 @@ Row {
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: statsProc.running = true
+        onTriggered: {
+            statFile.reload()
+            memFile.reload()
+        }
     }
 }
