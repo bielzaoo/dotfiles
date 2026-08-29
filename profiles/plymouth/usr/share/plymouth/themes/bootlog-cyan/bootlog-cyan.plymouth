@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Boot Log Cyan
+Description=Machine-code style boot log on black, cyan status markers, petrol-blue flash on LUKS prompt
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/bootlog-cyan
+ScriptFile=/usr/share/plymouth/themes/bootlog-cyan/bootlog-cyan.script

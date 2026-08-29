@@ -1,0 +1,158 @@
+##############################################################################
+# bootlog-cyan.script
+#
+# Tema Plymouth "boot log" — fundo preto, linhas de log fake (mas coerentes
+# com o setup real: LUKS2 + Btrfs + greetd) aparecendo em ritmo fixo,
+# cursor piscando, e um flash azul-petróleo full-screen no momento em que
+# o LUKS pede a senha.
+#
+# ⚠️ NOTA DE INCERTEZA (sendo direto sobre isso, como de praxe): a
+# assinatura exata de Plymouth.SetDisplayPasswordFunction — quando ela é
+# chamada, com que frequência, e o formato exato dos parâmetros — eu
+# reconstruí a partir de exemplos de outros temas reais, não de uma
+# referência 100% oficial e atualizada. É o ponto mais provável de
+# precisar de ajuste depois do primeiro teste. Testar isso não requer
+# reboot na máquina real: dá pra rodar `plymouthd --debug --no-daemon`
+# + `plymouth --show-splash` numa VM ou em outro TTY primeiro.
+##############################################################################
+
+# ---- paleta (Colors.qml do projeto Quickshell) ----
+BG_R = 0.0;    BG_G = 0.0;    BG_B = 0.0;      # #000000 (base)
+CYAN_R = 0.0;  CYAN_G = 0.94; CYAN_B = 1.0;    # #00f0ff (accent / status OK)
+MUTED_R = 0.50; MUTED_G = 0.50; MUTED_B = 0.50; # #808080 (texto secundário)
+FONT = "JetBrainsMono Nerd Font 14";
+
+Window.SetBackgroundTopColor(BG_R, BG_G, BG_B);
+Window.SetBackgroundBottomColor(BG_R, BG_G, BG_B);
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+
+# ---- linhas do "log" ----
+# Fake no sentido de que são escritas aqui, não vêm do boot real —
+# mas o conteúdo reflete o stack real da máquina (LUKS2, Btrfs, greetd).
+log_lines[0] = "[ OK ] Unlocking LUKS2 encrypted volume...";
+log_lines[1] = "[ OK ] Mounting btrfs subvolumes (@, @home, @snapshots)...";
+log_lines[2] = "[ OK ] Activating swap...";
+log_lines[3] = "[ OK ] Starting systemd-udevd...";
+log_lines[4] = "[ OK ] Mounting /boot (vfat)...";
+log_lines[5] = "[ OK ] Reached target Local File Systems...";
+log_lines[6] = "[ OK ] Starting NetworkManager...";
+log_lines[7] = "[ OK ] Starting Bluetooth service...";
+log_lines[8] = "[ OK ] Reached target Sysinit...";
+log_lines[9] = "[ OK ] Starting greetd (tuigreet)...";
+num_lines = 10;
+
+LEFT_MARGIN = screen_w * 0.06;
+TOP_MARGIN  = screen_h * 0.10;
+LINE_HEIGHT = 26;
+
+for (i = 0; i < num_lines; i++) {
+    line_sprites[i] = Sprite();
+    line_sprites[i].SetPosition(LEFT_MARGIN, TOP_MARGIN + i * LINE_HEIGHT, 100);
+    line_sprites[i].SetOpacity(0);
+}
+
+# ---- cursor piscando no fim da última linha escrita ----
+cursor_sprite = Sprite();
+cursor_image = Image.Text("_", CYAN_R, CYAN_G, CYAN_B, 1, FONT);
+cursor_sprite.SetImage(cursor_image);
+cursor_sprite.SetZ(101);
+
+# ---- overlay de flash full-screen (asset: PNG 1x1 na cor #001a1f, escalado) ----
+flash_pixel = Image("flash_pixel.png");
+flash_scaled = flash_pixel.Scale(screen_w, screen_h);
+flash_sprite = Sprite(flash_scaled);
+flash_sprite.SetPosition(0, 0, 10000);
+flash_sprite.SetOpacity(0);
+
+# ---- estado global de animação ----
+tick = 0;
+ticks_per_line = 15;      # ~0.3s por linha, assumindo refresh ~50x/s
+current_line = 0;
+cursor_visible = 1;
+flash_active = 0;
+flash_tick = 0;
+FLASH_DURATION = 20;      # ~0.4s de flash (fade in + fade out)
+flash_fired_for_prompt = 0;
+
+fun update_log() {
+    if (current_line < num_lines) {
+        if (tick % ticks_per_line == 0) {
+            text_image = Image.Text(log_lines[current_line], CYAN_R, CYAN_G, CYAN_B, 1, FONT);
+            line_sprites[current_line].SetImage(text_image);
+            line_sprites[current_line].SetOpacity(1);
+            current_line++;
+        }
+    }
+}
+
+fun update_cursor() {
+    if (tick % 25 == 0) {
+        cursor_visible = 1 - cursor_visible;
+        cursor_sprite.SetOpacity(cursor_visible);
+    }
+    if (current_line > 0) {
+        last_y = TOP_MARGIN + (current_line - 1) * LINE_HEIGHT;
+        cursor_sprite.SetPosition(LEFT_MARGIN + 420, last_y, 101);
+    }
+}
+
+fun trigger_flash() {
+    flash_active = 1;
+    flash_tick = 0;
+}
+
+fun update_flash() {
+    if (flash_active == 1) {
+        progress = flash_tick / FLASH_DURATION;
+        if (progress < 0.5) {
+            opacity = progress * 2;         # fade in
+        } else {
+            opacity = (1 - progress) * 2;   # fade out
+        }
+        flash_sprite.SetOpacity(opacity);
+        flash_tick++;
+        if (flash_tick > FLASH_DURATION) {
+            flash_active = 0;
+            flash_sprite.SetOpacity(0);
+        }
+    }
+}
+
+fun refresh_callback() {
+    update_log();
+    update_cursor();
+    update_flash();
+    tick++;
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# ---- prompt de senha do LUKS: dispara o flash (uma vez) + desenha os bullets ----
+password_prompt_sprite = Sprite();
+password_bullets_sprite = Sprite();
+
+fun display_password_callback(prompt, bullets) {
+    if (flash_fired_for_prompt == 0) {
+        trigger_flash();
+        flash_fired_for_prompt = 1;
+    }
+
+    prompt_text = prompt;
+    if (prompt_text == NULL) {
+        prompt_text = "Enter passphrase to unlock disk:";
+    }
+
+    prompt_image = Image.Text(prompt_text, CYAN_R, CYAN_G, CYAN_B, 1, FONT);
+    password_prompt_sprite.SetImage(prompt_image);
+    password_prompt_sprite.SetPosition(LEFT_MARGIN, screen_h * 0.85, 200);
+
+    bullet_str = "";
+    for (b = 0; b < bullets; b++) {
+        bullet_str += "*";
+    }
+    bullets_image = Image.Text(bullet_str, MUTED_R, MUTED_G, MUTED_B, 1, FONT);
+    password_bullets_sprite.SetImage(bullets_image);
+    password_bullets_sprite.SetPosition(LEFT_MARGIN, screen_h * 0.89, 200);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
