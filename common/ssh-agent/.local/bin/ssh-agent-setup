@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Roda uma vez por instalação (chamado pelo install.sh).
+# Habilita o socket do ssh-agent gerenciado por systemd --user, pra ele
+# subir sozinho (com socket-activation) sem precisar iniciar nada na mão.
+# Idempotente: rodar de novo com o socket já habilitado não faz nada.
+set -e
+
+if command -v systemctl &>/dev/null && systemctl --user list-unit-files ssh-agent.socket &>/dev/null; then
+    systemctl --user enable --now ssh-agent.socket
+    echo "ssh-agent.socket habilitado (systemd --user)."
+else
+    echo "systemd --user ssh-agent.socket não encontrado; pulando essa etapa." >&2
+fi

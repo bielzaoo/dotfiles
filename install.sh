@@ -34,6 +34,23 @@ for pkg in "profiles/$PROFILE"/*/; do
     stow -d "profiles/$PROFILE" -t "$HOME" "$name"
 done
 
+echo "== Configurando SSH agent (systemd --user) =="
+if [ -x "$HOME/.local/bin/ssh-agent-setup" ]; then
+    "$HOME/.local/bin/ssh-agent-setup"
+fi
+
+BASHRC="$HOME/.bashrc"
+MARKER="# >>> dotfiles ssh-agent >>>"
+if [ -f "$BASHRC" ] && ! grep -qF "$MARKER" "$BASHRC"; then
+    cat >>"$BASHRC" <<'EOF'
+
+# >>> dotfiles ssh-agent >>>
+[[ -f "$HOME/.local/bin/ssh-agent-init" ]] && source "$HOME/.local/bin/ssh-agent-init"
+# <<< dotfiles ssh-agent <<<
+EOF
+    echo "  -> adicionado ao ~/.bashrc"
+fi
+
 echo ""
 echo "Pronto! Perfil '$PROFILE' aplicado via symlinks."
 echo "Pra trocar de perfil depois: stow -D em cima do atual, depois ./install.sh <outro>"

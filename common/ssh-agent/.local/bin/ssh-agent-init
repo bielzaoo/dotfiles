@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Sourced pelo .bashrc em toda shell interativa.
+# Aponta SSH_AUTH_SOCK pro socket ativado via systemd (ssh-agent.socket) e,
+# se o agente ainda estiver sem nenhuma chave carregada (primeira shell
+# depois de um boot/reinstall), adiciona as chaves privadas de ~/.ssh.
+# Depois disso o agente fica compartilhado por todas as shells até reiniciar.
+
+[ -n "$XDG_RUNTIME_DIR" ] || return 0 2>/dev/null || exit 0
+
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+
+ssh-add -l &>/dev/null
+status=$?
+
+# 1 = agente respondendo mas sem nenhuma chave carregada ainda
+# 2 = não conseguiu falar com o agente (socket ainda não foi ativado) -> ignora
+if [ "$status" -eq 1 ]; then
+    for key in "$HOME"/.ssh/*; do
+        [ -f "$key" ] || continue
+        case "$key" in
+            *.pub|*/config|*/known_hosts*|*/authorized_keys) continue ;;
+        esac
+        head -1 "$key" 2>/dev/null | grep -q "PRIVATE KEY" && ssh-add "$key" 2>/dev/null
+    done
+fi
