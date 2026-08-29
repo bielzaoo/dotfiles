@@ -6,8 +6,9 @@ import "modules/bar"
 import "modules/notifications"
 import "modules/osd"
 import "modules/launcher"
-
+import "modules/wallpaper"
 ShellRoot {
+    Wallpaper {}
     PanelWindow {
         id: bar
         anchors {
@@ -17,23 +18,19 @@ ShellRoot {
         }
         implicitHeight: 32
         color: Colors.background
-
         Workspaces {
             anchors.left: parent.left
             anchors.leftMargin: 12
             anchors.verticalCenter: parent.verticalCenter
         }
-
         Clock {
             anchors.centerIn: parent
         }
-
         Row {
             anchors.right: parent.right
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
             spacing: 12
-
             SystemStats {}
             BluetoothPanel {
                 anchors.verticalCenter: parent.verticalCenter
@@ -45,24 +42,18 @@ ShellRoot {
             }
         }
     }
-
     NotificationPopup {}
-
     VolumeOSD {
         id: volumeOsd
     }
-
     BrightnessOSD {
         id: brightnessOsd
     }
-
     Launcher {
         id: launcher
     }
-
     IpcHandler {
         target: "osd"
-
         function volumeUp() {
             volumeOsd.nudge(0.05)
         }
@@ -79,10 +70,8 @@ ShellRoot {
             brightnessOsd.nudge(-5)
         }
     }
-
     IpcHandler {
         target: "launcher"
-
         function toggle() {
             launcher.toggle()
         }
