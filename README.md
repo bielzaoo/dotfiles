@@ -9,7 +9,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── kitty/.config/kitty
 │   ├── tmux/             → config + tema Catppuccin Mocha (ver seção abaixo)
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
-│   └── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
+│   ├── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
+│   └── wireguard/        → sobe o túnel WireGuard no boot (ver seção abaixo)
 ├── profiles/
 │   ├── classic/         → setup atual (estável, uso diário)
 │   │   ├── hypr/.config/hypr     → Hyprland em Lua, hypridle, hyprlock, hyprpaper
@@ -73,6 +74,17 @@ O que ele faz (idempotente, precisa de sudo):
 - Adiciona seu usuário aos grupos `libvirt` e `kvm` (precisa logout/login pra valer).
 - Ativa e marca como autostart a rede NAT padrão do libvirt (`virbr0`).
 - Libera `virbr0` no UFW (`ufw allow in on virbr0` + `ufw route allow in on virbr0`) — é essa liberação que resolve o problema clássico de VM sem internet até mexer no firewall na mão.
+
+## WireGuard
+
+Sobe o túnel WireGuard automaticamente no boot (via `wg-quick@wg0.service`), sem precisar de `sudo wg-quick up wg0` toda vez:
+
+```bash
+bash ~/dotfiles/common/wireguard/install.sh        # wg0 (padrão)
+bash ~/dotfiles/common/wireguard/install.sh wg1    # outra interface
+```
+
+A config (`/etc/wireguard/wg0.conf`) não fica no repo porque tem chave privada — ela precisa já existir lá. Se o túnel estiver levantado na mão, o script derruba e deixa o systemd assumir. Depois disso, controle com `sudo systemctl {stop,start,restart} wg-quick@wg0`.
 
 ## Por que essa estrutura
 
