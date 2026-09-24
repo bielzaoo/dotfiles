@@ -14,16 +14,17 @@ ln -sf "$DIR/.local/bin/ssh-agent-init" "$HOME/.local/bin/ssh-agent-init"
 
 "$HOME/.local/bin/ssh-agent-setup"
 
-BASHRC="$HOME/.bashrc"
 MARKER="# >>> dotfiles ssh-agent >>>"
-if [ -f "$BASHRC" ] && ! grep -qF "$MARKER" "$BASHRC"; then
-    cat >>"$BASHRC" <<'EOF'
+for RC in "$HOME/.bashrc" "$HOME/.zshrc"; do
+    if [ -f "$RC" ] && ! grep -qF "$MARKER" "$RC"; then
+        cat >>"$RC" <<'EOF'
 
 # >>> dotfiles ssh-agent >>>
 [[ -f "$HOME/.local/bin/ssh-agent-init" ]] && source "$HOME/.local/bin/ssh-agent-init"
 # <<< dotfiles ssh-agent <<<
 EOF
-    echo "  -> adicionado ao ~/.bashrc"
-fi
+        echo "  -> adicionado ao $RC"
+    fi
+done
 
-echo "ssh-agent configurado. Abre um terminal novo (ou 'source ~/.bashrc') pra ativar."
+echo "ssh-agent configurado. Abre um terminal novo (ou 'source ~/.bashrc' / 'source ~/.zshrc') pra ativar."

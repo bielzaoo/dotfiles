@@ -1,20 +1,29 @@
 #!/usr/bin/env bash
-# Sourced pelo .bashrc em toda shell interativa.
+# Sourced pelo .bashrc/.zshrc em toda shell interativa (compatível com os dois).
 # Aponta SSH_AUTH_SOCK pro socket ativado via systemd (ssh-agent.socket) e,
 # se o agente ainda estiver sem nenhuma chave carregada (primeira shell
 # depois de um boot/reinstall), adiciona as chaves privadas de ~/.ssh.
 # Depois disso o agente fica compartilhado por todas as shells até reiniciar.
+#
+# Tudo roda dentro de uma função pra não vazar variáveis na shell (e não
+# usar nomes reservados: no zsh `status` é read-only, sinônimo de `$?`).
 
-[ -n "$XDG_RUNTIME_DIR" ] || return 0 2>/dev/null || exit 0
+_ssh_agent_init() {
+    [ -n "$XDG_RUNTIME_DIR" ] || return 0
 
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+    # zsh: glob sem match expande pra nada em vez de dar erro "no matches found"
+    [ -n "$ZSH_VERSION" ] && setopt local_options null_glob
 
-ssh-add -l &>/dev/null
-status=$?
+    export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
-# 1 = agente respondendo mas sem nenhuma chave carregada ainda
-# 2 = não conseguiu falar com o agente (socket ainda não foi ativado) -> ignora
-if [ "$status" -eq 1 ]; then
+    local rc key
+    ssh-add -l >/dev/null 2>&1
+    rc=$?
+
+    # 1 = agente respondendo mas sem nenhuma chave carregada ainda
+    # 2 = não conseguiu falar com o agente (socket ainda não foi ativado) -> ignora
+    [ "$rc" -eq 1 ] || return 0
+
     for key in "$HOME"/.ssh/*; do
         [ -f "$key" ] || continue
         case "$key" in
@@ -22,4 +31,8 @@ if [ "$status" -eq 1 ]; then
         esac
         head -1 "$key" 2>/dev/null | grep -q "PRIVATE KEY" && ssh-add "$key" 2>/dev/null
     done
-fi
+    return 0
+}
+
+_ssh_agent_init
+unset -f _ssh_agent_init
