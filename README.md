@@ -19,6 +19,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   │   └── waybar/.config/waybar → bar com Bluetooth, powermenu, etc
 │   ├── kde/             → KDE Plasma 6: tema, botões estilo mac, dock, animações (ver seção abaixo)
 │   └── quickshell/       → projeto futuro (Qt6/QML), vazio por enquanto
+├── extras/
+│   └── lazyvim/          → ajustes pro LazyVim instalado à mão (ver seção abaixo)
 └── archive/
     ├── rofi/            → não usado mais (substituído por wofi)
     └── nwg-bar/         → não usado mais
@@ -121,6 +123,18 @@ O que o `profiles/kde/setup.sh` aplica (idempotente):
 - **Visão geral**: canto superior esquerdo (ou Meta+W) abre a visão geral, canto superior direito (ou Meta+G) abre a grade de áreas de trabalho, e **Meta+Tab** alterna entre as duas (vale depois de deslogar/logar).
 
 Não usa stow porque o KDE reescreve `kwinrc`/`kdeglobals`/etc. no lugar e quebraria os symlinks. Tudo é aplicado com `kwriteconfig6` e D-Bus. Pra ajustar os detalhes dos botões depois: Configurações do sistema → Decorações de janelas → Klassy.
+
+## LazyVim (extras)
+
+O Neovim versionado é o `common/nvim`. O LazyVim eu instalo à mão, então ele não fica aqui, só os ajustes em `extras/lazyvim/`, no mesmo caminho do `~/.config/nvim`. Depois de instalar o LazyVim:
+
+```bash
+cp -r ~/dotfiles/extras/lazyvim/lua ~/.config/nvim/
+```
+
+- `lua/plugins/colorscheme.lua`: Catppuccin Mocha com fundo preto, igual ao kitty/tmux/starship. Usa `catppuccin-mocha` (e não `catppuccin`) porque o Neovim já vem com um `colors/catppuccin.vim` embutido que ganharia do plugin no startup.
+
+`extras/` fica fora de `common/` e `profiles/` de propósito: não é pacote do stow, então nada ali vira symlink na home.
 
 ## Por que essa estrutura
 
