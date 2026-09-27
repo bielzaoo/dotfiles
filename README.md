@@ -6,7 +6,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 .
 ├── common/
 │   ├── nvim/           → LazyVim + tema crimson
-│   ├── kitty/.config/kitty
+│   ├── kitty/.config/kitty → JetBrains Mono, rastro no cursor, abas estilizadas, tema Catppuccin black
 │   ├── tmux/             → config + temas Catppuccin Mocha/black (ver seção abaixo)
 │   ├── zsh/              → ls vira eza, cd vira zoxide (ver seção abaixo)
 │   ├── starship/         → prompt com logo do Arch, fundo preto
