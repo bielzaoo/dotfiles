@@ -2,7 +2,8 @@
 # Visual moderno pro KDE Plasma 6: tema escuro neutro (Breeze Dark), ícones
 # Papirus, janelas com botões estilo mac à esquerda (Klassy), barra no topo
 # + dock flutuante embaixo, e animações (magic lamp, janelas gelatinosas,
-# cubo de áreas de trabalho, maximizar/encaixar suave).
+# cubo de áreas de trabalho, maximizar/encaixar suave, Alt+Tab em
+# carrossel 3D).
 #
 # Não usa stow de propósito: o KDE reescreve kwinrc/kdeglobals/etc. no
 # lugar, o que quebraria os symlinks. Aqui tudo é aplicado com
@@ -61,6 +62,19 @@ kwriteconfig6 --file kwinrc --group Plugins --key squashEnabled false
 kwriteconfig6 --file kwinrc --group Plugins --key wobblywindowsEnabled true
 kwriteconfig6 --file kwinrc --group Plugins --key cubeEnabled true
 kwriteconfig6 --file kwinrc --group Plugins --key kwin4_effect_geometry_changeEnabled true
+# Troca de área de trabalho: só as janelas deslizam; wallpaper fica parado
+# (painéis já ficam parados por padrão no Plasma 6).
+kwriteconfig6 --file kwinrc --group Effect-slide --key SlideBackground false
+
+echo "== Alt+Tab: Cover Switch (carrossel 3D) =="
+kwriteconfig6 --file kwinrc --group TabBox --key LayoutName coverswitch
+
+echo "== Visão geral: Meta+Tab alterna visão geral/grade; canto sup. direito abre a grade =="
+# Atalho global só é lido pelo KWin no login.
+kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Cycle Overview" \
+    "Meta+Tab,none,Alternar entre visão geral e visualização em grade"
+# 1 = ElectricTopRight (o canto superior esquerdo já abre a visão geral por padrão)
+kwriteconfig6 --file kwinrc --group Effect-overview --key GridBorderActivate 1
 
 echo "== Áreas de trabalho: 4 (Meta+C abre o cubo) =="
 count=$(qdbus6 org.kde.KWin /VirtualDesktopManager org.kde.KWin.VirtualDesktopManager.count)
@@ -76,6 +90,8 @@ for effect in magiclamp wobblywindows cube kwin4_effect_geometry_change; do
     qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect "$effect" >/dev/null ||
         echo "efeito $effect não carregou (instalado?)" >&2
 done
+qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.reconfigureEffect slide
+qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.reconfigureEffect overview
 
 if [ -z "$SKIP_PANELS" ]; then
     echo "== Painéis: barra no topo + dock =="
