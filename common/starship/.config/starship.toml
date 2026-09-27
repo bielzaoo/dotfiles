@@ -1,0 +1,90 @@
+# Prompt pro terminal preto: logo do Arch, pasta, git, linguagem do projeto
+# e tempo do último comando. Cores: Catppuccin Mocha sobre fundo preto
+# (mesma paleta do tema black do tmux e do Neovim). Precisa de Nerd Font.
+"$schema" = "https://starship.rs/config-schema.json"
+
+palette = "catppuccin_black"
+add_newline = true
+
+format = """
+[ ](bold fg:arch)\
+$username$hostname\
+$directory\
+$git_branch$git_status\
+$python$nodejs$rust$golang$lua\
+$cmd_duration\
+$line_break\
+$character"""
+
+[palettes.catppuccin_black]
+arch = "#1793d1"
+text = "#cdd6f4"
+muted = "#6c7086"
+sky = "#89dceb"
+mauve = "#cba6f7"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+peach = "#fab387"
+red = "#f38ba8"
+
+# Usuário/host só aparecem numa sessão SSH.
+[username]
+style_user = "fg:peach"
+style_root = "bold fg:red"
+format = "[$user]($style)"
+
+[hostname]
+style = "fg:peach"
+format = "[@$hostname]($style) "
+
+[directory]
+style = "bold fg:sky"
+read_only = " "
+read_only_style = "fg:red"
+truncation_length = 3
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = " "
+style = "fg:mauve"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "fg:yellow"
+format = "([$all_status$ahead_behind]($style) )"
+
+[python]
+symbol = " "
+style = "fg:yellow"
+format = "[$symbol$version( \\($virtualenv\\))]($style) "
+
+[nodejs]
+symbol = " "
+style = "fg:green"
+format = "[$symbol$version]($style) "
+
+[rust]
+symbol = " "
+style = "fg:peach"
+format = "[$symbol$version]($style) "
+
+[golang]
+symbol = " "
+style = "fg:sky"
+format = "[$symbol$version]($style) "
+
+[lua]
+symbol = " "
+style = "fg:arch"
+format = "[$symbol$version]($style) "
+
+[cmd_duration]
+min_time = 2000
+style = "fg:muted"
+format = "[ $duration]($style) "
+
+[character]
+success_symbol = "[❯](bold fg:green)"
+error_symbol = "[❯](bold fg:red)"
+vimcmd_symbol = "[❮](bold fg:green)"

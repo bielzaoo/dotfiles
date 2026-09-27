@@ -7,7 +7,9 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 ├── common/
 │   ├── nvim/           → LazyVim + tema crimson
 │   ├── kitty/.config/kitty
-│   ├── tmux/             → config + tema Catppuccin Mocha (ver seção abaixo)
+│   ├── tmux/             → config + temas Catppuccin Mocha/black (ver seção abaixo)
+│   ├── zsh/              → ls vira eza, cd vira zoxide (ver seção abaixo)
+│   ├── starship/         → prompt com logo do Arch, fundo preto
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
 │   ├── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
 │   └── wireguard/        → sobe o túnel WireGuard no boot (ver seção abaixo)
@@ -45,7 +47,21 @@ for pkg in profiles/classic/*/; do stow -D -d profiles/classic -t "$HOME" "$(bas
 ## Tmux
 
 - `common/tmux/.tmux.conf` — prefix, binds, mouse etc. Pode mudar à vontade.
+- `common/tmux/.tmux/themes/catppuccin-black.conf` — tema ativo: mesmas cores do Mocha, mas com fundo preto puro pra combinar com o kitty. Pra voltar pro Mocha, troque o `source-file` no `.tmux.conf`.
 - `common/tmux/.tmux/themes/catppuccin-mocha.conf` — só o esquema de cores (bordas, status bar com separadores slant em Nerd Font, mode, clock), importado via `source-file` no `.tmux.conf`. Auto-contido: dá pra copiar só esse arquivo pra `~/.tmux/themes/` em outra máquina e importar em qualquer `.tmux.conf`, sem arrastar keybinds.
+
+## zsh: eza e zoxide
+
+```bash
+bash ~/dotfiles/common/zsh/install.sh
+```
+
+Linka `common/zsh/.config/zsh/modern-cli.zsh` e adiciona um `source` no fim do `~/.zshrc` (entre os marcadores `# >>> dotfiles modern-cli >>>`/`<<<`):
+
+- `ls` vira `eza` com ícones e pastas primeiro; `ll`/`la`/`l` com detalhes e status do git, `lt` em árvore.
+- `cd` vira o `zoxide`: ele aprende as pastas que você visita, então `cd dotf` pula pra `~/dotfiles` de qualquer lugar. `cdi` abre a busca interativa (fzf).
+
+O prompt (`common/starship/.config/starship.toml`) segue a mesma paleta Catppuccin sobre preto, com o logo do Arch; o `~/.zshrc` já tem o `eval "$(starship init zsh)"`.
 
 ## SSH agent
 

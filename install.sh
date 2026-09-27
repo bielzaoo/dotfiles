@@ -44,6 +44,9 @@ fi
 echo "== Configurando SSH agent (systemd --user) =="
 bash common/ssh-agent/install.sh
 
+echo "== Configurando zsh (eza + zoxide) =="
+bash common/zsh/install.sh
+
 echo ""
 echo "Pronto! Perfil '$PROFILE' aplicado via symlinks."
 echo "Pra trocar de perfil depois: stow -D em cima do atual, depois ./install.sh <outro>"
