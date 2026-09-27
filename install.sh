@@ -1,12 +1,13 @@
 #!/bin/bash
 # Uso: ./install.sh classic
+#      ./install.sh kde          (KDE Plasma: tema, dock, animações)
 #      ./install.sh quickshell   (ainda vazio — projeto futuro)
 set -e
 
 PROFILE="$1"
 
 if [ -z "$PROFILE" ]; then
-    echo "Uso: ./install.sh <classic|quickshell>"
+    echo "Uso: ./install.sh <classic|kde|quickshell>"
     exit 1
 fi
 
@@ -29,10 +30,16 @@ if [ ! -d "profiles/$PROFILE" ]; then
 fi
 
 for pkg in "profiles/$PROFILE"/*/; do
+    [ -d "$pkg" ] || continue
     name=$(basename "$pkg")
     echo "  -> $name"
     stow -d "profiles/$PROFILE" -t "$HOME" "$name"
 done
+
+if [ -x "profiles/$PROFILE/setup.sh" ]; then
+    echo "== Rodando setup do perfil $PROFILE =="
+    bash "profiles/$PROFILE/setup.sh"
+fi
 
 echo "== Configurando SSH agent (systemd --user) =="
 bash common/ssh-agent/install.sh

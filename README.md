@@ -15,6 +15,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── classic/         → setup atual (estável, uso diário)
 │   │   ├── hypr/.config/hypr     → Hyprland em Lua, hypridle, hyprlock, hyprpaper
 │   │   └── waybar/.config/waybar → bar com Bluetooth, powermenu, etc
+│   ├── kde/             → KDE Plasma 6: tema, botões estilo mac, dock, animações (ver seção abaixo)
 │   └── quickshell/       → projeto futuro (Qt6/QML), vazio por enquanto
 └── archive/
     ├── rofi/            → não usado mais (substituído por wofi)
@@ -85,6 +86,24 @@ bash ~/dotfiles/common/wireguard/install.sh wg1    # outra interface
 ```
 
 A config (`/etc/wireguard/wg0.conf`) não fica no repo porque tem chave privada — ela precisa já existir lá. Se o túnel estiver levantado na mão, o script derruba e deixa o systemd assumir. Depois disso, controle com `sudo systemctl {stop,start,restart} wg-quick@wg0`.
+
+## KDE Plasma
+
+Perfil pro KDE Plasma 6 (Wayland): visual escuro neutro e moderno, sem imitar o mac, mas com os botões de janela estilo mac.
+
+```bash
+./install.sh kde                          # tudo (stow do common + setup do KDE)
+bash ~/dotfiles/profiles/kde/setup.sh     # só a parte do KDE
+```
+
+O que o `profiles/kde/setup.sh` aplica (idempotente):
+
+- **Tema**: global Breeze Dark + ícones Papirus-Dark.
+- **Janelas**: decoração [Klassy](https://github.com/paulmcauley/klassy) (AUR) com o preset "Eaten Fruits": botões redondos vermelho/amarelo/verde **à esquerda** (fechar, minimizar, maximizar), ícone só no hover, cantos arredondados e barra de título translúcida com blur.
+- **Painéis** (`profiles/kde/panels.js`): barra fina no topo (menu, áreas de trabalho, relógio no centro, bandeja) + dock flutuante centralizada embaixo, que some quando uma janela encosta nela. **Recria os painéis do zero**: use `SKIP_PANELS=1` pra reaplicar o resto sem perder widgets que você adicionou na mão.
+- **Animações**: magic lamp ao minimizar, janelas gelatinosas (wobbly), maximizar/encaixar suave (`kwin-effects-geometry-change`, AUR) e cubo 3D com 4 áreas de trabalho (**Meta+C** abre o cubo).
+
+Não usa stow porque o KDE reescreve `kwinrc`/`kdeglobals`/etc. no lugar e quebraria os symlinks. Tudo é aplicado com `kwriteconfig6` e D-Bus. Pra ajustar os detalhes dos botões depois: Configurações do sistema → Decorações de janelas → Klassy.
 
 ## Por que essa estrutura
 
