@@ -12,7 +12,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── starship/         → prompt com logo do Arch, fundo preto
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
 │   ├── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
-│   └── wireguard/        → sobe o túnel WireGuard no boot (ver seção abaixo)
+│   ├── wireguard/        → sobe o túnel WireGuard no boot (ver seção abaixo)
+│   └── plymouth/         → tela gráfica de boot + senha do disco (ver seção abaixo)
 ├── profiles/
 │   ├── classic/         → setup atual (estável, uso diário)
 │   │   ├── hypr/.config/hypr     → Hyprland em Lua, hypridle, hyprlock, hyprpaper
@@ -135,6 +136,20 @@ cp -r ~/dotfiles/extras/lazyvim/lua ~/.config/nvim/
 - `lua/plugins/colorscheme.lua`: Catppuccin Mocha com fundo preto, igual ao kitty/tmux/starship. Usa `catppuccin-mocha` (e não `catppuccin`) porque o Neovim já vem com um `colors/catppuccin.vim` embutido que ganharia do plugin no startup.
 
 `extras/` fica fora de `common/` e `profiles/` de propósito: não é pacote do stow, então nada ali vira symlink na home.
+
+## Plymouth (tela de boot e senha do disco)
+
+Troca o pedido de senha do LUKS em modo texto por uma tela gráfica (tema `bgrt`: logo da Lenovo vindo da BIOS + campo de senha), que segue até o login:
+
+```bash
+bash ~/dotfiles/common/plymouth/install.sh
+```
+
+Feito pro boot desta máquina: GRUB → UKI (`/boot/EFI/Linux/arch-linux.efi`) gerado pelo `mkinitcpio`. Por isso o `quiet splash` vai em `/etc/kernel/cmdline` (que é embutido no UKI), e não no `/etc/default/grub`. O script instala o `plymouth`, põe o hook `plymouth` antes do `encrypt`, escolhe o tema e regera o UKI. A senha usa o layout do `XKBLAYOUT` do `/etc/vconsole.conf` (hoje `br`).
+
+**Backup e primeiro boot:** na primeira execução o script copia o UKI antigo pra `/boot/EFI/Linux/arch-linux-sem-plymouth.efi`, e o GRUB lista ele sozinho. Ele costuma vir **primeiro** no menu (e é o que o GRUB inicia por padrão), então no primeiro boot escolha a **outra** entrada "Arch Linux". Funcionou? Rode o script de novo: vendo `splash` no boot atual, ele move o backup pra `/boot/EFI/backup/`, fora do menu.
+
+**Se um dia precisar do backup:** no menu do GRUB aperte `c` e rode `chainloader /EFI/backup/arch-linux-sem-plymouth.efi` e depois `boot`. Pra desfazer de vez, copie de volta `/etc/mkinitcpio.conf.sem-plymouth` e `/etc/kernel/cmdline.sem-plymouth` e rode `sudo mkinitcpio -P`.
 
 ## Por que essa estrutura
 
