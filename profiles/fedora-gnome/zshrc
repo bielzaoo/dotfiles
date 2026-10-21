@@ -3,6 +3,11 @@
 # zsh-syntax-highlighting). O setup.sh copia este arquivo pra ~/.zshrc só
 # se ainda não existir um; depois disso o arquivo é seu.
 
+# ~/.local/bin no PATH (o Fedora só faz isso no ~/.bashrc). É onde ficam
+# o claude, o ssh-agent-init e afins. typeset -U evita duplicata.
+typeset -U path
+path=("$HOME/.local/bin" "$HOME/bin" $path)
+
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
