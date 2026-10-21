@@ -99,7 +99,7 @@ bash ~/dotfiles/common/ssh-agent/install.sh
 
 O que ele faz (idempotente, pode rodar de novo sem problema):
 
-- `common/ssh-agent/.local/bin/ssh-agent-setup` habilita o `ssh-agent.socket` do systemd `--user` (`systemctl --user enable --now ssh-agent.socket`). Isso faz o agente subir sozinho por socket-activation, sem precisar iniciar nada na mão depois de uma reinstalação.
+- `common/ssh-agent/.local/bin/ssh-agent-setup` habilita o `ssh-agent.socket` do systemd `--user` (`systemctl --user enable --now ssh-agent.socket`). Isso faz o agente subir sozinho por socket-activation, sem precisar iniciar nada na mão depois de uma reinstalação. No GNOME ele também mascara o `gcr-ssh-agent` e grava `~/.config/environment.d/ssh-agent.conf`, pra sessão gráfica usar o mesmo agente das shells (senão apps abertos pelo menu, como o Obsidian com obsidian-git, caem num agente vazio e pedem a senha da chave). Vale depois de relogar.
 - `common/ssh-agent/.local/bin/ssh-agent-init` é adicionado ao final do `~/.bashrc` e do `~/.zshrc` (entre os marcadores `# >>> dotfiles ssh-agent >>>`/`<<<`) e roda em toda shell interativa: aponta `SSH_AUTH_SOCK` pro socket do systemd e, se o agente ainda estiver vazio (primeira shell depois de ligar o PC), carrega as chaves privadas de `~/.ssh` com `ssh-add` (pede a passphrase uma vez só; as shells seguintes reusam o mesmo agente).
 
 ## QEMU/KVM
@@ -164,6 +164,11 @@ O que o `profiles/fedora-gnome/setup.sh` aplica (idempotente, via `gsettings`):
 - **tmux**: config e temas do `common/tmux` (keybinds do Omarchy, tema tokyo-night-black).
 - **kitty**: config do `common/kitty`. Como a Nerd Font não está nos repositórios do Fedora, o setup cria um `~/.config/kitty/local.conf` (fora do git) com a JetBrains Mono oficial. Os ícones continuam aparecendo porque o kitty já vem com os símbolos da Nerd Font embutidos.
 - **zsh sem oh-my-zsh**: o `~/.zshrc` é criado a partir do `profiles/fedora-gnome/zshrc` (só se ainda não existir), com os plugins `zsh-autosuggestions` e `zsh-syntax-highlighting` empacotados pelo Fedora, mais o eza/zoxide do `common/zsh`.
+- **Apps Flatpak no escuro**: Flatpak roda isolado e não enxerga o `adw-gtk3` do dnf, então o setup instala a extensão `org.gtk.Gtk3theme.adw-gtk3-dark` do Flathub e força `GTK_THEME` com `flatpak override --user`. Apps Electron como o Obsidian têm o próprio tema (Settings → Appearance).
+- **Ptyxis** (terminal padrão do GNOME) com o visual do kitty: paleta `ptyxis/.local/share/org.gnome.Ptyxis/palettes/vantablack.palette` (mesmas cores do `vantablack.conf`) e JetBrains Mono 11. Padding, rastro do cursor e abas powerline continuam só no kitty.
+- **Ícones da Nerd Font (opcional)**: `INSTALL_NERD_SYMBOLS=1 bash .../setup.sh` baixa só a `NerdFontsSymbolsOnly` da release oficial no GitHub (versão fixa, conferida pelo `SHA-256.txt` da release) pra `~/.local/share/fonts`. É a única coisa fora dos repositórios do Fedora, por isso fica desligada por padrão. O `fontconfig/.../50-nerd-symbols.conf` põe os símbolos logo *depois* da JetBrains Mono (`<accept>`, e não o `<prefer>` do conf oficial), então o texto não muda e os ícones não caem em outra fonte do sistema.
+- **Shell de login**: troca pra zsh com `chsh` (o Ptyxis e o tmux usam a shell de login).
+- **ssh-agent**: roda o `common/ssh-agent/install.sh` (ver seção do ssh-agent), que também desliga o `gcr-ssh-agent` do GNOME.
 - **Prompt no lugar do starship** (`zsh/.config/zsh/prompt.zsh`): o starship não está nos repositórios do Fedora, então o prompt é feito em zsh puro minimalista numa linha só (raio, seta que fica vermelha quando o comando falha e o nome da pasta, mais git, venv e tempo do último comando quando houver). Ele é montado sem `prompt_subst` e escapa o nome da branch, então um repositório clonado com uma branch tipo `$(comando)` não executa nada.
 
 ## LazyVim (extras)
