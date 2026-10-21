@@ -1,6 +1,6 @@
 # Prompt em zsh puro, no lugar do starship (que não está nos repositórios
-# do Fedora). Mesmo visual do common/starship: logo do Fedora, pasta, git,
-# virtualenv e tempo do último comando, em Catppuccin sobre fundo preto.
+# do Fedora). Minimalista, numa linha só: ⚡ → pasta, mais git, virtualenv e
+# tempo do último comando quando houver, em Catppuccin sobre fundo preto.
 # Os ícones vêm dos símbolos Nerd Font que o kitty já traz embutidos.
 #
 # Segurança: o PROMPT é montado no precmd SEM `prompt_subst`, e o nome da
@@ -44,23 +44,21 @@ _prompt_precmd() {
         unset _prompt_start
     fi
 
+    # Uma linha só: raio, seta (vermelha se o último comando falhou) e o nome
+    # da pasta atual. Git, venv e tempo só aparecem quando fazem sentido.
     local p=''
-    # Linha em branco entre um comando e outro (menos no primeiro prompt).
-    [[ -n $_prompt_drawn ]] && p+=$'\n'
-    _prompt_drawn=1
-
-    p+='%F{#51a2da}'$'''%f '
+    p+='%F{#f9e2af}'$'\uf0e7''%f '
     # Usuário/host só numa sessão SSH; root sempre em vermelho.
     if [[ -n $SSH_CONNECTION ]]; then
         p+='%(!.%B%F{#f38ba8}.%F{#fab387})%n@%m%f%b '
     elif (( EUID == 0 )); then
         p+='%B%F{#f38ba8}%n%f%b '
     fi
-    p+='%B%F{#89dceb}%(4~|…/%3~|%~)%f%b '
+    p+='%(?.%F{#a6adc8}.%F{#f38ba8})'$'\u2192''%f '
+    p+='%B%F{#cdd6f4}%1~%f%b '
     p+=$vcs_info_msg_0_
-    [[ -n $VIRTUAL_ENV ]] && p+="%F{#f9e2af}"$''" ${${VIRTUAL_ENV:t}//\%/%%}%f "
-    [[ -n $dur ]] && p+="%F{#6c7086}"$''" $dur%f"
-    p+=$'\n''%(?.%F{#a6e3a1}.%F{#f38ba8})%B❯%b%f '
+    [[ -n $VIRTUAL_ENV ]] && p+="%F{#f9e2af}"$'\ue73c'" ${${VIRTUAL_ENV:t}//\%/%%}%f "
+    [[ -n $dur ]] && p+="%F{#6c7086}"$'\uf252'" $dur%f "
 
     PROMPT=$p
 }
