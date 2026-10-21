@@ -6,8 +6,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 .
 ├── common/
 │   ├── nvim/           → LazyVim + tema crimson
-│   ├── kitty/.config/kitty → JetBrains Mono, rastro no cursor, abas estilizadas, tema Catppuccin black
-│   ├── tmux/             → keybinds do Omarchy + tema tokyo-night nas cores do kitty (ver seção abaixo)
+│   ├── kitty/.config/kitty → JetBrains Mono, rastro no cursor, abas estilizadas, tema Vantablack (igual ao Neovim) ou Catppuccin black
+│   ├── tmux/             → keybinds do Omarchy + tema Vantablack (layout do tokyo-night) (ver seção abaixo)
 │   ├── zsh/              → ls vira eza, cd vira zoxide (ver seção abaixo)
 │   ├── starship/         → prompt com logo do Arch, fundo preto
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
@@ -51,7 +51,8 @@ for pkg in profiles/classic/*/; do stow -D -d profiles/classic -t "$HOME" "$(bas
 ## Tmux
 
 - `common/tmux/.tmux.conf` — prefix, binds, mouse etc. Pode mudar à vontade. Keybinds no esquema do Omarchy (tabela abaixo).
-- `common/tmux/.tmux/themes/tokyo-night-black.conf` — tema ativo: layout do [tokyo-night-tmux](https://github.com/janoamaral/tokyo-night-tmux) (sessão com ícone que muda no prefix, janelas com ícone, pasta, branch e data ❬ hora) nas cores do kitty. É tmux puro, sem os scripts do plugin nem TPM.
+- `common/tmux/.tmux/themes/vantablack.conf` — tema ativo: mesmo layout do tokyo-night-black, nas cores do [vantablack.nvim](https://github.com/bjarneo/vantablack.nvim) (tons de cinza, fundo `#0d0d0d`). O kitty usa o `vantablack.conf` com o mesmo fundo, pra não aparecer moldura em volta do Neovim. Lá a interface (abas, bordas, cursor) também é cinza, mas as 16 cores ANSI são coloridas e apagadas, pra eza/ls/git continuarem diferenciando pasta (azul), executável (verde), link (ciano) etc. O Neovim não usa essas cores e continua todo cinza.
+- `common/tmux/.tmux/themes/tokyo-night-black.conf` — layout do [tokyo-night-tmux](https://github.com/janoamaral/tokyo-night-tmux) (sessão com ícone que muda no prefix, janelas com ícone, pasta, branch e data ❬ hora) nas cores do Catppuccin. É tmux puro, sem os scripts do plugin nem TPM.
 - `common/tmux/.tmux/themes/catppuccin-black.conf` — mesmas cores do Mocha, mas com fundo preto puro pra combinar com o kitty.
 - `common/tmux/.tmux/themes/catppuccin-mocha.conf` — Catppuccin Mocha original.
 
@@ -173,7 +174,7 @@ O Neovim versionado é o `common/nvim`. O LazyVim eu instalo à mão, então ele
 cp -r ~/dotfiles/extras/lazyvim/lua ~/.config/nvim/
 ```
 
-- `lua/plugins/colorscheme.lua`: Catppuccin Mocha com fundo preto, igual ao kitty/tmux/starship. Usa `catppuccin-mocha` (e não `catppuccin`) porque o Neovim já vem com um `colors/catppuccin.vim` embutido que ganharia do plugin no startup.
+- `lua/plugins/colorscheme.lua`: [vantablack.nvim](https://github.com/bjarneo/vantablack.nvim), fundo `#0d0d0d`, igual ao `vantablack.conf` do kitty e do tmux. (O Catppuccin com fundo preto que tinha aqui antes está no histórico do git.)
 
 `extras/` fica fora de `common/` e `profiles/` de propósito: não é pacote do stow, então nada ali vira symlink na home.
 
