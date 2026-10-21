@@ -1,0 +1,30 @@
+# ~/.zshrc do Fedora: sem oh-my-zsh e sem nada baixado da internet. Só o
+# zsh e os plugins empacotados pelo Fedora (zsh-autosuggestions e
+# zsh-syntax-highlighting). O setup.sh copia este arquivo pra ~/.zshrc só
+# se ainda não existir um; depois disso o arquivo é seu.
+
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+# hist_ignore_space: comando começando com espaço não vai pro histórico
+# (bom pra quando precisar digitar algo sensível).
+setopt hist_ignore_all_dups hist_ignore_space share_history
+setopt auto_cd interactive_comments
+
+bindkey -e
+bindkey '^[[1;5C' forward-word         # Ctrl+→
+bindkey '^[[1;5D' backward-word        # Ctrl+←
+bindkey '^[[H'    beginning-of-line    # Home
+bindkey '^[[F'    end-of-line          # End
+bindkey '^[[3~'   delete-char          # Delete
+
+autoload -Uz compinit && compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+[[ -r ~/.config/zsh/prompt.zsh ]] && source ~/.config/zsh/prompt.zsh
+
+[[ -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] &&
+    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] &&
+    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

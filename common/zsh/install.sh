@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Troca ls por eza e cd por zoxide no zsh, sem stow e sem mexer no resto
 # dos dotfiles. Precisa do eza e do zoxide instalados
-# (sudo pacman -S eza zoxide).
+# (Arch: sudo pacman -S eza zoxide / Fedora: sudo dnf install eza zoxide).
 #
 # Uso: bash common/zsh/install.sh   (a partir da raiz do repo)
 #      bash ~/dotfiles/common/zsh/install.sh   (de qualquer lugar)

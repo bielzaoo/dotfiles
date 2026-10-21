@@ -19,6 +19,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   │   ├── hypr/.config/hypr     → Hyprland em Lua, hypridle, hyprlock, hyprpaper
 │   │   └── waybar/.config/waybar → bar com Bluetooth, powermenu, etc
 │   ├── kde/             → KDE Plasma 6: tema, botões estilo mac, dock, animações (ver seção abaixo)
+│   ├── fedora-gnome/    → Fedora + GNOME: visual escuro leve, só pacotes oficiais (ver seção abaixo)
 │   └── quickshell/       → projeto futuro (Qt6/QML), vazio por enquanto
 ├── extras/
 │   └── lazyvim/          → ajustes pro LazyVim instalado à mão (ver seção abaixo)
@@ -124,6 +125,23 @@ O que o `profiles/kde/setup.sh` aplica (idempotente):
 - **Visão geral**: canto superior esquerdo (ou Meta+W) abre a visão geral, canto superior direito (ou Meta+G) abre a grade de áreas de trabalho, e **Meta+Tab** alterna entre as duas (vale depois de deslogar/logar).
 
 Não usa stow porque o KDE reescreve `kwinrc`/`kdeglobals`/etc. no lugar e quebraria os symlinks. Tudo é aplicado com `kwriteconfig6` e D-Bus. Pra ajustar os detalhes dos botões depois: Configurações do sistema → Decorações de janelas → Klassy.
+
+## Fedora + GNOME
+
+Perfil pro Fedora Workstation: visual escuro, moderno e **leve**, sempre de olho na segurança. Tudo vem dos repositórios oficiais do Fedora (`dnf install --repo=fedora --repo=updates`, ou seja, pacotes assinados e nada de repositório de terceiros), sem COPR, sem `curl | sh` e sem temas baixados de site.
+
+```bash
+bash ~/dotfiles/profiles/fedora-gnome/setup.sh     # não use ./install.sh (é feito pro Arch)
+```
+
+O que o `profiles/fedora-gnome/setup.sh` aplica (idempotente, via `gsettings`):
+
+- **Visual**: modo escuro, `adw-gtk3-dark` (deixa os apps GTK3 iguais aos libadwaita), ícones Papirus-Dark, dia da semana no relógio e % da bateria.
+- **Janelas**: botões minimizar/maximizar/fechar, e janelas novas abrem no centro.
+- **Extensões** (só duas, porque extensão roda dentro do gnome-shell sem sandbox): AppIndicator (ícones na bandeja) e Dash to Dock (dock embaixo que some quando uma janela encosta, sem lixeira/discos). Elas aparecem depois de deslogar e logar de novo.
+- **kitty**: config do `common/kitty`. Como a Nerd Font não está nos repositórios do Fedora, o setup cria um `~/.config/kitty/local.conf` (fora do git) com a JetBrains Mono oficial. Os ícones continuam aparecendo porque o kitty já vem com os símbolos da Nerd Font embutidos.
+- **zsh sem oh-my-zsh**: o `~/.zshrc` é criado a partir do `profiles/fedora-gnome/zshrc` (só se ainda não existir), com os plugins `zsh-autosuggestions` e `zsh-syntax-highlighting` empacotados pelo Fedora, mais o eza/zoxide do `common/zsh`.
+- **Prompt no lugar do starship** (`zsh/.config/zsh/prompt.zsh`): o starship não está nos repositórios do Fedora, então o prompt é feito em zsh puro com o mesmo visual (logo do Fedora, pasta, git, venv, tempo do último comando). Ele é montado sem `prompt_subst` e escapa o nome da branch, então um repositório clonado com uma branch tipo `$(comando)` não executa nada.
 
 ## LazyVim (extras)
 
