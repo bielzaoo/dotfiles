@@ -52,6 +52,18 @@ if [ -z "$SKIP_PACKAGES" ]; then
         gnome-shell-extension-appindicator gnome-shell-extension-dash-to-dock \
         kitty tmux zsh zsh-autosuggestions zsh-syntax-highlighting \
         eza zoxide fzf stow
+
+    # Flatpaks rodam isolados e não enxergam o adw-gtk3 do dnf: precisa da
+    # versão do tema como extensão do Flathub.
+    if command -v flatpak &>/dev/null; then
+        flatpak install -y --noninteractive flathub \
+            org.gtk.Gtk3theme.adw-gtk3 org.gtk.Gtk3theme.adw-gtk3-dark
+    fi
+fi
+
+if command -v flatpak &>/dev/null; then
+    echo "== Flatpak: tema adw-gtk3-dark nos apps em sandbox =="
+    flatpak override --user --env=GTK_THEME=adw-gtk3-dark
 fi
 
 echo "== GNOME: modo escuro, adw-gtk3, Papirus-Dark =="
