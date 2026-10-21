@@ -9,7 +9,7 @@
 #   ícones Papirus-Dark, botões minimizar/maximizar, janelas novas no centro
 # - Extensões: AppIndicator (bandeja) + Dash to Dock (dock embaixo, some
 #   quando uma janela encosta)
-# - Terminal: kitty + zsh com prompt próprio (no lugar do starship),
+# - Terminal: kitty + tmux + zsh com prompt próprio (no lugar do starship),
 #   autosuggestions, syntax highlighting, eza e zoxide
 #
 # Configs do GNOME vão por gsettings (o GNOME guarda no dconf, não em
@@ -50,7 +50,7 @@ if [ -z "$SKIP_PACKAGES" ]; then
         gnome-tweaks gnome-extensions-app \
         adw-gtk3-theme papirus-icon-theme jetbrains-mono-fonts-all \
         gnome-shell-extension-appindicator gnome-shell-extension-dash-to-dock \
-        kitty zsh zsh-autosuggestions zsh-syntax-highlighting \
+        kitty tmux zsh zsh-autosuggestions zsh-syntax-highlighting \
         eza zoxide fzf stow
 fi
 
@@ -93,6 +93,10 @@ if ! fc-list | grep -q "JetBrainsMono Nerd Font"; then
     # oficial; os ícones vêm dos símbolos Nerd Font embutidos no kitty.
     echo 'font_family family="JetBrains Mono"' >"$HOME/.config/kitty/local.conf"
 fi
+
+echo "== tmux =="
+# Keybinds do Omarchy + tema tokyo-night-black (ver common/tmux).
+stow --no-folding -d "$REPO/common" -t "$HOME" tmux
 
 echo "== zsh: prompt, plugins, eza/zoxide =="
 stow --no-folding -d "$DIR" -t "$HOME" zsh

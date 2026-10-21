@@ -7,7 +7,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 ├── common/
 │   ├── nvim/           → LazyVim + tema crimson
 │   ├── kitty/.config/kitty → JetBrains Mono, rastro no cursor, abas estilizadas, tema Catppuccin black
-│   ├── tmux/             → config + temas Catppuccin Mocha/black (ver seção abaixo)
+│   ├── tmux/             → keybinds do Omarchy + tema tokyo-night nas cores do kitty (ver seção abaixo)
 │   ├── zsh/              → ls vira eza, cd vira zoxide (ver seção abaixo)
 │   ├── starship/         → prompt com logo do Arch, fundo preto
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
@@ -50,9 +50,30 @@ for pkg in profiles/classic/*/; do stow -D -d profiles/classic -t "$HOME" "$(bas
 
 ## Tmux
 
-- `common/tmux/.tmux.conf` — prefix, binds, mouse etc. Pode mudar à vontade.
-- `common/tmux/.tmux/themes/catppuccin-black.conf` — tema ativo: mesmas cores do Mocha, mas com fundo preto puro pra combinar com o kitty. Pra voltar pro Mocha, troque o `source-file` no `.tmux.conf`.
-- `common/tmux/.tmux/themes/catppuccin-mocha.conf` — só o esquema de cores (bordas, status bar com separadores slant em Nerd Font, mode, clock), importado via `source-file` no `.tmux.conf`. Auto-contido: dá pra copiar só esse arquivo pra `~/.tmux/themes/` em outra máquina e importar em qualquer `.tmux.conf`, sem arrastar keybinds.
+- `common/tmux/.tmux.conf` — prefix, binds, mouse etc. Pode mudar à vontade. Keybinds no esquema do Omarchy (tabela abaixo).
+- `common/tmux/.tmux/themes/tokyo-night-black.conf` — tema ativo: layout do [tokyo-night-tmux](https://github.com/janoamaral/tokyo-night-tmux) (sessão com ícone que muda no prefix, janelas com ícone, pasta, branch e data ❬ hora) nas cores do kitty. É tmux puro, sem os scripts do plugin nem TPM.
+- `common/tmux/.tmux/themes/catppuccin-black.conf` — mesmas cores do Mocha, mas com fundo preto puro pra combinar com o kitty.
+- `common/tmux/.tmux/themes/catppuccin-mocha.conf` — Catppuccin Mocha original.
+
+Pra trocar de tema, mude o `source-file` no fim do `.tmux.conf`. Os temas têm só o esquema de cores e são auto-contidos: dá pra copiar só o arquivo pra `~/.tmux/themes/` em outra máquina e importar em qualquer `.tmux.conf`, sem arrastar keybinds.
+
+| Tecla | O quê |
+|---|---|
+| `Ctrl+Space` (ou `Ctrl+a`) | prefix |
+| prefix `h` / `v` | divide: um embaixo do outro / lado a lado |
+| prefix `x` | fecha o painel |
+| `Ctrl+Alt+setas` | muda de painel (no GNOME, use prefix + setas; ver abaixo) |
+| `Ctrl+Alt+Shift+setas` | redimensiona o painel |
+| prefix `c` / `k` / `r` | nova janela / fecha janela / renomeia janela |
+| `Alt+1..9` | vai pra janela N |
+| `Alt+←/→` | janela anterior / próxima |
+| `Alt+Shift+←/→` | move a janela pra esquerda / direita |
+| prefix `C` / `K` / `R` | nova sessão / fecha sessão / renomeia sessão |
+| `Alt+↑/↓` (ou prefix `P` / `N`) | sessão anterior / próxima |
+| prefix `[`, depois `v` e `y` | copy mode estilo vi, `y` copia pro clipboard |
+| prefix `q` | recarrega a config |
+
+No GNOME, `Ctrl+Alt+setas` já trocam de área de trabalho e chegam antes do tmux. O prefix + setas (padrão do tmux) faz o mesmo.
 
 ## zsh: eza e zoxide
 
@@ -139,9 +160,10 @@ O que o `profiles/fedora-gnome/setup.sh` aplica (idempotente, via `gsettings`):
 - **Visual**: modo escuro, `adw-gtk3-dark` (deixa os apps GTK3 iguais aos libadwaita), ícones Papirus-Dark, dia da semana no relógio e % da bateria.
 - **Janelas**: botões minimizar/maximizar/fechar, e janelas novas abrem no centro.
 - **Extensões** (só duas, porque extensão roda dentro do gnome-shell sem sandbox): AppIndicator (ícones na bandeja) e Dash to Dock (dock embaixo que some quando uma janela encosta, sem lixeira/discos). Elas aparecem depois de deslogar e logar de novo.
+- **tmux**: config e temas do `common/tmux` (keybinds do Omarchy, tema tokyo-night-black).
 - **kitty**: config do `common/kitty`. Como a Nerd Font não está nos repositórios do Fedora, o setup cria um `~/.config/kitty/local.conf` (fora do git) com a JetBrains Mono oficial. Os ícones continuam aparecendo porque o kitty já vem com os símbolos da Nerd Font embutidos.
 - **zsh sem oh-my-zsh**: o `~/.zshrc` é criado a partir do `profiles/fedora-gnome/zshrc` (só se ainda não existir), com os plugins `zsh-autosuggestions` e `zsh-syntax-highlighting` empacotados pelo Fedora, mais o eza/zoxide do `common/zsh`.
-- **Prompt no lugar do starship** (`zsh/.config/zsh/prompt.zsh`): o starship não está nos repositórios do Fedora, então o prompt é feito em zsh puro com o mesmo visual (logo do Fedora, pasta, git, venv, tempo do último comando). Ele é montado sem `prompt_subst` e escapa o nome da branch, então um repositório clonado com uma branch tipo `$(comando)` não executa nada.
+- **Prompt no lugar do starship** (`zsh/.config/zsh/prompt.zsh`): o starship não está nos repositórios do Fedora, então o prompt é feito em zsh puro minimalista numa linha só (raio, seta que fica vermelha quando o comando falha e o nome da pasta, mais git, venv e tempo do último comando quando houver). Ele é montado sem `prompt_subst` e escapa o nome da branch, então um repositório clonado com uma branch tipo `$(comando)` não executa nada.
 
 ## LazyVim (extras)
 
