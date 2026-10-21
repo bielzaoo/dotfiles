@@ -8,6 +8,19 @@ set -e
 if command -v systemctl &>/dev/null && systemctl --user list-unit-files ssh-agent.socket &>/dev/null; then
     systemctl --user enable --now ssh-agent.socket
     echo "ssh-agent.socket habilitado (systemd --user)."
+
+    # O GNOME sobe o gcr-ssh-agent e aponta o SSH_AUTH_SOCK da sessão gráfica
+    # pra ele, então apps abertos fora do terminal (Obsidian, VS Code...)
+    # falavam com outro agente, sem as chaves, e pediam a senha. Desliga o
+    # gcr e faz a sessão inteira usar o mesmo socket das shells.
+    if systemctl --user list-unit-files gcr-ssh-agent.socket &>/dev/null; then
+        systemctl --user disable --now gcr-ssh-agent.socket gcr-ssh-agent.service 2>/dev/null || true
+        systemctl --user mask gcr-ssh-agent.socket gcr-ssh-agent.service
+    fi
+    mkdir -p "$HOME/.config/environment.d"
+    echo 'SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent.socket' >"$HOME/.config/environment.d/ssh-agent.conf"
+    systemctl --user set-environment SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+    echo "Sessão gráfica apontada pro mesmo agente (vale 100% depois de relogar)."
 else
     echo "systemd --user ssh-agent.socket não encontrado; pulando essa etapa." >&2
 fi
