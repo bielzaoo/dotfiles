@@ -1,0 +1,30 @@
+# Modelo do ~/.ssh/config. Copie com:
+#   install -m 600 ~/dotfiles/extras/ssh/config.example ~/.ssh/config
+#
+# O "Repository not found" com várias chaves acontece porque o ssh oferece
+# pro GitHub todas as chaves do agente, na ordem. O GitHub aceita a primeira
+# que pertence a QUALQUER conta sua e te identifica como aquela conta; se
+# ela não tem acesso ao repo, ele responde "not found". O IdentitiesOnly
+# faz o ssh oferecer só a chave do IdentityFile de cada host.
+
+# Conta principal: git@github.com:bielzaoo/repo.git
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/github
+    IdentitiesOnly yes
+
+# Outra conta/chave: troque o host no clone pelo apelido.
+#   git clone git@github-trabalho:empresa/repo.git
+# Num repo já clonado:
+#   git remote set-url origin git@github-trabalho:empresa/repo.git
+# Host github-trabalho
+#     HostName github.com
+#     User git
+#     IdentityFile ~/.ssh/github_trabalho
+#     IdentitiesOnly yes
+
+# Vale pra todo host: ao usar uma chave pela primeira vez, ela entra no
+# agente sozinha (pede a senha uma vez só).
+Host *
+    AddKeysToAgent yes

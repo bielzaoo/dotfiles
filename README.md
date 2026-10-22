@@ -22,7 +22,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── fedora-gnome/    → Fedora + GNOME: visual escuro leve, só pacotes oficiais (ver seção abaixo)
 │   └── quickshell/       → projeto futuro (Qt6/QML), vazio por enquanto
 ├── extras/
-│   └── lazyvim/          → ajustes pro LazyVim instalado à mão (ver seção abaixo)
+│   ├── lazyvim/          → ajustes pro LazyVim instalado à mão (ver seção abaixo)
+│   └── ssh/              → modelo do ~/.ssh/config: uma chave por host do GitHub (ver seção abaixo)
 └── archive/
     ├── rofi/            → não usado mais (substituído por wofi)
     └── nwg-bar/         → não usado mais
@@ -101,6 +102,22 @@ O que ele faz (idempotente, pode rodar de novo sem problema):
 
 - `common/ssh-agent/.local/bin/ssh-agent-setup` habilita o `ssh-agent.socket` do systemd `--user` (`systemctl --user enable --now ssh-agent.socket`). Isso faz o agente subir sozinho por socket-activation, sem precisar iniciar nada na mão depois de uma reinstalação. No GNOME ele também mascara o `gcr-ssh-agent` e grava `~/.config/environment.d/ssh-agent.conf`, pra sessão gráfica usar o mesmo agente das shells (senão apps abertos pelo menu, como o Obsidian com obsidian-git, caem num agente vazio e pedem a senha da chave). Vale depois de relogar.
 - `common/ssh-agent/.local/bin/ssh-agent-init` é adicionado ao final do `~/.bashrc` e do `~/.zshrc` (entre os marcadores `# >>> dotfiles ssh-agent >>>`/`<<<`) e roda em toda shell interativa: aponta `SSH_AUTH_SOCK` pro socket do systemd e, se o agente ainda estiver vazio (primeira shell depois de ligar o PC), carrega as chaves privadas de `~/.ssh` com `ssh-add` (pede a passphrase uma vez só; as shells seguintes reusam o mesmo agente).
+
+## SSH config (várias chaves no GitHub)
+
+`extras/ssh/config.example` é o modelo do `~/.ssh/config`. Fica em `extras/` (e não vira symlink) porque cada máquina tem as próprias chaves:
+
+```bash
+install -m 600 ~/dotfiles/extras/ssh/config.example ~/.ssh/config
+```
+
+Resolve o **"Repository not found"** que aparece com mais de uma chave carregada. O ssh oferece ao GitHub todas as chaves do agente, uma por vez, e o GitHub aceita a primeira que for de **qualquer** conta sua. Se essa conta não tem acesso ao repositório, a resposta é "not found" (e não "sem permissão"). O `IdentitiesOnly yes` com um `IdentityFile` por host faz o ssh oferecer só a chave certa:
+
+- `github.com` → `~/.ssh/github` (a chave principal, conta `bielzaoo`).
+- Outra conta/chave: descomente o bloco `github-trabalho`, aponte pra chave e use o apelido no lugar do host: `git clone git@github-trabalho:usuario/repo.git` (num repo já clonado: `git remote set-url origin git@github-trabalho:usuario/repo.git`).
+- `AddKeysToAgent yes`: a chave entra no agente sozinha na primeira vez que for usada.
+
+Pra testar: `ssh -T git@github.com` tem que responder `Hi bielzaoo!`, e `ssh -G github.com | grep identit` mostra qual chave vai ser usada.
 
 ## QEMU/KVM
 
