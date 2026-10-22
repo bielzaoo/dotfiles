@@ -110,6 +110,11 @@ if ! fc-list | grep -q "JetBrainsMono Nerd Font"; then
     echo 'font_family family="JetBrains Mono"' >"$HOME/.config/kitty/local.conf"
 fi
 
+echo "== Web apps (sites como apps, ver common/webapps) =="
+stow --no-folding -d "$REPO/common" -t "$HOME" webapps
+command -v google-chrome &>/dev/null && "$HOME/.local/bin/webapp" sync ||
+    echo "  aviso: sem Google Chrome; rode 'webapp sync' depois de instalar" >&2
+
 echo "== tmux =="
 stow --no-folding -d "$REPO/common" -t "$HOME" tmux
 

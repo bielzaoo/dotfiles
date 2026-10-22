@@ -13,7 +13,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
 │   ├── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
 │   ├── wireguard/        → sobe o túnel WireGuard no boot (ver seção abaixo)
-│   └── plymouth/         → tela gráfica de boot + senha do disco (ver seção abaixo)
+│   ├── plymouth/         → tela gráfica de boot + senha do disco (ver seção abaixo)
+│   └── webapps/          → sites como apps (WhatsApp etc.) com ícone e janela próprios (ver seção abaixo)
 ├── profiles/
 │   ├── classic/         → setup atual (estável, uso diário)
 │   │   ├── hypr/.config/hypr     → Hyprland em Lua, hypridle, hyprlock, hyprpaper
@@ -202,8 +203,25 @@ O que o `profiles/fedora-kde/setup.sh` aplica (idempotente, via `kwriteconfig6` 
 - **Visual**: tema global Fedora Dark (Breeze Dark com o wallpaper do Fedora), ícones Papirus-Dark, `breeze-gtk` pros apps GTK nativos e janelas novas no centro.
 - **Painéis** (`profiles/fedora-kde/panels.js`): barra fina no topo (26 px: menu, relógio com dia da semana no centro, bandeja) + dock flutuante centralizada embaixo, que some quando uma janela encosta (Dolphin, navegador, Konsole, Discover, Configurações). **Recria os painéis do zero**: use `SKIP_PANELS=1` pra reaplicar o resto sem perder widgets que você adicionou na mão.
 - **Konsole** com o visual do kitty: esquema `konsole/.local/share/konsole/Vantablack.colorscheme` (mesmas cores do `vantablack.conf`, é o único symlink), perfil `Vantablack` como padrão, JetBrains Mono 11, abre o zsh direto e sem barra de menu (`Ctrl+Shift+M` mostra de novo). O perfil é gerado pelo script, e não versionado, porque o Konsole reescreve o arquivo quando você mexe nas configurações dele.
+- **Web apps**: linka o `common/webapps` e roda `webapp sync` (ver seção dos web apps).
 - **O resto é igual ao do GNOME**: kitty, tmux, zsh com o prompt e o `zshrc` do `profiles/fedora-gnome`, apps Flatpak no `adw-gtk3-dark`, shell de login em zsh e ssh-agent único (o Plasma do Fedora já respeita o `SSH_AUTH_SOCK` do `environment.d`).
 - **Ícones da Nerd Font**: o Konsole, como o Ptyxis, não tem os símbolos embutidos, então sem eles os ícones do prompt viram quadradinhos. `INSTALL_NERD_SYMBOLS=1 bash .../setup.sh` roda o mesmo `profiles/fedora-gnome/nerd-symbols.sh` (ver seção do GNOME).
+
+## Web apps (sites como apps)
+
+`common/webapps/.local/bin/webapp` transforma um site num app: janela própria do Chrome (sem abas nem barra de endereço), ícone próprio e item próprio no menu e na dock.
+
+```bash
+webapp add "WhatsApp" https://web.whatsapp.com/ whatsapp   # ícone do tema ou caminho de um .png/.svg
+webapp add "Claude" https://claude.ai/ site                # baixa o ícone do próprio site
+webapp rm "WhatsApp"
+webapp list
+webapp sync     # cria todos os da lista ~/.config/webapps/list (versionada aqui)
+```
+
+Por que não o "Instalar app" do Chrome: no Wayland a janela de um `--app=URL` ignora o `--class`, e o Chrome dá a ela o app_id `chrome-<host>_<caminho>-Default` (ex.: `chrome-web.whatsapp.com__-Default`). Se não existir um `.desktop` com esse nome, o KDE não sabe de quem é a janela e agrupa com o Chrome, com o ícone do Chrome, como se fosse uma aba. O script cria o `.desktop` exatamente com esse nome (testado no Chrome 156). Os web apps usam o perfil `Default` do Chrome, então os logins são os mesmos do navegador.
+
+Pra adicionar um de vez, ponha uma linha no `common/webapps/.config/webapps/list` e rode `webapp sync`. Ícones do Papirus: `find /usr/share/icons/Papirus/64x64/apps -iname '*nome*'`. Se o Papirus não tiver, `site` baixa o `/apple-touch-icon.png` do próprio site (o ícone de quando você "instala" o site no celular; quase todo site tem, e ele passa até quando o site bloqueia o `curl` na página), confere se é PNG mesmo e guarda em `~/.local/share/icons/webapps/`.
 
 ## LazyVim (extras)
 

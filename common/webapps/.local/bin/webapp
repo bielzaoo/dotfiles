@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# Sites como apps: janela própria do Chrome (sem abas nem barra de endereço),
+# ícone próprio e item próprio no menu e na dock.
+#
+# Por que não o "Instalar app" do Chrome: no Wayland a janela de um
+# `--app=URL` não usa o --class; o Chrome dá a ela o app_id
+# chrome-<host>_<caminho>-Default (ex.: chrome-web.whatsapp.com__-Default).
+# Se não existe um .desktop com esse nome, o KDE não sabe de quem é a janela
+# e agrupa com o Chrome, com o ícone do Chrome. Aqui o .desktop é criado com
+# exatamente esse nome.
+#
+# Uso:
+#   webapp add "WhatsApp" https://web.whatsapp.com/ whatsapp
+#   webapp add "Claude" https://claude.ai/ site
+#   webapp rm "WhatsApp"
+#   webapp list
+#   webapp sync     cria todos os de ~/.config/webapps/list
+#
+# O ícone é um nome do tema de ícones (ex.: whatsapp, do Papirus), o
+# caminho de um arquivo .png/.svg ou "site" (baixa o ícone do próprio site).
+set -e
+
+APPS="$HOME/.local/share/applications"
+ICONS="$HOME/.local/share/icons/webapps"
+LIST="$HOME/.config/webapps/list"
+BROWSER=google-chrome
+
+usage() {
+    sed -n '/^# Uso:/,/^# caminho de um arquivo/p' "$0" | sed 's/^# \{0,1\}//'
+    exit 1
+}
+
+refresh() {
+    command -v kbuildsycoca6 &>/dev/null && kbuildsycoca6 &>/dev/null || true
+    command -v update-desktop-database &>/dev/null && update-desktop-database "$APPS" &>/dev/null || true
+}
+
+# Mesma regra do Chrome (GenerateApplicationNameFromURL): host + "_" + caminho,
+# com as "/" virando "_". Porta, query e #fragmento ficam de fora.
+app_id() {
+    local rest="${1#*://}" host path
+    rest="${rest%%[?#]*}"
+    host="${rest%%/*}"
+    host="${host%%:*}"
+    [[ $rest == */* ]] && path="/${rest#*/}" || path="/"
+    echo "chrome-${host}_${path//\//_}-Default"
+}
+
+# Acha o .desktop de um web app pelo nome (só os criados por este script).
+find_app() {
+    grep -lx "Name=$1" "$APPS"/chrome-*-Default.desktop 2>/dev/null |
+        xargs -r grep -lx "X-Dotfiles-WebApp=true" 2>/dev/null | head -n1
+}
+
+# Ícone que o próprio site publica pra quem "instala" ele no celular
+# (/apple-touch-icon.png, ~180px). Baixa uma vez só; se não vier um PNG de
+# verdade, cai no ícone genérico de internet.
+site_icon() {
+    local url="$1" id="$2" base dest tmp
+    base="${url#*://}"
+    base="${url%%://*}://${base%%/*}"
+    dest="$ICONS/$id.png"
+    if [[ ! -s $dest ]]; then
+        mkdir -p "$ICONS"
+        tmp=$(mktemp)
+        if curl -fsSL --max-time 15 -A 'Mozilla/5.0' -o "$tmp" "$base/apple-touch-icon.png" &&
+            [[ $(file -b --mime-type "$tmp") == image/png ]]; then
+            mv "$tmp" "$dest"
+        else
+            rm -f "$tmp"
+            echo "  aviso: $base não tem apple-touch-icon.png; usando o ícone genérico" >&2
+            echo applications-internet
+            return
+        fi
+    fi
+    echo "$dest"
+}
+
+add() {
+    local name="$1" url="$2" icon="${3:-applications-internet}" id file old
+    [[ -n $name && $url == http*://* ]] || usage
+    command -v "$BROWSER" &>/dev/null || { echo "$BROWSER não encontrado" >&2; exit 1; }
+
+    id=$(app_id "$url")
+    file="$APPS/$id.desktop"
+    old=$(find_app "$name")
+    [[ -n $old && $old != "$file" ]] && rm -f "$old"
+
+    if [[ $icon == site ]]; then
+        icon=$(site_icon "$url" "$id")
+    elif [[ -f $icon ]]; then
+        mkdir -p "$ICONS"
+        local dest="$ICONS/$id.${icon##*.}"
+        cp "$icon" "$dest"
+        icon="$dest"
+    fi
+
+    mkdir -p "$APPS"
+    cat >"$file" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=$name
+Comment=$url
+Exec=$BROWSER --app=$url
+Icon=$icon
+StartupWMClass=$id
+StartupNotify=true
+Categories=Network;
+X-Dotfiles-WebApp=true
+DESKTOP
+    echo "  -> $name ($url)"
+}
+
+remove() {
+    local file
+    file=$(find_app "$1")
+    [[ -n $file ]] || { echo "web app '$1' não encontrado" >&2; exit 1; }
+    rm -f "$file" "$ICONS/$(basename "$file" .desktop)".*
+    echo "  -> $1 removido"
+}
+
+list() {
+    local f
+    for f in "$APPS"/chrome-*-Default.desktop; do
+        [[ -f $f ]] && grep -qx "X-Dotfiles-WebApp=true" "$f" || continue
+        printf '%s\t%s\n' "$(sed -n 's/^Name=//p' "$f")" "$(sed -n 's/^Comment=//p' "$f")"
+    done
+}
+
+sync() {
+    [[ -f $LIST ]] || { echo "$LIST não existe" >&2; exit 1; }
+    local name url icon
+    while IFS='|' read -r name url icon; do
+        [[ $name =~ ^[[:space:]]*(#|$) ]] && continue
+        name=$(echo $name) url=$(echo $url) icon=$(echo $icon)
+        add "$name" "$url" "${icon/#\~/$HOME}"
+    done <"$LIST"
+}
+
+case "$1" in
+    add) shift; add "$@"; refresh ;;
+    rm | remove) shift; remove "$1"; refresh ;;
+    list | ls) list ;;
+    sync) sync; refresh ;;
+    *) usage ;;
+esac
