@@ -20,6 +20,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   │   └── waybar/.config/waybar → bar com Bluetooth, powermenu, etc
 │   ├── kde/             → KDE Plasma 6: tema, botões estilo mac, dock, animações (ver seção abaixo)
 │   ├── fedora-gnome/    → Fedora + GNOME: visual escuro leve, só pacotes oficiais (ver seção abaixo)
+│   ├── fedora-kde/      → Fedora + KDE Plasma: barra fina + dock, Konsole no visual do kitty (ver seção abaixo)
 │   └── quickshell/       → projeto futuro (Qt6/QML), vazio por enquanto
 ├── extras/
 │   ├── lazyvim/          → ajustes pro LazyVim instalado à mão (ver seção abaixo)
@@ -183,10 +184,26 @@ O que o `profiles/fedora-gnome/setup.sh` aplica (idempotente, via `gsettings`):
 - **zsh sem oh-my-zsh**: o `~/.zshrc` é criado a partir do `profiles/fedora-gnome/zshrc` (só se ainda não existir), com os plugins `zsh-autosuggestions` e `zsh-syntax-highlighting` empacotados pelo Fedora, mais o eza/zoxide do `common/zsh`.
 - **Apps Flatpak no escuro**: Flatpak roda isolado e não enxerga o `adw-gtk3` do dnf, então o setup instala a extensão `org.gtk.Gtk3theme.adw-gtk3-dark` do Flathub e força `GTK_THEME` com `flatpak override --user`. Apps Electron como o Obsidian têm o próprio tema (Settings → Appearance).
 - **Ptyxis** (terminal padrão do GNOME) com o visual do kitty: paleta `ptyxis/.local/share/org.gnome.Ptyxis/palettes/vantablack.palette` (mesmas cores do `vantablack.conf`) e JetBrains Mono 11. Padding, rastro do cursor e abas powerline continuam só no kitty.
-- **Ícones da Nerd Font (opcional)**: `INSTALL_NERD_SYMBOLS=1 bash .../setup.sh` baixa só a `NerdFontsSymbolsOnly` da release oficial no GitHub (versão fixa, conferida pelo `SHA-256.txt` da release) pra `~/.local/share/fonts`. É a única coisa fora dos repositórios do Fedora, por isso fica desligada por padrão. O `fontconfig/.../50-nerd-symbols.conf` põe os símbolos logo *depois* da JetBrains Mono (`<accept>`, e não o `<prefer>` do conf oficial), então o texto não muda e os ícones não caem em outra fonte do sistema.
+- **Ícones da Nerd Font (opcional)**: `INSTALL_NERD_SYMBOLS=1 bash .../setup.sh` roda o `nerd-symbols.sh`, que baixa só a `NerdFontsSymbolsOnly` da release oficial no GitHub (versão fixa, conferida pelo `SHA-256.txt` da release) pra `~/.local/share/fonts`. É a única coisa fora dos repositórios do Fedora, por isso fica desligada por padrão. O `fontconfig/.../50-nerd-symbols.conf` põe os símbolos logo *depois* da JetBrains Mono (`<accept>`, e não o `<prefer>` do conf oficial), então o texto não muda e os ícones não caem em outra fonte do sistema.
 - **Shell de login**: troca pra zsh com `chsh` (o Ptyxis e o tmux usam a shell de login).
 - **ssh-agent**: roda o `common/ssh-agent/install.sh` (ver seção do ssh-agent), que também desliga o `gcr-ssh-agent` do GNOME.
 - **Prompt no lugar do starship** (`zsh/.config/zsh/prompt.zsh`): o starship não está nos repositórios do Fedora, então o prompt é feito em zsh puro minimalista numa linha só (raio, seta que fica vermelha quando o comando falha e o nome da pasta, mais git, venv e tempo do último comando quando houver). Ele é montado sem `prompt_subst` e escapa o nome da branch, então um repositório clonado com uma branch tipo `$(comando)` não executa nada.
+
+## Fedora + KDE Plasma
+
+Mesmo espírito do perfil do GNOME (escuro, leve, só repositórios oficiais do Fedora), sem as animações e o Klassy do perfil `kde` do Arch.
+
+```bash
+bash ~/dotfiles/profiles/fedora-kde/setup.sh     # não use ./install.sh (é feito pro Arch)
+```
+
+O que o `profiles/fedora-kde/setup.sh` aplica (idempotente, via `kwriteconfig6` e D-Bus, pelo mesmo motivo do perfil `kde`):
+
+- **Visual**: tema global Fedora Dark (Breeze Dark com o wallpaper do Fedora), ícones Papirus-Dark, `breeze-gtk` pros apps GTK nativos e janelas novas no centro.
+- **Painéis** (`profiles/fedora-kde/panels.js`): barra fina no topo (26 px: menu, relógio com dia da semana no centro, bandeja) + dock flutuante centralizada embaixo, que some quando uma janela encosta (Dolphin, navegador, Konsole, Discover, Configurações). **Recria os painéis do zero**: use `SKIP_PANELS=1` pra reaplicar o resto sem perder widgets que você adicionou na mão.
+- **Konsole** com o visual do kitty: esquema `konsole/.local/share/konsole/Vantablack.colorscheme` (mesmas cores do `vantablack.conf`, é o único symlink), perfil `Vantablack` como padrão, JetBrains Mono 11, abre o zsh direto e sem barra de menu (`Ctrl+Shift+M` mostra de novo). O perfil é gerado pelo script, e não versionado, porque o Konsole reescreve o arquivo quando você mexe nas configurações dele.
+- **O resto é igual ao do GNOME**: kitty, tmux, zsh com o prompt e o `zshrc` do `profiles/fedora-gnome`, apps Flatpak no `adw-gtk3-dark`, shell de login em zsh e ssh-agent único (o Plasma do Fedora já respeita o `SSH_AUTH_SOCK` do `environment.d`).
+- **Ícones da Nerd Font**: o Konsole, como o Ptyxis, não tem os símbolos embutidos, então sem eles os ícones do prompt viram quadradinhos. `INSTALL_NERD_SYMBOLS=1 bash .../setup.sh` roda o mesmo `profiles/fedora-gnome/nerd-symbols.sh` (ver seção do GNOME).
 
 ## LazyVim (extras)
 

@@ -109,23 +109,9 @@ if ! fc-list | grep -q "JetBrainsMono Nerd Font"; then
 fi
 
 if [ -n "$INSTALL_NERD_SYMBOLS" ]; then
-    # Opcional (foge do "só repositório oficial"): só os ícones da Nerd Font,
-    # sem script, direto da release oficial e conferido pelo SHA-256 dela.
-    # O texto continua na JetBrains Mono do Fedora; o fontconfig/ só faz os
-    # ícones virem dessa fonte. O kitty não precisa, já tem os símbolos.
+    # Opcional (foge do "só repositório oficial"): ver nerd-symbols.sh.
     echo "== Ícones da Nerd Font (Symbols Nerd Font) =="
-    NF_VERSION=v3.5.1
-    NF_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/$NF_VERSION"
-    NF_TMP=$(mktemp -d)
-    curl -fsSL -o "$NF_TMP/NerdFontsSymbolsOnly.tar.xz" "$NF_URL/NerdFontsSymbolsOnly.tar.xz"
-    curl -fsSL -o "$NF_TMP/SHA-256.txt" "$NF_URL/SHA-256.txt"
-    (cd "$NF_TMP" && grep ' NerdFontsSymbolsOnly.tar.xz$' SHA-256.txt | sha256sum -c --quiet)
-    mkdir -p "$HOME/.local/share/fonts/NerdFontsSymbolsOnly"
-    tar -xJf "$NF_TMP/NerdFontsSymbolsOnly.tar.xz" -C "$HOME/.local/share/fonts/NerdFontsSymbolsOnly" \
-        SymbolsNerdFont-Regular.ttf SymbolsNerdFontMono-Regular.ttf LICENSE
-    rm -rf "$NF_TMP"
-    stow --no-folding -d "$DIR" -t "$HOME" fontconfig
-    fc-cache -f >/dev/null
+    bash "$DIR/nerd-symbols.sh"
 fi
 
 echo "== Ptyxis (terminal padrão do GNOME): mesmo visual do kitty =="
