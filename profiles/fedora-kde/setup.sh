@@ -20,6 +20,8 @@
 #
 # Variáveis opcionais:
 #   SKIP_PACKAGES=1         não instala nada (só aplica as configs)
+#   PANEL_OPACITY=0.35      opacidade do fundo da dock (e da barra, sem janela
+#                           maximizada); 0 = invisível, 0.85 = Breeze normal
 #   SKIP_PANELS=1           não recria os painéis (preserva widgets que você
 #                           adicionou na mão depois)
 #   INSTALL_NERD_SYMBOLS=1  baixa os ícones da Nerd Font do GitHub (fora dos
@@ -69,6 +71,40 @@ if [ -d /usr/share/icons/Papirus-Dark ]; then
     echo "== Ícones: Papirus-Dark =="
     /usr/libexec/plasma-changeicons Papirus-Dark
 fi
+
+echo "== Estilo do Plasma: Breeze com painéis transparentes =="
+# O translúcido do Breeze é quase opaco (85%). Este estilo local troca só o
+# fundo translúcido dos painéis, gerado a partir do SVG do próprio Breeze; o
+# resto cai no Breeze ("default") e segue o esquema de cores. Também depois
+# do tema global, que volta o estilo pro Breeze Dark.
+PANEL_OPACITY=${PANEL_OPACITY:-0.35}
+STYLE="$HOME/.local/share/plasma/desktoptheme/breeze-vidro"
+mkdir -p "$STYLE/translucent/widgets"
+cat >"$STYLE/metadata.json" <<'EOF'
+{
+    "KPlugin": {
+        "Description": "Breeze com painéis transparentes (dotfiles)",
+        "Id": "breeze-vidro",
+        "License": "LGPL",
+        "Name": "Breeze Vidro"
+    },
+    "X-Plasma-API": "5.0"
+}
+EOF
+# Sem blur: com ele o KWin borra o wallpaper atrás da dock e o fundo vira um
+# cinza que parece sólido. Vale pra tudo do plasmashell (menus e popups
+# continuam com o fundo de 85% do Breeze).
+cat >"$STYLE/plasmarc" <<'EOF'
+[AdaptiveTransparency]
+enabled=true
+
+[BlurBehindEffect]
+enabled=false
+EOF
+zcat /usr/share/plasma/desktoptheme/default/translucent/widgets/panel-background.svgz |
+    sed "s/opacity:0\.85;fill:currentColor/opacity:$PANEL_OPACITY;fill:currentColor/" |
+    gzip >"$STYLE/translucent/widgets/panel-background.svgz"
+plasma-apply-desktoptheme breeze-vidro
 
 echo "== Janelas: minimizar/maximizar/fechar à direita, abrir no centro =="
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight IAX

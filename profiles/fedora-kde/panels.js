@@ -29,7 +29,8 @@ clock.writeConfig("customDateFormat", "ddd d MMM");
 bar.addWidget("org.kde.plasma.panelspacer");
 bar.addWidget("org.kde.plasma.systemtray");
 
-// ---- Dock: só apps; flutuante, centralizada, some quando uma janela encosta ----
+// ---- Dock: só apps; flutuante, centralizada, translúcida, some quando uma
+// janela encosta ----
 var dock = new Panel();
 dock.location = "bottom";
 dock.height = 48;
@@ -37,6 +38,9 @@ dock.floating = true;
 dock.lengthMode = "fit";
 dock.alignment = "center";
 dock.hiding = "dodgewindows";
+// "adaptive" (padrão) fica opaca com janela maximizada; aqui é sempre
+// translúcida, com o desfoque do KWin por trás, como o DYNAMIC do GNOME.
+dock.opacity = "translucent";
 
 var tasks = dock.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
