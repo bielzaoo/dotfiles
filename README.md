@@ -42,6 +42,8 @@ cd ~/dotfiles
 
 Isso aplica os pacotes de `common/` + o perfil escolhido via symlinks (GNU Stow).
 
+Pasta de `common/` com `install.sh` é **instalador**, não pacote de stow: o `install.sh` raiz roda o `ssh-agent` e o `zsh` no fim; `plymouth`, `qemu` e `wireguard` mexem no sistema e são na mão (seções abaixo). `profiles/<perfil>/common.skip` lista o que o perfil não quer de `common/`, um nome por linha, instaladores inclusos.
+
 ## Trocar de perfil
 
 ```bash
@@ -92,7 +94,7 @@ Arch + Hyprland montado do zero (plano e checklist no brain, `artifacts/infra/wo
 
 Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
 
-`common.skip` lista os pacotes de `common/` que o perfil substitui, e o `install.sh` pula esses.
+`common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`) ou não usa (`nvim`, `tmux`, `zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
 
 ## zsh: eza e zoxide
 

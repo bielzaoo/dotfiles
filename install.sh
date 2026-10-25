@@ -17,13 +17,22 @@ if ! command -v stow &> /dev/null; then
     sudo pacman -S --needed stow
 fi
 
-echo "== Aplicando pacotes comuns (nvim, kitty, tmux) =="
 # profiles/<perfil>/common.skip: pacotes de common/ que o perfil substitui
+# ou não quer
 SKIP="profiles/$PROFILE/common.skip"
+skipped() { [ -f "$SKIP" ] && grep -qx "$1" "$SKIP"; }
+
+echo "== Aplicando pacotes comuns =="
+# Pacote com install.sh é instalador, não pacote de stow (linkar todos daria
+# conflito em ~/install.sh). ssh-agent e zsh rodam no fim; plymouth, qemu e
+# wireguard mexem no sistema e são na mão (ver README).
 for pkg in common/*/; do
     name=$(basename "$pkg")
-    if [ -f "$SKIP" ] && grep -qx "$name" "$SKIP"; then
-        echo "  -- $name (substituído pelo perfil)"
+    if skipped "$name"; then
+        echo "  -- $name (pulado pelo perfil)"
+        continue
+    fi
+    if [ -f "$pkg/install.sh" ]; then
         continue
     fi
     echo "  -> $name"
@@ -48,11 +57,15 @@ if [ -x "profiles/$PROFILE/setup.sh" ]; then
     bash "profiles/$PROFILE/setup.sh"
 fi
 
-echo "== Configurando SSH agent (systemd --user) =="
-bash common/ssh-agent/install.sh
+if ! skipped ssh-agent; then
+    echo "== Configurando SSH agent (systemd --user) =="
+    bash common/ssh-agent/install.sh
+fi
 
-echo "== Configurando zsh (eza + zoxide) =="
-bash common/zsh/install.sh
+if ! skipped zsh; then
+    echo "== Configurando zsh (eza + zoxide) =="
+    bash common/zsh/install.sh
+fi
 
 echo ""
 echo "Pronto! Perfil '$PROFILE' aplicado via symlinks."
