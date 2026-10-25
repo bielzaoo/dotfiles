@@ -1,0 +1,30 @@
+#!/bin/sh
+# Troca presets visuais (symlink -> preset) e recarrega quem usa.
+# Mesmo script, vários nomes (symlinks em ~/.local/bin):
+#   fonte  -> ~/.config/kitty/fonts/   (kitty, SIGUSR1)
+#   cor    -> ~/.config/kitty/cores/   (kitty, SIGUSR1)
+#   espaco -> ~/.config/hypr/espacos/  (hyprctl reload)
+# Sem argumento lista as opções (* = ativa).
+cmd=$(basename "$0")
+case "$cmd" in
+    cor)    dir="$HOME/.config/kitty"; sub=cores;   link=cor-atual.conf;    ext=conf ;;
+    espaco) dir="$HOME/.config/hypr";  sub=espacos; link=espaco-atual.lua;  ext=lua ;;
+    *)      dir="$HOME/.config/kitty"; sub=fonts;   link=fonte-atual.conf;  ext=conf ;;
+esac
+atual=$(basename "$(readlink "$dir/$link")" ".$ext")
+
+if [ -z "$1" ]; then
+    for f in "$dir/$sub"/*."$ext"; do
+        n=$(basename "$f" ".$ext")
+        [ "$n" = "$atual" ] && echo "* $n" || echo "  $n"
+    done
+    exit 0
+fi
+
+[ -f "$dir/$sub/$1.$ext" ] || { echo "$cmd: '$1' não existe (rode sem argumento p/ listar)" >&2; exit 1; }
+ln -sfn "$sub/$1.$ext" "$dir/$link"
+case "$cmd" in
+    espaco) hyprctl reload >/dev/null ;;
+    *)      pkill -USR1 -x kitty ;;
+esac
+echo "$cmd: $atual -> $1"

@@ -1,0 +1,14 @@
+// Barra mínima (Fase 3). Único módulo amarrado ao compositor: hyprland/workspaces.
+{
+    "layer": "top",
+    "position": "top",
+    "height": 24,
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["pulseaudio", "network", "cpu", "memory"],
+    "clock": { "format": "{:%a %d/%m  %H:%M}" },
+    "pulseaudio": { "format": "vol {volume}%", "format-muted": "vol mudo" },
+    "network": { "format-ethernet": "eth", "format-wifi": "wifi {essid}", "format-disconnected": "offline" },
+    "cpu": { "format": "cpu {usage}%" },
+    "memory": { "format": "mem {percentage}%" }
+}

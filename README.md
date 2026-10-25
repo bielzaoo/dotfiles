@@ -16,7 +16,8 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── plymouth/         → tela gráfica de boot + senha do disco (ver seção abaixo)
 │   └── webapps/          → sites como apps (WhatsApp etc.) com ícone e janela próprios (ver seção abaixo)
 ├── profiles/
-│   ├── classic/         → setup atual (estável, uso diário)
+│   ├── main/            → **perfil principal**: Arch + Hyprland (Lua modular), Vicinae, rodízio fonte/cor/espaço (ver seção abaixo)
+│   ├── classic/         → setup anterior (Hyprland + wofi), não usado mais
 │   │   ├── hypr/.config/hypr     → Hyprland em Lua, hypridle, hyprlock, hyprpaper
 │   │   └── waybar/.config/waybar → bar com Bluetooth, powermenu, etc
 │   ├── kde/             → KDE Plasma 6: tema, botões estilo mac, dock, animações (ver seção abaixo)
@@ -36,7 +37,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 ```bash
 git clone https://github.com/bielzaoo/dotfiles ~/dotfiles
 cd ~/dotfiles
-./install.sh classic
+./install.sh main
 ```
 
 Isso aplica os pacotes de `common/` + o perfil escolhido via symlinks (GNU Stow).
@@ -78,6 +79,20 @@ Pra trocar de tema, mude o `source-file` no fim do `.tmux.conf`. Os temas têm s
 | prefix `q` | recarrega a config |
 
 No GNOME, `Ctrl+Alt+setas` já trocam de área de trabalho e chegam antes do tmux. O prefix + setas (padrão do tmux) faz o mesmo.
+
+## main (perfil principal)
+
+Arch + Hyprland montado do zero (plano e checklist no brain, `artifacts/infra/workstation/`).
+
+- `hypr/` — único pacote específico do compositor. `hyprland.lua` só faz `require` dos módulos.
+- `session/` — `~/.config/session/autostart.sh`, agnóstico de compositor (waybar, mako, `vicinae server`, wallpaper). Trocar de WM = reescrever `hypr/`, o resto fica.
+- `vicinae/` — launcher + histórico do clipboard (`WIN+R`, `WIN+SHIFT+V`), tema `vga`. O Vicinae não está nos repos: instalado à mão em `~/.local/opt/vicinae`.
+- `kitty/` — substitui o `common/kitty` (ver `common.skip`).
+- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista).
+
+Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
+
+`common.skip` lista os pacotes de `common/` que o perfil substitui, e o `install.sh` pula esses.
 
 ## zsh: eza e zoxide
 

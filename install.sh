@@ -1,5 +1,6 @@
 #!/bin/bash
-# Uso: ./install.sh classic
+# Uso: ./install.sh main       (Arch + Hyprland, perfil principal)
+#      ./install.sh classic
 #      ./install.sh kde          (KDE Plasma: tema, dock, animações)
 #      ./install.sh quickshell   (ainda vazio — projeto futuro)
 set -e
@@ -7,7 +8,7 @@ set -e
 PROFILE="$1"
 
 if [ -z "$PROFILE" ]; then
-    echo "Uso: ./install.sh <classic|kde|quickshell>"
+    echo "Uso: ./install.sh <main|classic|kde|quickshell>"
     exit 1
 fi
 
@@ -17,8 +18,14 @@ if ! command -v stow &> /dev/null; then
 fi
 
 echo "== Aplicando pacotes comuns (nvim, kitty, tmux) =="
+# profiles/<perfil>/common.skip: pacotes de common/ que o perfil substitui
+SKIP="profiles/$PROFILE/common.skip"
 for pkg in common/*/; do
     name=$(basename "$pkg")
+    if [ -f "$SKIP" ] && grep -qx "$name" "$SKIP"; then
+        echo "  -- $name (substituído pelo perfil)"
+        continue
+    fi
     echo "  -> $name"
     stow -d common -t "$HOME" "$name"
 done
