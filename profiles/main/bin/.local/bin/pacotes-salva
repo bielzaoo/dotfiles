@@ -1,0 +1,23 @@
+#!/bin/sh
+# Regrava a lista de pacotes e de serviços do perfil, a partir do sistema atual.
+# Fonte: o que está instalado/habilitado agora. Revisar o diff antes de commitar.
+#   pacotes.txt  = pacman -Qqen (explícitos dos repos; entra em pacman -S --needed -)
+#   servicos.txt = units habilitadas, "system <unit>" / "user <unit>"
+# Uso: pacotes-salva [perfil]   (default: main)
+set -eu
+perfil=${1:-main}
+dir="${DOTFILES:-$HOME/dotfiles}/profiles/$perfil"
+[ -d "$dir" ] || { echo "pacotes-salva: perfil não existe: $dir" >&2; exit 1; }
+
+pacman -Qqen > "$dir/pacotes.txt"
+if [ -n "$(pacman -Qqm)" ]; then
+    echo "pacotes-salva: há pacotes de fora dos repos (AUR/manual), não entram na lista:" >&2
+    pacman -Qqm >&2
+fi
+
+{
+    systemctl list-unit-files --state=enabled --no-legend | awk '{print "system", $1}'
+    systemctl --user list-unit-files --state=enabled --no-legend | awk '{print "user", $1}'
+} > "$dir/servicos.txt"
+
+git -C "$dir" --no-pager diff --stat -- pacotes.txt servicos.txt
