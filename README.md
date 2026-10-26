@@ -90,7 +90,12 @@ Arch + Hyprland montado do zero (plano e checklist no brain, `artifacts/infra/wo
 - `session/` — `~/.config/session/autostart.sh`, agnóstico de compositor (waybar, mako, `vicinae server`, wallpaper). Trocar de WM = reescrever `hypr/`, o resto fica.
 - `vicinae/` — launcher + histórico do clipboard (`WIN+R`, `WIN+SHIFT+V`), tema `vga`. O Vicinae não está nos repos: instalado à mão em `~/.local/opt/vicinae`.
 - `kitty/` — substitui o `common/kitty` (ver `common.skip`).
-- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista).
+- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista). `pacotes-salva` regrava `pacotes.txt` e `servicos.txt` a partir do sistema atual.
+- `pacotes.txt` — `pacman -Qqen` (explícitos dos repos): `sudo pacman -S --needed - < pacotes.txt`.
+- `servicos.txt` — units habilitadas, `system <unit>` / `user <unit>`.
+- `manuais.md` — o que vem de fora do pacman (Vicinae, fontes Cozette/Spleen).
+
+Mudou pacote ou serviço? Rode `pacotes-salva`, confira o diff e commite junto.
 
 Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
 
