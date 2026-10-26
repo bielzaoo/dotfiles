@@ -9,11 +9,7 @@ hl.config({
 
         border_size = 1,
 
-        col = {
-            -- Cores da paleta vga (color7 / color8). Vira parte do `cor` na identidade coesa
-            active_border   = "rgb(aaaaaa)",
-            inactive_border = "rgb(555555)",
-        },
+        -- cores da borda: em cor-atual.lua (gerado pelo `repinta`)
 
         -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
         resize_on_border = false,

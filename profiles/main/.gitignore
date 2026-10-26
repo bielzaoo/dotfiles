@@ -1,5 +1,5 @@
-# Estado do rodízio (fonte/cor/espaco): symlink pro preset ativo, muda a cada troca.
+# Estado do rodízio (fonte/cor/espaco) e tudo que o repinta gera a partir dele.
 # O setup.sh recria o default quando falta.
-*-atual.conf
-*-atual.lua
+*-atual
+*-atual.*
 *.bak*

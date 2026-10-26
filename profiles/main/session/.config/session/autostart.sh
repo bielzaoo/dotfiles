@@ -9,6 +9,6 @@ waybar &
 mako &
 vicinae server &   # launcher + histórico do clipboard (layer-shell, agnóstico)
 
-# Wallpaper: cor sólida provisória até a Fase 4 (linguagem de design)
+# Wallpaper: cor sólida = fundo da paleta ativa (fundo-atual, gerado pelo repinta)
 awww-daemon &
-sleep 0.5 && awww clear 111111 &
+sleep 0.5 && awww clear "$(cat "$HOME/.config/session/fundo-atual" 2>/dev/null || echo 000000)" &

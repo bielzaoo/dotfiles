@@ -5,3 +5,6 @@ padrao() { [ -e "$1/$2" ] || ln -sfn "$3" "$1/$2"; }
 padrao "$HOME/.config/kitty" fonte-atual.conf  fonts/cozette.conf
 padrao "$HOME/.config/kitty" cor-atual.conf    cores/vga.conf
 padrao "$HOME/.config/hypr"  espaco-atual.lua  espacos/justo.lua
+
+# Gera o tema do resto do desktop (hypr, waybar, mako, hyprlock, Vicinae) a partir da fonte/cor do kitty
+"$HOME/.local/bin/repinta"

@@ -1,0 +1,138 @@
+#!/bin/sh
+# Repinta o desktop a partir do preset ativo do kitty: cor-atual.conf e
+# fonte-atual.conf são a fonte da verdade, o resto é gerado daqui.
+# Chamado pelo `cor` e pelo `fonte`; o setup.sh roda na instalação.
+# Gera arquivos *-atual (estado local, fora do git) e recarrega quem está de pé.
+#
+# Papéis da paleta: fundo = background, texto = foreground,
+# ativo = color7, apagado/borda = color8, erro = color9, ok = color10.
+set -e
+
+kitty="$HOME/.config/kitty"
+cor="$kitty/cor-atual.conf"
+fonte="$kitty/fonte-atual.conf"
+nome=$(basename "$(readlink "$cor")" .conf)
+
+# Valor de uma chave no formato do kitty ("chave valor")
+val() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ +/, ""); print; exit }' "$2"; }
+# Hex sem o '#'
+h() { echo "$1" | tr -d '#'; }
+
+bg=$(val background "$cor")
+fg=$(val foreground "$cor")
+ativo=$(val color7 "$cor")
+dim=$(val color8 "$cor")
+erro=$(val color9 "$cor")
+ok=$(val color10 "$cor")
+font=$(val font_family "$fonte")
+size=$(val font_size "$fonte")
+
+# Hyprland: bordas das janelas
+cat >"$HOME/.config/hypr/cor-atual.lua" <<EOF
+-- Gerado pelo repinta (paleta $nome). Não editar: troque com \`cor\`.
+hl.config({ general = { col = {
+    active_border   = "rgb($(h "$ativo"))",
+    inactive_border = "rgb($(h "$dim"))",
+} } })
+EOF
+
+# hyprlock: variáveis lidas pelo hyprlock.conf (vale no próximo lock)
+cat >"$HOME/.config/hypr/hyprlock-atual.conf" <<EOF
+# Gerado pelo repinta (paleta $nome). Não editar.
+\$bg = rgb($(h "$bg"))
+\$fg = rgb($(h "$fg"))
+\$dim = rgb($(h "$dim"))
+\$erro = rgb($(h "$erro"))
+\$ok = rgb($(h "$ok"))
+\$font = $font
+EOF
+
+# waybar: o style.css importa este
+cat >"$HOME/.config/waybar/tema-atual.css" <<EOF
+/* Gerado pelo repinta (paleta $nome). Não editar. */
+@define-color bg $bg;
+@define-color fg $fg;
+@define-color ativo $ativo;
+@define-color dim $dim;
+@define-color erro $erro;
+* { font-family: "$font"; font-size: ${size}pt; }
+EOF
+
+# mako: incluído no fim do config
+mkdir -p "$HOME/.config/mako"
+cat >"$HOME/.config/mako/tema-atual" <<EOF
+# Gerado pelo repinta (paleta $nome). Não editar.
+font=$font $size
+background-color=$bg
+text-color=$fg
+border-color=$dim
+progress-color=over $dim
+
+[urgency=critical]
+border-color=$erro
+EOF
+
+# Vicinae: tema gerado da paleta + fonte, via "imports" do settings.json
+cat >"$HOME/.local/share/vicinae/themes/tema-atual.toml" <<EOF
+# Gerado pelo repinta (paleta $nome). Não editar.
+[meta]
+version = 1
+name = "atual ($nome)"
+description = "Paleta $nome, gerada do kitty"
+variant = "dark"
+
+[colors.core]
+background = "$bg"
+foreground = "$fg"
+secondary_background = "$bg"
+border = "$dim"
+accent = "$ativo"
+accent_foreground = "$bg"
+
+[colors.accents]
+blue = "$(val color12 "$cor")"
+green = "$ok"
+magenta = "$(val color13 "$cor")"
+orange = "$(val color3 "$cor")"
+purple = "$(val color5 "$cor")"
+red = "$erro"
+yellow = "$(val color11 "$cor")"
+cyan = "$(val color14 "$cor")"
+
+[colors.input]
+border = "$dim"
+border_focus = "$ativo"
+border_error = "$erro"
+
+[colors.list.item.selection]
+background = "$ativo"
+foreground = "$bg"
+secondary_background = "$dim"
+secondary_foreground = "$fg"
+
+[colors.grid.item]
+background = "$bg"
+EOF
+cat >"$HOME/.config/vicinae/tema-atual.json" <<EOF
+{
+	"font": { "normal": { "family": "$font", "size": $size } },
+	"theme": {
+		"light": { "name": "tema-atual", "icon_theme": "auto" },
+		"dark":  { "name": "tema-atual", "icon_theme": "auto" }
+	}
+}
+EOF
+
+# Wallpaper: cor sólida = fundo da paleta (o autostart.sh lê este arquivo)
+h "$bg" >"$HOME/.config/session/fundo-atual"
+
+# Recarrega o que estiver rodando
+pkill -USR1 -x kitty || true
+pgrep -x waybar >/dev/null && pkill -USR2 -x waybar
+pgrep -x mako >/dev/null && makoctl reload
+pgrep -x awww-daemon >/dev/null && awww clear "$(h "$bg")"
+if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
+# Vicinae relê o tema-atual.json sozinho (fonte), mas o tema tem sempre o
+# mesmo nome: só relê o .toml com o `theme set`
+pgrep -x vicinae-server >/dev/null && vicinae theme set tema-atual >/dev/null 2>&1 || true
+echo "repinta: $nome + $font $size"

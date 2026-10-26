@@ -1,8 +1,8 @@
 #!/bin/sh
 # Troca presets visuais (symlink -> preset) e recarrega quem usa.
 # Mesmo script, vários nomes (symlinks em ~/.local/bin):
-#   fonte  -> ~/.config/kitty/fonts/   (kitty, SIGUSR1)
-#   cor    -> ~/.config/kitty/cores/   (kitty, SIGUSR1)
+#   fonte  -> ~/.config/kitty/fonts/   (repinta: kitty + resto do desktop)
+#   cor    -> ~/.config/kitty/cores/   (repinta: kitty + resto do desktop)
 #   espaco -> ~/.config/hypr/espacos/  (hyprctl reload)
 # Sem argumento lista as opções (* = ativa).
 cmd=$(basename "$0")
@@ -25,6 +25,6 @@ fi
 ln -sfn "$sub/$1.$ext" "$dir/$link"
 case "$cmd" in
     espaco) hyprctl reload >/dev/null ;;
-    *)      pkill -USR1 -x kitty ;;
+    *)      "$(dirname "$0")/repinta" >/dev/null ;;
 esac
 echo "$cmd: $atual -> $1"

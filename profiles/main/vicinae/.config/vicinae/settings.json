@@ -1,21 +1,46 @@
+// This configuration is merged with the default vicinae configuration file, which you can obtain by running the `vicinae config default` command.
+// Every item defined in this file takes precedence over the values defined in the default config or any other imported file.
+//
+// You can make manual edits to this file, however you should keep in mind that this file may be written to by vicinae when a configuration change is made through the GUI.
+// When that happens, any custom comments or formatting will be lost.
+//
+// If you want to maintain a configuration file with your own comments and formatting, you should create a separate file and add it to the 'imports' array.
+//
+// Learn more about configuration at https://docs.vicinae.com/config
+
 {
-	"$schema": "https://vicinae.com/schemas/config.json",
-	// privacidade: sem telemetria, sem buscar favicon em serviço externo
-	"telemetry": { "system_info": false },
-	"favicon_service": "none",
-	// sem input server: não usa uinput (injeção de teclado); colar vira copiar
-	"input_server": { "enabled": false },
-	"tray": { "enabled": false },
-	"escape_key_behavior": "close_window",
-	"font": { "normal": { "family": "CozetteVector", "size": 10 } },
-	"theme": {
-		"light": { "name": "vga", "icon_theme": "auto" },
-		"dark":  { "name": "vga", "icon_theme": "auto" }
-	},
-	"launcher_window": {
-		"material": "none",
-		"rounding": 0,
-		"client_side_decorations": { "enabled": true, "border_width": 1, "shadow_size": 0 },
-		"layer_shell": { "enabled": true, "keyboard_interactivity": "exclusive", "layer": "top" }
-	}
+   "$schema": "https://vicinae.com/schemas/config.json",
+   "imports": [
+      "./tema-atual.json"
+   ],
+   "escape_key_behavior": "close_window",
+   "favicon_service": "none",
+   "input_server": {
+      "enabled": false
+   },
+   "tray": {
+      "enabled": false
+   },
+   "theme": {
+      "dark": {
+         "name": "tema-atual"
+      }
+   },
+   "telemetry": {
+      "system_info": false
+   },
+   "launcher_window": {
+      "rounding": 0,
+      "client_side_decorations": {
+         "enabled": true,
+         "border_width": 1,
+         "shadow_size": 0
+      },
+      "layer_shell": {
+         "layer": "top",
+         "keyboard_interactivity": "exclusive",
+         "enabled": true
+      },
+      "material": "none"
+   }
 }

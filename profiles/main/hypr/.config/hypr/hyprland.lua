@@ -7,6 +7,7 @@
 require("monitors")
 require("env")
 require("look")
+require("cor-atual")     -- gerado pelo repinta (bordas da paleta ativa)
 require("espaco-atual")  -- symlink -> espacos/*.lua
 require("input")
 require("binds")
