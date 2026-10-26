@@ -44,6 +44,8 @@ hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 
 -- Zoom de tela com CTRL + mainMod + scroll (centrado no cursor); CTRL + mainMod + 0 reseta
+-- passo = multiplicador por clique do scroll (velocidade da animação: zoomFactor em look.lua)
+local passo = 1.3
 local function zoom(mult)
     return function()
         local z = tonumber(hl.get_config("cursor.zoom_factor")) or 1
@@ -51,8 +53,8 @@ local function zoom(mult)
         hl.config({ cursor = { zoom_factor = z } })
     end
 end
-hl.bind("CTRL + " .. mainMod .. " + mouse_up",   zoom(1.15), { desc = "Zoom in" })
-hl.bind("CTRL + " .. mainMod .. " + mouse_down", zoom(1 / 1.15), { desc = "Zoom out" })
+hl.bind("CTRL + " .. mainMod .. " + mouse_up",   zoom(passo), { desc = "Zoom in" })
+hl.bind("CTRL + " .. mainMod .. " + mouse_down", zoom(1 / passo), { desc = "Zoom out" })
 hl.bind("CTRL + " .. mainMod .. " + 0", function() hl.config({ cursor = { zoom_factor = 1 } }) end, { desc = "Zoom reset" })
 
 -- Move/resize windows with mainMod + LMB/RMB and dragging
