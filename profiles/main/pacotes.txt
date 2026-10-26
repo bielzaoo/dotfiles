@@ -5,7 +5,11 @@ awww
 base
 base-devel
 bitwarden
+bluetui
+bluez
+bluez-utils
 brightnessctl
+btop
 btrfs-progs
 compsize
 efibootmgr
@@ -53,6 +57,7 @@ vim
 waybar
 wget
 wireguard-tools
+wiremix
 wireplumber
 wl-clipboard
 wpa_supplicant

@@ -1,14 +1,17 @@
 // Barra mínima (Fase 3). Único módulo amarrado ao compositor: hyprland/workspaces.
+// Fase 6: clique abre o TUI do módulo (toggle) via ~/.local/bin/tui.
 {
     "layer": "top",
     "position": "top",
     "height": 24,
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["pulseaudio", "network", "cpu", "memory"],
+    "modules-right": ["pulseaudio", "network", "bluetooth", "cpu", "memory", "custom/energia"],
     "clock": { "format": "{:%a %d/%m  %H:%M}" },
-    "pulseaudio": { "format": "vol {volume}%", "format-muted": "vol mudo" },
-    "network": { "format-ethernet": "eth", "format-wifi": "wifi {essid}", "format-disconnected": "offline" },
-    "cpu": { "format": "cpu {usage}%" },
-    "memory": { "format": "mem {percentage}%" }
+    "pulseaudio": { "format": "vol {volume}%", "format-muted": "vol mudo", "on-click": "tui wiremix" },
+    "network": { "format-ethernet": "eth", "format-wifi": "wifi {essid}", "format-disconnected": "offline", "on-click": "tui nmtui" },
+    "bluetooth": { "format": "bt", "format-off": "bt off", "format-disabled": "bt off", "format-connected": "bt {device_alias}", "on-click": "tui bluetui" },
+    "cpu": { "format": "cpu {usage}%", "on-click": "tui btop" },
+    "memory": { "format": "mem {percentage}%", "on-click": "tui btop" },
+    "custom/energia": { "format": "pwr", "tooltip": false, "on-click": "energia" }
 }

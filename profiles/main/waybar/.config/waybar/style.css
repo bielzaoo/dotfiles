@@ -25,5 +25,5 @@ window#waybar {
 #workspaces button.active { background: @ativo; color: @bg; }
 #workspaces button.urgent { background: @erro; color: @bg; }
 
-#clock, #pulseaudio, #network, #cpu, #memory { padding: 0 8px; }
-#pulseaudio.muted, #network.disconnected { color: @dim; }
+#clock, #pulseaudio, #network, #bluetooth, #cpu, #memory, #custom-energia { padding: 0 8px; }
+#pulseaudio.muted, #network.disconnected, #bluetooth.off, #bluetooth.disabled { color: @dim; }

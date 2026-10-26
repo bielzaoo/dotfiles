@@ -1,0 +1,9 @@
+#!/bin/sh
+# Seletor de cor / fonte / espaco via Vicinae dmenu: escolhe o eixo, depois o
+# preset. A lista vem dos próprios scripts (sem argumento: "* ativo", "  outro").
+dm() { vicinae dmenu -n "$1" -p "$1" --no-section --no-quick-look -W 360 -H "$2"; }
+eixo=$(printf '%s\n' cor fonte espaco | dm tema 220) || exit 0
+case "$eixo" in cor|fonte|espaco) ;; *) exit 0 ;; esac
+preset=$("$eixo" | dm "$eixo" 260) || exit 0
+preset=${preset#[* ] }
+[ -n "$preset" ] && exec "$eixo" "$preset"

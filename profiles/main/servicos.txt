@@ -1,4 +1,5 @@
 system auditd.service
+system bluetooth.service
 system getty@.service
 system greetd.service
 system NetworkManager-dispatcher.service

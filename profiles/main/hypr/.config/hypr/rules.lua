@@ -47,3 +47,13 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+-- Painéis TUI (Fase 6): ~/.local/bin/tui abre kitty com class tui-<nome>
+hl.window_rule({
+    name  = "tui-painel",
+    match = { class = "tui-.*" },
+
+    float  = true,
+    size   = "900 560",
+    center = true,
+})

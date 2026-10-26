@@ -1,0 +1,11 @@
+#!/bin/sh
+# Abre um TUI num kitty flutuante (class tui-<nome>; a regra de float/tamanho
+# fica no compositor). Chamado de novo com o mesmo nome, fecha: vira toggle no
+# clique da barra. Agnóstico de compositor: só kitty + pgrep.
+# Uso: tui <comando> [args...]
+[ -n "$1" ] || { echo "uso: tui <comando> [args...]" >&2; exit 1; }
+classe="tui-$(basename "$1")"
+if pkill -f -- "kitty --class $classe "; then
+    exit 0
+fi
+exec kitty --class "$classe" -e "$@"

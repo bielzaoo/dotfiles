@@ -1,0 +1,29 @@
+#!/bin/sh
+# OSD de volume/brilho via mako: aplica a mudança e mostra uma notificação com
+# barra (hint value), sempre substituindo a anterior (id em $XDG_RUNTIME_DIR).
+# Uso: osd vol up|down|mute · osd mic mute · osd luz up|down
+id_f="${XDG_RUNTIME_DIR:-/tmp}/osd.id"
+case "$1 $2" in
+    "vol up")   wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+    "vol down") wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+    "vol mute") wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
+    "mic mute") wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle ;;
+    "luz up")   brightnessctl -q -e4 -n2 set 5%+ ;;
+    "luz down") brightnessctl -q -e4 -n2 set 5%- ;;
+    *) echo "uso: osd vol up|down|mute | mic mute | luz up|down" >&2; exit 1 ;;
+esac
+pct=
+case "$1" in
+    vol) v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)   # "Volume: 0.45 [MUTED]"
+         pct=$(echo "$v" | awk '{printf "%d", $2 * 100 + 0.5}')
+         case "$v" in *MUTED*) txt="vol mudo" ;; *) txt="vol $pct%" ;; esac ;;
+    mic) case "$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@)" in
+             *MUTED*) txt="mic mudo" ;; *) txt="mic ligado" ;; esac ;;
+    luz) pct=$(brightnessctl -m | awk -F, '{sub("%", "", $4); print $4}')
+         txt="luz $pct%" ;;
+esac
+id=$(cat "$id_f" 2>/dev/null)
+set -- -a osd -t 1500 -p
+[ -n "$id" ] && set -- "$@" -r "$id"
+[ -n "$pct" ] && set -- "$@" -h "int:value:$pct"
+notify-send "$@" "$txt" > "$id_f"

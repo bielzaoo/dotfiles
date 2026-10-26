@@ -11,3 +11,10 @@ icons=0
 default-timeout=5000
 
 include=~/.config/mako/tema-atual
+
+# OSD de volume/brilho (~/.local/bin/osd): no topo ao centro, some rápido.
+# Depois do include, que termina dentro de [urgency=critical]
+[app-name=osd]
+anchor=top-center
+width=240
+default-timeout=1500

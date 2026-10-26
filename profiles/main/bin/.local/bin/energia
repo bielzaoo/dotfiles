@@ -1,0 +1,12 @@
+#!/bin/sh
+# Menu de energia via Vicinae dmenu (herda o tema do repinta).
+# Agnóstico de compositor: lock/logout pelo logind, o resto pelo systemd.
+escolha=$(printf '%s\n' bloquear suspender sair reiniciar desligar |
+    vicinae dmenu -n energia -p 'energia' --no-section --no-quick-look -W 360 -H 260) || exit 0
+case "$escolha" in
+    bloquear)  loginctl lock-session ;;
+    suspender) systemctl suspend ;;
+    sair)      loginctl terminate-session "${XDG_SESSION_ID:?}" ;;
+    reiniciar) systemctl reboot ;;
+    desligar)  systemctl poweroff ;;
+esac
