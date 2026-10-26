@@ -95,7 +95,10 @@ Arch + Hyprland montado do zero (plano e checklist no brain, `artifacts/infra/wo
 - `servicos.txt` — units habilitadas, `system <unit>` / `user <unit>`.
 - `manuais.md` — o que vem de fora do pacman (Vicinae, fontes Cozette/Spleen).
 
-Mudou pacote ou serviço? Rode `pacotes-salva`, confira o diff e commite junto.
+- `system/` — espelho de `/` (não é pacote de stow, o `install.sh` pula): config de sistema que é decisão minha (nftables, greetd, pacman, reflector, mkinitcpio, snapper, zram, hook `04-uki-backup`).
+- `bootstrap.sh` — de um Arch recém-instalado ao sistema montado, idempotente, rodando como usuário (sudo onde precisa): pacotes → `system/` (diff + backup `.bak-bootstrap`; regenera UKI/recarrega nftables se mudarem) → `install.sh main` → hardening (playbook no brain, `~/brain`) → serviços (`enable` sem `--now`) → aviso do `manuais.md`. `./bootstrap.sh -n` = ensaio seco (playbook em `--check --diff`).
+
+Mudou pacote ou serviço? Rode `pacotes-salva`, confira o diff e commite junto. Mudou algo em `/etc` que está em `system/`? Copie pra cá; o `bootstrap.sh -n` acusa drift.
 
 Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
 

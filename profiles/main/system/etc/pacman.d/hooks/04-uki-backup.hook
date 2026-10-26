@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Guardando UKI atual no @ (vai no snapshot pre)...
+When = PreTransaction
+Exec = /usr/local/bin/uki-backup

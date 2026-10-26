@@ -48,6 +48,8 @@ fi
 for pkg in "profiles/$PROFILE"/*/; do
     [ -d "$pkg" ] || continue
     name=$(basename "$pkg")
+    # system/ é espelho de / (vai pra /etc, /usr via bootstrap.sh), não do $HOME
+    [ "$name" = system ] && continue
     echo "  -> $name"
     stow -d "profiles/$PROFILE" -t "$HOME" "$name"
 done

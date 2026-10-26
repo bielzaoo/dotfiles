@@ -1,0 +1,10 @@
+#!/bin/sh
+# Copia o UKI do ESP pra dentro do @, antes do snapshot pre do snap-pac.
+# Assim cada snapshot leva o UKI que casa com os módulos dele.
+set -eu
+dest=/var/lib/uki-backup
+install -d -m 700 "$dest"
+for f in /boot/EFI/Linux/*.efi; do
+    [ -e "$f" ] || { echo "uki-backup: nenhum UKI em /boot/EFI/Linux" >&2; exit 1; }
+    cmp -s "$f" "$dest/${f##*/}" || cp --preserve=timestamps "$f" "$dest/"
+done
