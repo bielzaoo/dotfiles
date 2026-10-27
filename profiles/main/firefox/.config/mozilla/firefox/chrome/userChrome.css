@@ -57,26 +57,22 @@
     display: none !important;
 }
 
-/* Barra única: URL à esquerda, abas à direita, na mesma linha. Em janela
- * estreita (tiling dividido) volta pras duas linhas. */
-@media (min-width: 900px) {
-    #navigator-toolbox {
-        display: flex !important;
-        flex-flow: row wrap !important;
-    }
-    #navigator-toolbox > * {
-        order: 3;
-        width: 100%;
-    }
-    #nav-bar {
-        order: 1 !important;
-        width: 40vw !important;
-        border-top: none !important;
-    }
-    #TabsToolbar {
-        order: 2 !important;
-        flex: 1 !important;
-        width: auto !important;
-        min-width: 0 !important;
-    }
+/* Abas verticais (sidebar.verticalTabs no overrides.js): a lateral no mesmo
+ * visual da barra de cima, reta e com a fonte do kitty */
+:root {
+    --sidebar-box-start-start-radius: 0 !important;
+    --sidebar-box-start-end-radius: 0 !important;
+}
+#sidebar-main {
+    --sidebar-background-color: var(--uc-bg) !important;
+    --sidebar-text-color: var(--uc-fg) !important;
+    --sidebar-border-color: var(--uc-dim) !important;
+    background-color: var(--uc-bg) !important;
+    color: var(--uc-fg) !important;
+    border-inline-end: 1px solid var(--uc-dim) !important;
+}
+#sidebar-main,
+#sidebar-main * {
+    font-family: var(--uc-font) !important;
+    font-size: var(--uc-size) !important;
 }

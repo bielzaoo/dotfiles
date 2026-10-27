@@ -7,3 +7,11 @@
 
 // Densidade compacta nativa (a barra única fica no userChrome.css)
 user_pref("browser.uidensity", 1);
+
+// Abas verticais nativas: a barra de abas do topo some e as abas vão pra
+// lateral, só com o ícone, expandindo com o mouse em cima. Como o user.js é
+// reaplicado a cada start, mudar isso pela interface não pega: troque aqui.
+// Outros valores: "always-show" (sempre aberta), "hide-launcher" (some de vez)
+user_pref("sidebar.revamp", true);
+user_pref("sidebar.verticalTabs", true);
+user_pref("sidebar.visibility", "expand-on-hover");
