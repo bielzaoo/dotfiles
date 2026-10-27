@@ -108,7 +108,9 @@ Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.
 
 **Interface do Firefox:** `firefox/.../chrome/userChrome.css` (linkado como `chrome/` do perfil pelo `setup.sh`) pinta abas, URL bar e painéis com a paleta e a fonte do kitty, que vêm de um `tema-atual.css` gerado pelo `repinta`. Também deixa a URL bar reta e minimalista (ícones extras só com o mouse em cima; o cadeado fica sempre) e põe URL e abas numa linha só a partir de 900px de largura. Abaixo disso volta pras duas linhas. O Firefox só relê o CSS quando reinicia, então depois de um `cor`/`fonte` é preciso reabrir. Os nomes de variável e de elemento são os do Firefox 158; se algo parar de pintar depois de um update, é por aí.
 
-`common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`) ou não usa (`nvim`, `tmux`, `zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
+`common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`, `tmux`) ou não usa (`nvim`, `zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
+
+**Terminal:** `bash/` (`.bashrc` com prompt ANSI, fzf e zoxide no lugar do `cd`) e `tmux/` (`~/.config/tmux/tmux.conf`, mesmos keybinds do `common/tmux`, tema só com `colour0..15`, então segue o `cor`). `WIN+Q` abre o kitty dentro do tmux (`tmux-entra`), `WIN+SHIFT+Q` sem. `sessao` (ou prefix `f`) escolhe uma pasta do zoxide e entra na sessão dela. O `atalhos` (`WIN+K`) lista Hyprland, tmux (binds com `-N`) e qualquer linha `#: tecla | descrição` do `tmux.conf`, `kitty.conf` e `.bashrc`.
 
 ## zsh: eza e zoxide
 
