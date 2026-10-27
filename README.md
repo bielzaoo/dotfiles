@@ -102,6 +102,12 @@ Mudou pacote ou serviço? Rode `pacotes-salva`, confira o diff e commite junto. 
 
 Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
 
+**Modo escuro fora do `repinta`:** o `setup.sh` grava `color-scheme=prefer-dark` e `gtk-theme=Adwaita-dark` no gsettings. O portal repassa isso pro Firefox, o Chromium, o Electron (Bitwarden) e os apps GTK. Fica no dconf, fora do git, por isso o `setup.sh` reaplica.
+
+**Navegadores:** Firefox no dia a dia, Chromium só pros web apps (ver a seção dos web apps). O Firefox leva o [Betterfox](https://github.com/yokoffing/Betterfox): `firefox/` linka `betterfox.js` (o `user.js` upstream, intocado, versão fixa) e `overrides.js` (meus ajustes) em `~/.config/mozilla/firefox/betterfox/`, e o `setup.sh` junta os dois no `user.js` do perfil padrão (lido do `installs.ini`), porque a pasta do perfil tem nome aleatório. Pra atualizar, troque o `betterfox.js` pelo `user.js` da release nova e rode o `setup.sh`.
+
+**Interface do Firefox:** `firefox/.../chrome/userChrome.css` (linkado como `chrome/` do perfil pelo `setup.sh`) pinta abas, URL bar e painéis com a paleta e a fonte do kitty, que vêm de um `tema-atual.css` gerado pelo `repinta`. Também deixa a URL bar reta e minimalista (ícones extras só com o mouse em cima; o cadeado fica sempre) e põe URL e abas numa linha só a partir de 900px de largura. Abaixo disso volta pras duas linhas. O Firefox só relê o CSS quando reinicia, então depois de um `cor`/`fonte` é preciso reabrir. Os nomes de variável e de elemento são os do Firefox 158; se algo parar de pintar depois de um update, é por aí.
+
 `common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`) ou não usa (`nvim`, `tmux`, `zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
 
 ## zsh: eza e zoxide
@@ -234,11 +240,11 @@ O que o `profiles/fedora-kde/setup.sh` aplica (idempotente, via `kwriteconfig6` 
 
 ## Web apps (sites como apps)
 
-`common/webapps/.local/bin/webapp` transforma um site num app: janela própria do Chrome (sem abas nem barra de endereço), ícone próprio e item próprio no menu e na dock.
+`common/webapps/.local/bin/webapp` transforma um site num app: janela própria do Chrome (sem abas nem barra de endereço), ícone próprio e item próprio no menu e na dock. Usa o `google-chrome` se existir, senão o `chromium` (o caso do `main`, onde o Chromium é só pros web apps e o navegador do dia a dia é outro). `WEBAPP_BROWSER=...` força um.
 
 ```bash
-webapp add "WhatsApp" https://web.whatsapp.com/ whatsapp   # ícone do tema ou caminho de um .png/.svg
-webapp add "Claude" https://claude.ai/ site                # baixa o ícone do próprio site
+webapp add "WhatsApp" https://web.whatsapp.com/           # ícone oficial, baixado do próprio site (padrão)
+webapp add "Foo" https://foo.example/ ~/icone.png          # ou um nome do tema / caminho de .png/.svg
 webapp rm "WhatsApp"
 webapp list
 webapp sync     # cria todos os da lista ~/.config/webapps/list (versionada aqui)
@@ -246,7 +252,7 @@ webapp sync     # cria todos os da lista ~/.config/webapps/list (versionada aqui
 
 Por que não o "Instalar app" do Chrome: no Wayland a janela de um `--app=URL` ignora o `--class`, e o Chrome dá a ela o app_id `chrome-<host>_<caminho>-Default` (ex.: `chrome-web.whatsapp.com__-Default`). Se não existir um `.desktop` com esse nome, o KDE não sabe de quem é a janela e agrupa com o Chrome, com o ícone do Chrome, como se fosse uma aba. O script cria o `.desktop` exatamente com esse nome (testado no Chrome 156). Os web apps usam o perfil `Default` do Chrome, então os logins são os mesmos do navegador.
 
-Pra adicionar um de vez, ponha uma linha no `common/webapps/.config/webapps/list` e rode `webapp sync`. Ícones do Papirus: `find /usr/share/icons/Papirus/64x64/apps -iname '*nome*'`. Se o Papirus não tiver, `site` baixa o `/apple-touch-icon.png` do próprio site (o ícone de quando você "instala" o site no celular; quase todo site tem, e ele passa até quando o site bloqueia o `curl` na página), confere se é PNG mesmo e guarda em `~/.local/share/icons/webapps/`.
+Pra adicionar um de vez, ponha uma linha no `common/webapps/.config/webapps/list` e rode `webapp sync`. O ícone padrão é `site`, o oficial: baixa o `/apple-touch-icon.png` do próprio site (o ícone de quando você "instala" o site no celular; quase todo site tem, e ele passa até quando o site bloqueia o `curl` na página), confere se é PNG mesmo e guarda em `~/.local/share/icons/webapps/`.
 
 ## LazyVim (extras)
 

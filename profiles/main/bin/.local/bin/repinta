@@ -123,6 +123,22 @@ cat >"$HOME/.config/vicinae/tema-atual.json" <<EOF
 }
 EOF
 
+# Firefox: o userChrome.css importa este (vale no próximo start do Firefox)
+ffchrome="$HOME/.config/mozilla/firefox/chrome"
+if [ -d "$ffchrome" ]; then
+    cat >"$ffchrome/tema-atual.css" <<EOF
+/* Gerado pelo repinta (paleta $nome). Não editar. */
+:root {
+    --uc-bg: $bg;
+    --uc-fg: $fg;
+    --uc-ativo: $ativo;
+    --uc-dim: $dim;
+    --uc-font: "$font";
+    --uc-size: ${size}pt;
+}
+EOF
+fi
+
 # Wallpaper: cor sólida = fundo da paleta (o autostart.sh lê este arquivo)
 h "$bg" >"$HOME/.config/session/fundo-atual"
 

@@ -50,6 +50,9 @@ for pkg in "profiles/$PROFILE"/*/; do
     name=$(basename "$pkg")
     # system/ é espelho de / (vai pra /etc, /usr via bootstrap.sh), não do $HOME
     [ "$name" = system ] && continue
+    # Sem a pasta real, o stow linkaria ~/.config/mozilla inteiro pro repo e
+    # o Firefox criaria o perfil dentro do dotfiles
+    [ "$name" = firefox ] && mkdir -p "$HOME/.config/mozilla/firefox"
     echo "  -> $name"
     stow -d "profiles/$PROFILE" -t "$HOME" "$name"
 done

@@ -1,0 +1,82 @@
+/* Interface do Firefox no visual do desktop. O setup.sh linka esta pasta
+ * como chrome/ do perfil padrão; vale no próximo start do Firefox.
+ * Cores e fonte vêm do tema-atual.css, gerado pelo repinta a partir da
+ * paleta e da fonte do kitty (--uc-bg, --uc-fg, --uc-ativo, --uc-dim,
+ * --uc-font, --uc-size). */
+@import "tema-atual.css";
+
+/* Paleta: as variáveis que o próprio Firefox usa pra pintar a interface
+ * (nomes do Firefox 158; mudam entre versões, então confira se algo parar) */
+:root {
+    --toolbox-background-color: var(--uc-bg) !important;
+    --toolbox-background-color-inactive: var(--uc-bg) !important;
+    --toolbox-text-color: var(--uc-fg) !important;
+    --toolbox-text-color-inactive: var(--uc-fg) !important;
+    --toolbar-background-color: var(--uc-bg) !important;
+    --toolbar-text-color: var(--uc-fg) !important;
+    --toolbar-field-background-color: var(--uc-bg) !important;
+    --toolbar-field-background-color-focus: var(--uc-bg) !important;
+    --toolbar-field-text-color: var(--uc-fg) !important;
+    --toolbar-field-text-color-focus: var(--uc-fg) !important;
+    --toolbar-field-border-color: var(--uc-dim) !important;
+    --toolbar-field-border-color-focus: var(--uc-ativo) !important;
+    --tab-background-color-selected: var(--uc-dim) !important;
+    --tab-border-radius: 0 !important;
+    --tab-margin-block: 0 !important;
+    --toolbarbutton-icon-fill: var(--uc-fg) !important;
+    --toolbarbutton-border-radius: 0 !important;
+    --panel-background-color: var(--uc-bg) !important;
+    --panel-text-color: var(--uc-fg) !important;
+    --panel-border-color: var(--uc-dim) !important;
+    --panel-border-radius: 0 !important;
+    --chrome-content-separator-color: var(--uc-dim) !important;
+    --tabs-navbar-separator-color: var(--uc-dim) !important;
+    --focus-outline-color: var(--uc-ativo) !important;
+    /* URL bar reta, sem o "balão" que cresce ao abrir as sugestões */
+    --urlbar-border-radius: 0 !important;
+    --urlbar-background-overhang-open: 0px !important;
+    --urlbar-background-box-shadow-open: none !important;
+    --urlbar-background-outline-focused: none !important;
+}
+
+#navigator-toolbox,
+#navigator-toolbox *,
+.urlbarView {
+    font-family: var(--uc-font) !important;
+    font-size: var(--uc-size) !important;
+}
+
+/* URL bar minimalista: borda fina apagada, acesa no foco */
+#urlbar[focused] .urlbar-background {
+    border-color: var(--uc-ativo) !important;
+}
+/* Ícones extras (leitor, favoritos, extensões, tradução) só com o mouse em
+ * cima ou digitando. O cadeado (#identity-box) fica sempre visível. */
+#urlbar:not(:hover, [focused]) #page-action-buttons,
+#urlbar:not(:hover, [focused]) #tracking-protection-icon-container {
+    display: none !important;
+}
+
+/* Barra única: URL à esquerda, abas à direita, na mesma linha. Em janela
+ * estreita (tiling dividido) volta pras duas linhas. */
+@media (min-width: 900px) {
+    #navigator-toolbox {
+        display: flex !important;
+        flex-flow: row wrap !important;
+    }
+    #navigator-toolbox > * {
+        order: 3;
+        width: 100%;
+    }
+    #nav-bar {
+        order: 1 !important;
+        width: 40vw !important;
+        border-top: none !important;
+    }
+    #TabsToolbar {
+        order: 2 !important;
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+}
