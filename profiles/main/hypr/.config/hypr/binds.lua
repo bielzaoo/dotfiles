@@ -2,48 +2,52 @@
 ---- KEYBINDINGS ----
 ---------------------
 
+-- Todo bind leva `desc`: o `atalhos` (WIN+K) lê do `hyprctl binds -j`, e em
+-- config Lua o JSON não diz o que o bind faz, só a descrição.
+
 local programs = require("programs")
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 
 -- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(programs.terminal))
-local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close())
+hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(programs.terminal), { desc = "Abrir terminal" })
+local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close(), { desc = "Fechar janela" })
 -- closeWindowBind:set_enabled(false)
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
-hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu))
-hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
-hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "Lock" })
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), { desc = "Sair do Hyprland" })
+hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }), { desc = "Janela flutuante (alternar)" })
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu), { desc = "Launcher (Vicinae)" })
+hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { desc = "Pseudo-tile (alternar)" })
+hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"), { desc = "Trocar direção do split" })    -- dwindle only
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "Bloquear tela" })
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("energia"), { desc = "Menu de energia" })
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("tema"), { desc = "Seletor de cor/fonte/espaco" })
-hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("vicinae deeplink 'vicinae://launch/clipboard/history?toggle=true'"), { desc = "Clipboard history" })  -- histórico mora no Vicinae: trocar launcher = resolver clipboard junto
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("tema"), { desc = "Seletor de cor/fonte/espaço" })
+hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("atalhos"), { desc = "Atalhos (esta lista)" })
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("vicinae deeplink 'vicinae://launch/clipboard/history?toggle=true'"), { desc = "Histórico do clipboard" })  -- histórico mora no Vicinae: trocar launcher = resolver clipboard junto
 
 -- Screenshot: Print = área selecionada, SHIFT + Print = tela inteira (vai pro clipboard)
-hl.bind("Print",         hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'), { desc = "Screenshot area" })
-hl.bind("SHIFT + Print", hl.dsp.exec_cmd("grim - | wl-copy"),               { desc = "Screenshot full" })
+hl.bind("Print",         hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'), { desc = "Screenshot de área (clipboard)" })
+hl.bind("SHIFT + Print", hl.dsp.exec_cmd("grim - | wl-copy"),               { desc = "Screenshot da tela (clipboard)" })
 
 -- Move focus with mainMod + arrow keys
-hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }),  { desc = "Foco à esquerda" })
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }), { desc = "Foco à direita" })
+hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }),    { desc = "Foco acima" })
+hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }),  { desc = "Foco abaixo" })
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
     local key = i % 10 -- 10 maps to key 0
-    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}))
-    hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
+    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}),        { desc = "Ir pro workspace " .. i })
+    hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }), { desc = "Mover janela pro workspace " .. i })
 end
 
 -- Example special workspace (scratchpad)
-hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"),            { desc = "Scratchpad (mostrar/esconder)" })
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }), { desc = "Mover janela pro scratchpad" })
 
 -- Scroll through existing workspaces with mainMod + scroll
-hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }), { desc = "Próximo workspace" })
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }), { desc = "Workspace anterior" })
 
 -- Zoom de tela com CTRL + mainMod + scroll (centrado no cursor); CTRL + mainMod + 0 reseta
 -- passo = multiplicador por clique do scroll (velocidade da animação: zoomFactor em look.lua)
@@ -55,24 +59,24 @@ local function zoom(mult)
         hl.config({ cursor = { zoom_factor = z } })
     end
 end
-hl.bind("CTRL + " .. mainMod .. " + mouse_up",   zoom(passo), { desc = "Zoom in" })
-hl.bind("CTRL + " .. mainMod .. " + mouse_down", zoom(1 / passo), { desc = "Zoom out" })
-hl.bind("CTRL + " .. mainMod .. " + 0", function() hl.config({ cursor = { zoom_factor = 1 } }) end, { desc = "Zoom reset" })
+hl.bind("CTRL + " .. mainMod .. " + mouse_up",   zoom(passo), { desc = "Zoom: aproximar" })
+hl.bind("CTRL + " .. mainMod .. " + mouse_down", zoom(1 / passo), { desc = "Zoom: afastar" })
+hl.bind("CTRL + " .. mainMod .. " + 0", function() hl.config({ cursor = { zoom_factor = 1 } }) end, { desc = "Zoom: resetar" })
 
 -- Move/resize windows with mainMod + LMB/RMB and dragging
-hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
-hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true, desc = "Arrastar janela" })
+hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, desc = "Redimensionar janela" })
 
 -- Laptop multimedia keys for volume and LCD brightness
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("osd vol up"),     { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("osd vol down"),   { locked = true, repeating = true })
-hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("osd vol mute"),   { locked = true, repeating = true })
-hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("osd mic mute"),   { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("osd luz up"),     { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("osd luz down"),   { locked = true, repeating = true })
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("osd vol up"),     { locked = true, repeating = true, desc = "Volume +" })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("osd vol down"),   { locked = true, repeating = true, desc = "Volume -" })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("osd vol mute"),   { locked = true, repeating = true, desc = "Mudo (alternar)" })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("osd mic mute"),   { locked = true, repeating = true, desc = "Microfone mudo (alternar)" })
+hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("osd luz up"),     { locked = true, repeating = true, desc = "Brilho +" })
+hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("osd luz down"),   { locked = true, repeating = true, desc = "Brilho -" })
 
 -- Requires playerctl
-hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true, desc = "Mídia: próxima" })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, desc = "Mídia: tocar/pausar" })
+hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, desc = "Mídia: tocar/pausar" })
+hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true, desc = "Mídia: anterior" })
