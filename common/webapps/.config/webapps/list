@@ -1,7 +1,6 @@
 # Web apps criados pelo `webapp sync`, um por linha: Nome | endereço | ícone
-# O ícone é um nome do tema (ex.: whatsapp, do Papirus), o caminho de um
-# arquivo .png/.svg ou "site" (baixa o ícone que o próprio site publica).
-# Pra achar o nome de um ícone do Papirus:
-#   find /usr/share/icons/Papirus/64x64/apps -iname '*telegram*'
-WhatsApp | https://web.whatsapp.com/ | whatsapp
+# Ícone vazio ou "site" = o oficial que o próprio site publica
+# (/apple-touch-icon.png). Também aceita um nome do tema de ícones ou o
+# caminho de um arquivo .png/.svg.
+WhatsApp | https://web.whatsapp.com/ | site
 Claude | https://claude.ai/ | site

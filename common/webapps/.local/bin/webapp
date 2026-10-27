@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sites como apps: janela própria do Chrome (sem abas nem barra de endereço),
+# Sites como apps: janela própria do Chrome/Chromium (sem abas nem barra de endereço),
 # ícone próprio e item próprio no menu e na dock.
 #
 # Por que não o "Instalar app" do Chrome: no Wayland a janela de um
@@ -10,23 +10,27 @@
 # exatamente esse nome.
 #
 # Uso:
-#   webapp add "WhatsApp" https://web.whatsapp.com/ whatsapp
+#   webapp add "WhatsApp" https://web.whatsapp.com/
 #   webapp add "Claude" https://claude.ai/ site
 #   webapp rm "WhatsApp"
 #   webapp list
 #   webapp sync     cria todos os de ~/.config/webapps/list
 #
-# O ícone é um nome do tema de ícones (ex.: whatsapp, do Papirus), o
-# caminho de um arquivo .png/.svg ou "site" (baixa o ícone do próprio site).
+# O ícone padrão é "site" (o oficial, baixado do próprio site); também
+# aceita um nome do tema de ícones ou o caminho de um arquivo .png/.svg.
 set -e
 
 APPS="$HOME/.local/share/applications"
 ICONS="$HOME/.local/share/icons/webapps"
 LIST="$HOME/.config/webapps/list"
-BROWSER=google-chrome
+
+# Chrome no fedora-kde, Chromium no main (Arch). WEBAPP_BROWSER força outro.
+for BROWSER in "${WEBAPP_BROWSER:-}" google-chrome chromium; do
+    [[ -n $BROWSER ]] && command -v "$BROWSER" &>/dev/null && break
+done
 
 usage() {
-    sed -n '/^# Uso:/,/^# caminho de um arquivo/p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '/^# Uso:/,/^# aceita um nome do tema/p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
 }
 
@@ -77,7 +81,7 @@ site_icon() {
 }
 
 add() {
-    local name="$1" url="$2" icon="${3:-applications-internet}" id file old
+    local name="$1" url="$2" icon="${3:-site}" id file old
     [[ -n $name && $url == http*://* ]] || usage
     command -v "$BROWSER" &>/dev/null || { echo "$BROWSER não encontrado" >&2; exit 1; }
 
