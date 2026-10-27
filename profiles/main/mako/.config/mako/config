@@ -22,3 +22,11 @@ default-timeout=1500
 # Bateria crítica (~/.local/bin/bateria) não some sozinha
 [app-name=bateria urgency=critical]
 default-timeout=0
+
+# Não perturbe (WIN+CTRL+vírgula): esconde tudo menos crítico e o OSD
+[mode=nao-perturbe]
+invisible=1
+[mode=nao-perturbe urgency=critical]
+invisible=0
+[mode=nao-perturbe app-name=osd]
+invisible=0

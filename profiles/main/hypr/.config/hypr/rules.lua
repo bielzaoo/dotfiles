@@ -63,3 +63,13 @@ hl.window_rule({
 for i = 1, 5 do
     hl.workspace_rule({ workspace = tostring(i), persistent = true })
 end
+
+-- Web apps (Chromium/Chrome, class chrome-<host>__-Default) podem pedir foco:
+-- clicar na notificação (ex.: WhatsApp) leva até a janela. Só eles: o global
+-- misc.focus_on_activate deixaria qualquer app roubar o foco
+hl.window_rule({
+    name  = "webapp-foco",
+    match = { class = "chrome-.*" },
+
+    focus_on_activate = true,
+})

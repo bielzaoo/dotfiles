@@ -80,3 +80,10 @@ hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = tr
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, desc = "Mídia: tocar/pausar" })
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, desc = "Mídia: tocar/pausar" })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true, desc = "Mídia: anterior" })
+
+-- Notificações (mako), à la Omarchy. Clicar na notificação também vai pra origem
+hl.bind(mainMod .. " + comma",               hl.dsp.exec_cmd("makoctl dismiss"),       { desc = "Notificação: fechar a última" })
+hl.bind(mainMod .. " + SHIFT + comma",       hl.dsp.exec_cmd("makoctl dismiss --all"), { desc = "Notificação: fechar todas" })
+hl.bind(mainMod .. " + ALT + comma",         hl.dsp.exec_cmd("makoctl invoke"),        { desc = "Notificação: ir pra origem" })
+hl.bind(mainMod .. " + SHIFT + ALT + comma", hl.dsp.exec_cmd("makoctl restore"),       { desc = "Notificação: reabrir a última fechada" })
+hl.bind(mainMod .. " + CTRL + comma",        hl.dsp.exec_cmd("makoctl mode -t nao-perturbe && notify-send -a osd -t 1500 \"não perturbe: $(makoctl mode | grep -q nao-perturbe && echo ligado || echo desligado)\""), { desc = "Notificação: não perturbe (alternar)" })
