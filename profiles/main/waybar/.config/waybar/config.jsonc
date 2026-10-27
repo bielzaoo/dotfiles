@@ -1,4 +1,5 @@
-// Barra mínima (Fase 3). Único módulo amarrado ao compositor: hyprland/workspaces.
+// Barra mínima (Fase 3). Módulos amarrados ao compositor: hyprland/workspaces e
+// hyprland/language (layout do teclado; troca com os dois Shifts ou no clique).
 // Fase 6: clique abre o TUI do módulo (toggle) via ~/.local/bin/tui.
 {
     "layer": "top",
@@ -6,7 +7,8 @@
     "height": 24,
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["pulseaudio", "network", "bluetooth", "cpu", "memory", "custom/energia"],
+    "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "custom/energia"],
+    "hyprland/language": { "format": "{short}", "on-click": "hyprctl switchxkblayout current next" },
     "clock": { "format": "{:%a %d/%m  %H:%M}" },
     "pulseaudio": { "format": "vol {volume}%", "format-muted": "vol mudo", "on-click": "tui wiremix" },
     "network": { "format-ethernet": "eth", "format-wifi": "wifi {essid}", "format-disconnected": "offline", "on-click": "tui nmtui" },

@@ -4,10 +4,14 @@
 
 hl.config({
     input = {
-        kb_layout  = "us",
-        kb_variant = "",
+        -- us (padrão) + br do teclado ThinkPad: a variante põe / ? no Ctrl
+        -- direito, já que ele não tem a tecla /? do ABNT2. Os dois Shifts
+        -- juntos alternam (os dois Alts roubariam o AltGr do br). Indicador na
+        -- waybar (hyprland/language)
+        kb_layout  = "us,br",
+        kb_variant = ",thinkpad",
         kb_model   = "",
-        kb_options = "",
+        kb_options = "grp:shifts_toggle",
         kb_rules   = "",
 
         follow_mouse = 1,
