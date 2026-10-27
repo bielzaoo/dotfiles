@@ -53,6 +53,7 @@ if [ $seco -eq 0 ]; then
     for f in "${mudou[@]}"; do
         case "$f" in
             /etc/mkinitcpio.conf) passo "mkinitcpio.conf mudou: regenerando UKIs"; sudo mkinitcpio -P ;;
+            /etc/locale.gen)      passo "locale.gen mudou: gerando locales"; sudo locale-gen ;;
             /etc/nftables.conf)   passo "nftables.conf mudou: recarregando"; sudo nft -c -f "$f" && sudo nft -f "$f" ;;
         esac
     done

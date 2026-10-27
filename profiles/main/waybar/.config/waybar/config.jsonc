@@ -20,7 +20,27 @@
         "tooltip-format": "{timeTo}, {power:.1f}W"
     },
     "hyprland/language": { "format": "{short}", "on-click": "hyprctl switchxkblayout current next" },
-    "clock": { "format": "{:%a %d/%m  %H:%M}" },
+    // Relógio: mouse em cima mostra o calendário do mês (hoje sublinhado); clique
+    // alterna pra data completa com segundos; botão direito alterna mês/ano no
+    // calendário e o scroll navega pelos meses
+    "clock": {
+        "format": "{:%a %d/%m  %H:%M}",
+        "format-alt": "{:%A, %d de %B de %Y  %H:%M:%S}",
+        "interval": 1,
+        "locale": "pt_BR.UTF-8",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "mode-mon-col": 3,
+            "on-scroll": 1,
+            "format": { "today": "<b><u>{}</u></b>" }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_down",
+            "on-scroll-down": "shift_up"
+        }
+    },
     "pulseaudio": { "format": "vol {volume}%", "format-muted": "vol mudo", "on-click": "tui wiremix" },
     "network": { "format-ethernet": "eth", "format-wifi": "wifi {essid}", "format-disconnected": "offline", "on-click": "tui nmtui" },
     "bluetooth": { "format": "bt", "format-off": "bt off", "format-disabled": "bt off", "format-connected": "bt {device_alias}", "on-click": "tui bluetui" },

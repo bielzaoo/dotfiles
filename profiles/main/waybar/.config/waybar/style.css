@@ -30,3 +30,7 @@ window#waybar {
 #pulseaudio.muted, #network.disconnected, #bluetooth.off, #bluetooth.disabled { color: @dim; }
 #battery.warning:not(.charging) { color: @erro; }
 #battery.critical:not(.charging) { background: @erro; color: @bg; }
+
+/* Tooltip (calendar do relógio etc.) na mesma identidade da barra */
+tooltip { background: @bg; border: 1px solid @dim; border-radius: 0; }
+tooltip label { color: @fg; }
