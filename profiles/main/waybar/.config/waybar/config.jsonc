@@ -11,7 +11,7 @@
     "modules-left": ["ext/workspaces"],
     "modules-center": ["clock"],
     "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "battery", "custom/energia"],
-    "ext/workspaces": { "format": "{name}", "sort-by-number": true, "on-click": "activate" },
+    "ext/workspaces": { "format": "{name}", "sort-by-id": true, "on-click": "activate" },
     "battery": {
         "states": { "warning": 20, "critical": 10 },
         "format": "bat {capacity}%",
@@ -24,8 +24,8 @@
     // alterna pra data completa com segundos; botão direito alterna mês/ano no
     // calendário e o scroll navega pelos meses
     "clock": {
-        "format": "{:%a %d/%m  %H:%M}",
-        "format-alt": "{:%A, %d de %B de %Y  %H:%M:%S}",
+        "format": "{:L%a %d/%m  %H:%M}",
+        "format-alt": "{:L%A, %d de %B de %Y  %H:%M:%S}",
         "interval": 1,
         "locale": "pt_BR.UTF-8",
         "tooltip-format": "<tt>{calendar}</tt>",
