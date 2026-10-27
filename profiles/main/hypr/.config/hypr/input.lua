@@ -36,3 +36,15 @@ hl.device({
     name        = "epic-mouse-v1",
     sensitivity = -0.5,
 })
+
+-- Zoom de tela no touchpad: pinça de 2 dedos segurando CTRL + WIN, contínuo
+-- (segue os dedos). Arrastar 2 dedos é scroll, não gesto: esse cai no
+-- CTRL + WIN + scroll do binds.lua, em degraus. Sem mods, a pinça roubaria o
+-- zoom de página do Firefox
+hl.gesture({
+    fingers   = 2,
+    direction = "pinch",
+    mods      = "CTRL + SUPER",
+    action    = "cursorZoom",
+    mode      = "live",
+})
