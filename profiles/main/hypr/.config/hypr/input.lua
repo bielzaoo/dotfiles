@@ -14,6 +14,11 @@ hl.config({
         kb_options = "grp:shifts_toggle",
         kb_rules   = "",
 
+        -- Repetição de tecla segurada (padrão do Hyprland: 25/s após 600ms).
+        -- 40/s como no Omarchy; delay = quanto segurar até começar a repetir
+        repeat_rate  = 40,
+        repeat_delay = 600,
+
         follow_mouse = 1,
 
         sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
