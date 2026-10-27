@@ -15,6 +15,7 @@ chromium
 compsize
 efibootmgr
 firefox
+fzf
 git
 greetd
 greetd-tuigreet
@@ -24,6 +25,7 @@ hyprland
 hyprlock
 kitty
 layer-shell-qt
+less
 libqalculate
 linux
 linux-firmware
@@ -65,4 +67,5 @@ wpa_supplicant
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xorg-xwayland
+zoxide
 zram-generator

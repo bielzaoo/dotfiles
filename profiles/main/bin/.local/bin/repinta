@@ -36,6 +36,20 @@ hl.config({ general = { col = {
 } } })
 EOF
 
+# kitty: abas e bordas de split (o resto da paleta já vem do cor-atual.conf)
+cat >"$kitty/abas-atual.conf" <<EOF
+# Gerado pelo repinta (paleta $nome). Não editar.
+tab_bar_background $bg
+active_tab_foreground $bg
+active_tab_background $ativo
+active_tab_font_style normal
+inactive_tab_foreground $dim
+inactive_tab_background $bg
+inactive_tab_font_style normal
+active_border_color $ativo
+inactive_border_color $dim
+EOF
+
 # hyprlock: variáveis lidas pelo hyprlock.conf (vale no próximo lock)
 cat >"$HOME/.config/hypr/hyprlock-atual.conf" <<EOF
 # Gerado pelo repinta (paleta $nome). Não editar.
