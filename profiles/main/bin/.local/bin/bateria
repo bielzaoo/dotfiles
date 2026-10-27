@@ -1,0 +1,21 @@
+#!/bin/sh
+# Aviso de bateria baixa via mako, uma vez por limite a cada descarga: 20%
+# normal, 10% crítico (fica até fechar). Volta a armar ao ligar na tomada.
+# Roda em loop, chamado pelo autostart.sh. Sem bateria (desktop), sai.
+bat=/sys/class/power_supply/BAT0
+[ -d "$bat" ] || exit 0
+[ "$(pgrep -xc bateria)" -gt 1 ] && exit 0   # já tem um rodando
+avisado=100
+while :; do
+    cap=$(cat "$bat/capacity"); st=$(cat "$bat/status")
+    if [ "$st" = Discharging ]; then
+        if [ "$cap" -le 10 ] && [ "$avisado" -gt 10 ]; then
+            notify-send -a bateria -u critical "bateria $cap%" "liga na tomada"; avisado=10
+        elif [ "$cap" -le 20 ] && [ "$avisado" -gt 20 ]; then
+            notify-send -a bateria "bateria $cap%" "procura uma tomada"; avisado=20
+        fi
+    else
+        avisado=100
+    fi
+    sleep 60
+done

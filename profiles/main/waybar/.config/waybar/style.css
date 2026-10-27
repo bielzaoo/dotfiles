@@ -23,7 +23,10 @@ window#waybar {
 }
 #workspaces button:hover { background: @dim; }
 #workspaces button.active { background: @ativo; color: @bg; }
+#workspaces button.empty { color: @dim; }
 #workspaces button.urgent { background: @erro; color: @bg; }
 
-#language, #clock, #pulseaudio, #network, #bluetooth, #cpu, #memory, #custom-energia { padding: 0 8px; }
+#language, #clock, #pulseaudio, #network, #bluetooth, #cpu, #memory, #battery, #custom-energia { padding: 0 8px; }
 #pulseaudio.muted, #network.disconnected, #bluetooth.off, #bluetooth.disabled { color: @dim; }
+#battery.warning:not(.charging) { color: @erro; }
+#battery.critical:not(.charging) { background: @erro; color: @bg; }

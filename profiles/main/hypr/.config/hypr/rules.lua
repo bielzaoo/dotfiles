@@ -57,3 +57,9 @@ hl.window_rule({
     size   = "900 560",
     center = true,
 })
+
+-- Workspaces 1-5 sempre existem (persistentes), mesmo vazios: a waybar
+-- (ext/workspaces) mostra o que o compositor anuncia, então é aqui que fixa
+for i = 1, 5 do
+    hl.workspace_rule({ workspace = tostring(i), persistent = true })
+end

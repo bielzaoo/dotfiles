@@ -7,6 +7,7 @@ case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$P
 
 waybar &
 mako &
+bateria &         # aviso de bateria baixa (20% / 10%) via mako
 vicinae server &   # launcher + histórico do clipboard (layer-shell, agnóstico)
 
 # Wallpaper: cor sólida = fundo da paleta ativa (fundo-atual, gerado pelo repinta)

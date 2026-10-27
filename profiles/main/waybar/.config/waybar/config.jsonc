@@ -1,13 +1,24 @@
-// Barra mínima (Fase 3). Módulos amarrados ao compositor: hyprland/workspaces e
+// Barra mínima (Fase 3). Workspaces via ext/workspaces (protocolo Wayland, não
+// o IPC do Hyprland: o dispatch antigo da waybar quebra com config Lua); os 1-5
+// fixos vêm do rules.lua. Amarrado ao compositor só o
 // hyprland/language (layout do teclado; troca com os dois Shifts ou no clique).
+// Bateria: avisa em 20%, crítica em 10%.
 // Fase 6: clique abre o TUI do módulo (toggle) via ~/.local/bin/tui.
 {
     "layer": "top",
     "position": "top",
     "height": 24,
-    "modules-left": ["hyprland/workspaces"],
+    "modules-left": ["ext/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "custom/energia"],
+    "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "battery", "custom/energia"],
+    "ext/workspaces": { "format": "{name}", "sort-by-number": true, "on-click": "activate" },
+    "battery": {
+        "states": { "warning": 20, "critical": 10 },
+        "format": "bat {capacity}%",
+        "format-charging": "bat+ {capacity}%",
+        "format-plugged": "ac {capacity}%",
+        "tooltip-format": "{timeTo}, {power:.1f}W"
+    },
     "hyprland/language": { "format": "{short}", "on-click": "hyprctl switchxkblayout current next" },
     "clock": { "format": "{:%a %d/%m  %H:%M}" },
     "pulseaudio": { "format": "vol {volume}%", "format-muted": "vol mudo", "on-click": "tui wiremix" },

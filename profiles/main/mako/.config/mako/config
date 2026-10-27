@@ -18,3 +18,7 @@ include=~/.config/mako/tema-atual
 anchor=top-center
 width=240
 default-timeout=1500
+
+# Bateria crítica (~/.local/bin/bateria) não some sozinha
+[app-name=bateria urgency=critical]
+default-timeout=0
