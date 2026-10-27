@@ -1,17 +1,30 @@
 #!/usr/bin/env python3
-# Lista os atalhos do Hyprland com busca, via Vicinae dmenu (WIN+K).
-# Lê ao vivo do `hyprctl binds -j`: a lista nunca desatualiza. Em config Lua o
-# JSON só traz a descrição (`desc` no bind), então bind sem desc aparece marcado.
-# Específico do Hyprland (a fonte é o hyprctl); a exibição é agnóstica.
+# Lista os atalhos com busca, via Vicinae dmenu (WIN+K): Hyprland, tmux, kitty
+# e bash numa lista só, com a origem na 1ª coluna (buscar "tmux" filtra).
+# Tudo lido ao vivo das configs, então a lista nunca desatualiza:
+# - Hyprland: `hyprctl binds -j`. Em config Lua o JSON só traz a descrição
+#   (`desc` no bind), então bind sem desc aparece marcado.
+# - tmux: binds com nota (`bind -N "descrição" ...`) do tmux.conf.
+# - Qualquer config: linha de comentário `#: tecla | descrição`, pra padrão do
+#   app ou tecla que não é bind (fzf, zoxide).
 import json
+import re
 import subprocess
+from pathlib import Path
 
+CASA = Path.home()
 MODS = [(64, "WIN"), (4, "CTRL"), (8, "ALT"), (1, "SHIFT")]
 TECLAS = {
     "mouse_up": "scroll ↑", "mouse_down": "scroll ↓",
     "mouse:272": "clique esq.", "mouse:273": "clique dir.",
     "left": "←", "right": "→", "up": "↑", "down": "↓",
 }
+# Arquivos com linhas `#: tecla | descrição`
+COMENTADOS = [
+    ("tmux", CASA / ".config/tmux/tmux.conf"),
+    ("kitty", CASA / ".config/kitty/kitty.conf"),
+    ("bash", CASA / ".bashrc"),
+]
 
 
 def combo(b):
@@ -21,14 +34,54 @@ def combo(b):
     return " + ".join(partes + [tecla])
 
 
-binds = json.loads(subprocess.run(["hyprctl", "binds", "-j"],
-                                  capture_output=True, text=True, check=True).stdout)
-# WIN primeiro (workspaces 0-9 no fim do bloco), depois Print e teclas de mídia
-binds.sort(key=lambda b: (not b["modmask"] & 64, b["key"].isdigit(), combo(b)))
-linhas = [(combo(b), b["description"] or "(sem descrição)") for b in binds]
-largura = max(len(c) for c, _ in linhas)
-texto = "\n".join(f"{c.ljust(largura)}   {d}" for c, d in linhas)
+def hyprland():
+    binds = json.loads(subprocess.run(["hyprctl", "binds", "-j"],
+                                      capture_output=True, text=True, check=True).stdout)
+    # WIN primeiro (workspaces 0-9 no fim do bloco), depois Print e teclas de mídia
+    binds.sort(key=lambda b: (not b["modmask"] & 64, b["key"].isdigit(), combo(b)))
+    return [("hypr", combo(b), b["description"] or "(sem descrição)") for b in binds]
 
-subprocess.run(["vicinae", "dmenu", "-n", "atalhos", "-p", "buscar atalho",
-                "-s", "{count} atalhos", "--no-quick-look", "-W", "720", "-H", "560"],
+
+def tecla_tmux(t):
+    # C-M-S-Left -> Ctrl+Alt+Shift+←
+    *mods, tecla = t.split("-") if t not in ("-", "M--") else [t]
+    nomes = {"C": "Ctrl", "M": "Alt", "S": "Shift"}
+    tecla = TECLAS.get(tecla.lower(), tecla)
+    return "+".join([nomes[m] for m in mods] + [tecla])
+
+
+def tmux():
+    conf = CASA / ".config/tmux/tmux.conf"
+    if not conf.exists():
+        return []
+    linhas = []
+    for l in conf.read_text().splitlines():
+        m = re.match(r'\s*bind\s+-N\s+"([^"]+)"\s+(-n\s+)?(\S+)', l)
+        if m:
+            nota, raiz, tecla = m.groups()
+            linhas.append(("tmux", ("" if raiz else "prefix ") + tecla_tmux(tecla), nota))
+    return linhas
+
+
+def comentados():
+    linhas = []
+    for app, arq in COMENTADOS:
+        if not arq.exists():
+            continue
+        for l in arq.read_text().splitlines():
+            m = re.match(r"\s*#:\s*(.+?)\s*\|\s*(.+)", l)
+            if m:
+                linhas.append((app, m.group(1), m.group(2)))
+    return linhas
+
+
+# tmux: binds e comentados juntos, os do prefix no fim
+extra = tmux() + comentados()
+extra.sort(key=lambda x: ([a for a, _ in COMENTADOS].index(x[0]), x[1].startswith("prefix")))
+linhas = hyprland() + extra
+lc = max(len(c) for _, c, _ in linhas)
+texto = "\n".join(f"{a:<6}{c.ljust(lc)}   {d}" for a, c, d in linhas)
+
+subprocess.run(["vicinae", "dmenu", "-n", "atalhos", "-p", "buscar atalho (hypr, tmux, kitty, bash)",
+                "-s", "{count} atalhos", "--no-quick-look", "-W", "800", "-H", "560"],
                input=texto, text=True, stdout=subprocess.DEVNULL)

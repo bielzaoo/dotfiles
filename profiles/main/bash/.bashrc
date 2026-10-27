@@ -33,12 +33,18 @@ alias ...='cd ../..'
 # fzf: Ctrl+R histórico, Ctrl+T arquivo, Alt+C entra em pasta.
 # --color=16 = usa só as 16 cores ANSI do kitty (segue a paleta ativa)
 if command -v fzf >/dev/null; then
+    #: Ctrl+R | Buscar no histórico (fzf)
+    #: Ctrl+T | Buscar arquivo e colar o caminho (fzf)
+    #: Alt+C | Buscar pasta e entrar (fzf)
     export FZF_DEFAULT_OPTS='--color=16 --layout=reverse --height=40% --border=sharp --info=inline'
     eval "$(fzf --bash)"
 fi
 
 # zoxide no lugar do cd: `cd caminho` funciona igual, `cd parte-do-nome` pula
 # pra pasta frequente, `cdi` escolhe no fzf. O cd original segue em `builtin cd`
+#: cd parte-do-nome | Pular pra pasta frequente (zoxide)
+#: cdi | Escolher pasta frequente no fzf (zoxide)
+#: sessao | Escolher pasta e entrar na sessão tmux dela
 command -v zoxide >/dev/null && eval "$(zoxide init bash --cmd cd)"
 
 # Prompt: pasta (ativo) · branch git (apagado) · código de saída (erro), $ verde

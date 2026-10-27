@@ -1,0 +1,11 @@
+#!/bin/sh
+# Ponto de entrada do terminal com tmux (WIN+Q abre `kitty -e tmux-entra`).
+# Retoma a sessão "main" se ninguém estiver nela; se ela já estiver aberta em
+# outra janela, cria uma sessão nova, pra duas janelas não espelharem a mesma.
+# Sem tmux instalado, cai num bash comum. Kitty puro: WIN+SHIFT+Q.
+command -v tmux >/dev/null || exec bash
+if tmux has-session -t main 2>/dev/null; then
+    [ "$(tmux display -p -t main '#{session_attached}')" = 0 ] && exec tmux attach -t main
+    exec tmux new-session
+fi
+exec tmux new-session -s main
