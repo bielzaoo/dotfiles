@@ -14,6 +14,9 @@ padrao "$HOME/.config/hypr"  espaco-atual.lua  espacos/justo.lua
 # seletor de arquivos). Fica no dconf, fora do git, por isso mora aqui.
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
+# Pastas cinza em vez do azul do Adwaita: gera o tema Papirus-Pastas no usuário
+# e aponta o icon-theme pra ele (ver ~/.local/bin/pastas; trocar: `pastas <cor>`)
+"$HOME/.local/bin/pastas" grey
 
 # Firefox: Betterfox + overrides no user.js do perfil padrão e o chrome/
 # (userChrome.css) linkado nele. O nome da pasta do perfil é aleatório, por

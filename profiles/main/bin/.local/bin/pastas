@@ -1,0 +1,41 @@
+#!/bin/sh
+# Cor das pastas no tema de ícones (Nautilus, seletor de arquivos, GTK em geral).
+# Gera ~/.local/share/icons/Papirus-Pastas: herda do Papirus-Dark e só troca os
+# links de pasta (folder-*, user-*) que no Papirus apontam pro azul. Faz no
+# usuário em vez do papirus-folders: sem root/AUR e o update do pacote não desfaz.
+# Sem argumento lista as cores (* = ativa).
+src=/usr/share/icons/Papirus
+tema=Papirus-Pastas
+dst="$HOME/.local/share/icons/$tema"
+atual=$(cat "$dst/.cor" 2>/dev/null)
+
+[ -d "$src" ] || { echo "pastas: falta o papirus-icon-theme" >&2; exit 1; }
+
+if [ -z "$1" ]; then
+    for f in "$src"/48x48/places/folder-*.svg; do
+        n=${f##*/folder-}; n=${n%.svg}
+        case "$n" in *-*) continue ;; esac   # só folder-<cor>.svg, sem variantes
+        [ -L "$f" ] && continue
+        [ "$n" = "$atual" ] && echo "* $n" || echo "  $n"
+    done
+    exit 0
+fi
+
+[ -f "$src/48x48/places/folder-$1.svg" ] || { echo "pastas: '$1' não existe (rode sem argumento p/ listar)" >&2; exit 1; }
+
+rm -rf "$dst"
+mkdir -p "$dst"
+sed -e "s/^Name=.*/Name=$tema/" -e "s/^Inherits=.*/Inherits=Papirus-Dark,breeze-dark,hicolor/" \
+    "$src-Dark/index.theme" > "$dst/index.theme"
+# folder-blue-documents.svg -> folder-grey-documents.svg (o "-blue" exato, não o "-bluegrey")
+find "$src"/*/places -type l -lname '*-blue[-.]*' | while read -r l; do
+    alvo=$(readlink "$l" | sed 's/-blue\([-.]\)/-'"$1"'\1/')
+    d="$dst/${l#"$src"/}"; d=${d%/*}
+    [ -e "${l%/*}/$alvo" ] || continue
+    mkdir -p "$d"
+    ln -s "${l%/*}/$alvo" "$d/${l##*/}"
+done
+echo "$1" > "$dst/.cor"
+
+gsettings set org.gnome.desktop.interface icon-theme "$tema"
+echo "pastas: ${atual:-azul} -> $1"

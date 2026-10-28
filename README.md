@@ -90,7 +90,7 @@ Arch + Hyprland montado do zero (plano e checklist no brain, `artifacts/infra/wo
 - `session/` — `~/.config/session/autostart.sh`, agnóstico de compositor (waybar, mako, `vicinae server`, wallpaper). Trocar de WM = reescrever `hypr/`, o resto fica.
 - `vicinae/` — launcher + histórico do clipboard (`WIN+R`, `WIN+SHIFT+V`), tema `vga`. O Vicinae não está nos repos: instalado à mão em `~/.local/opt/vicinae`.
 - `kitty/` — substitui o `common/kitty` (ver `common.skip`).
-- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista). `pacotes-salva` regrava `pacotes.txt` e `servicos.txt` a partir do sistema atual.
+- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista). `pacotes-salva` regrava `pacotes.txt` e `servicos.txt` a partir do sistema atual. `pastas` troca a cor das pastas (`pastas grey`; sem argumento lista): gera o tema `Papirus-Pastas` no usuário, herdando do Papirus-Dark e só trocando os links de pasta, sem root nem `papirus-folders`.
 - `pacotes.txt` — `pacman -Qqen` (explícitos dos repos): `sudo pacman -S --needed - < pacotes.txt`.
 - `servicos.txt` — units habilitadas, `system <unit>` / `user <unit>`.
 - `manuais.md` — o que vem de fora do pacman (Vicinae, fontes Cozette/Spleen).
@@ -102,7 +102,9 @@ Mudou pacote ou serviço? Rode `pacotes-salva`, confira o diff e commite junto. 
 
 Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
 
-**Modo escuro fora do `repinta`:** o `setup.sh` grava `color-scheme=prefer-dark` e `gtk-theme=Adwaita-dark` no gsettings. O portal repassa isso pro Firefox, o Chromium, o Electron (Bitwarden) e os apps GTK. Fica no dconf, fora do git, por isso o `setup.sh` reaplica.
+**Modo escuro fora do `repinta`:** o `setup.sh` grava `color-scheme=prefer-dark` e `gtk-theme=Adwaita-dark` no gsettings. O portal repassa isso pro Firefox, o Chromium, o Electron (Bitwarden) e os apps GTK. Fica no dconf, fora do git, por isso o `setup.sh` reaplica. Ele também roda `pastas grey` (ícones Papirus, pastas cinza no lugar do azul do Adwaita). Se o Bitwarden não seguir o sistema, fixar o tema dele em Configurações → Aparência → Escuro.
+
+**Arquivos:** `WIN+E` abre o **yazi** no kitty puro (prévia de imagem sem passthrough do tmux; prévias via `ffmpeg`, `poppler`, `imagemagick`, `resvg`, `7zip`), `WIN+SHIFT+E` abre o **Nautilus** (arrastar pro navegador, montar pendrive/celular com `gvfs`/`gvfs-mtp`). O seletor de arquivos dos apps vem do `xdg-desktop-portal-gtk`, não do file manager.
 
 **Navegadores:** Firefox no dia a dia, Chromium só pros web apps (ver a seção dos web apps). O Firefox leva o [Betterfox](https://github.com/yokoffing/Betterfox): `firefox/` linka `betterfox.js` (o `user.js` upstream, intocado, versão fixa) e `overrides.js` (meus ajustes) em `~/.config/mozilla/firefox/betterfox/`, e o `setup.sh` junta os dois no `user.js` do perfil padrão (lido do `installs.ini`), porque a pasta do perfil tem nome aleatório. Pra atualizar, troque o `betterfox.js` pelo `user.js` da release nova e rode o `setup.sh`.
 
