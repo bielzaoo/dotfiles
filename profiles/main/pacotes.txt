@@ -33,6 +33,7 @@ imagemagick
 jq
 kitty
 layer-shell-qt
+lazygit
 less
 libqalculate
 linux
@@ -45,8 +46,10 @@ mkinitcpio
 nautilus
 networkmanager
 nftables
+nodejs
 noto-fonts
 noto-fonts-emoji
+npm
 openssh
 papirus-icon-theme
 pipewire-pulse
@@ -66,9 +69,11 @@ stow
 sudo
 syntax-highlighting
 tmux
+tree-sitter-cli
 ttf-dejavu
 ttf-jetbrains-mono
 ttf-terminus-nerd
+unzip
 vim
 waybar
 wget
