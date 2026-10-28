@@ -110,11 +110,15 @@ Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.
 
 **Interface do Firefox:** `firefox/.../chrome/userChrome.css` (linkado como `chrome/` do perfil pelo `setup.sh`) pinta abas, URL bar e painéis com a paleta e a fonte do kitty, que vêm de um `tema-atual.css` gerado pelo `repinta`. Também deixa a URL bar reta e minimalista (ícones extras só com o mouse em cima; o cadeado fica sempre) e põe URL e abas numa linha só a partir de 900px de largura. Abaixo disso volta pras duas linhas. O Firefox só relê o CSS quando reinicia, então depois de um `cor`/`fonte` é preciso reabrir. Os nomes de variável e de elemento são os do Firefox 158; se algo parar de pintar depois de um update, é por aí.
 
-`common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`, `tmux`) ou não usa (`nvim`, `zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
+`common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`, `tmux`, `nvim`) ou não usa (`zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
 
 **Binds de janela/app:** `WIN+W` fecha a janela (no lugar do `WIN+C` do exemplo do Hyprland), `WIN+Enter`/`WIN+SHIFT+Enter` terminal com/sem tmux, `WIN+F`/`WIN+SHIFT+F` yazi/Nautilus.
 
 **Terminal:** `bash/` (`.bashrc` com prompt ANSI, fzf e zoxide no lugar do `cd`) e `tmux/` (`~/.config/tmux/tmux.conf`, mesmos keybinds do `common/tmux`, tema só com `colour0..15`, então segue o `cor`). `WIN+Enter` abre o kitty dentro do tmux (`tmux-entra`), `WIN+SHIFT+Enter` sem. `sessao` (ou prefix `f`) escolhe uma pasta do zoxide e entra na sessão dela. O `atalhos` (`WIN+K`) lista Hyprland, tmux (binds com `-N`) e qualquer linha `#: tecla | descrição` do `tmux.conf`, `kitty.conf` e `.bashrc`.
+
+**Editor:** `nvim/` é o starter do LazyVim, com os Extras declarados no `lua/config/lazy.lua` (não só no `lazyvim.json`), pra ficarem revisáveis no git: Python, YAML, JSON, Markdown, TOML, Docker e git, mais `yanky`, `mini-surround`, `inc-rename`, `mini-hipatterns` e `util.dot`. Linguagem nova = uma linha a mais. Os LSPs vêm do Mason no primeiro arquivo aberto (por isso `unzip`, `nodejs`, `npm` e `tree-sitter-cli` no `pacotes.txt`). Versões travadas no `lazy-lock.json`, sem checagem automática de update: atualizar é `:Lazy update` e commitar o lock.
+
+**Tema do editor:** o `repinta` gera `lua/tema-atual.lua` (paleta base16 a partir do kitty, sintaxe nas cores claras 8-15) e o `lua/plugins/tema.lua` monta o colorscheme com o `mini.base16`, plano como o resto (um fundo só, borda 1px no `color8`; statusline como a waybar, só o modo em bloco invertido). Trocou o `cor`, o `repinta` chama `Repinta()` em todo nvim aberto pelo socket (`$XDG_RUNTIME_DIR/nvim.<pid>.0`). Mudou o `tema.lua`? Aí precisa reabrir o nvim.
 
 ## zsh: eza e zoxide
 
@@ -262,7 +266,7 @@ Pra adicionar um de vez, ponha uma linha no `common/webapps/.config/webapps/list
 
 ## LazyVim (extras)
 
-O Neovim versionado é o `common/nvim`. O LazyVim eu instalo à mão, então ele não fica aqui, só os ajustes em `extras/lazyvim/`, no mesmo caminho do `~/.config/nvim`. Depois de instalar o LazyVim:
+Isto é dos perfis antigos: o `main` tem o LazyVim completo em `profiles/main/nvim/` (ver a seção do main). Nos outros, o Neovim versionado é o `common/nvim`. O LazyVim eu instalo à mão, então ele não fica aqui, só os ajustes em `extras/lazyvim/`, no mesmo caminho do `~/.config/nvim`. Depois de instalar o LazyVim:
 
 ```bash
 cp -r ~/dotfiles/extras/lazyvim/lua ~/.config/nvim/
