@@ -9,15 +9,15 @@ local programs = require("programs")
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 
 -- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(programs.terminal), { desc = "Abrir terminal (tmux)" })
-hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd(programs.terminal_puro), { desc = "Abrir terminal sem tmux" })
-local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close(), { desc = "Fechar janela" })
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(programs.terminal), { desc = "Abrir terminal (tmux)" })
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd(programs.terminal_puro), { desc = "Abrir terminal sem tmux" })
+local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close(), { desc = "Fechar janela" })
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), { desc = "Sair do Hyprland" })
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }), { desc = "Janela flutuante (alternar)" })
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu), { desc = "Launcher (Vicinae)" })
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.arquivos), { desc = "Arquivos (yazi)" })
-hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd(programs.arquivos_gui), { desc = "Arquivos (Nautilus)" })
+hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(programs.arquivos), { desc = "Arquivos (yazi)" })
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(programs.arquivos_gui), { desc = "Arquivos (Nautilus)" })
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { desc = "Pseudo-tile (alternar)" })
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"), { desc = "Trocar direção do split" })    -- dwindle only
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "Bloquear tela" })

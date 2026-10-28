@@ -102,9 +102,9 @@ Mudou pacote ou serviço? Rode `pacotes-salva`, confira o diff e commite junto. 
 
 Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.sh` cria os defaults (Cozette, `vga`, `justo`) quando faltam.
 
-**Modo escuro fora do `repinta`:** o `setup.sh` grava `color-scheme=prefer-dark` e `gtk-theme=Adwaita-dark` no gsettings. O portal repassa isso pro Firefox, o Chromium, o Electron (Bitwarden) e os apps GTK. Fica no dconf, fora do git, por isso o `setup.sh` reaplica. Ele também roda `pastas grey` (ícones Papirus, pastas cinza no lugar do azul do Adwaita). Se o Bitwarden não seguir o sistema, fixar o tema dele em Configurações → Aparência → Escuro.
+**Modo escuro fora do `repinta`:** o `setup.sh` grava `color-scheme=prefer-dark` e `gtk-theme=Adwaita-dark` no gsettings. O portal repassa isso pro Firefox, o Chromium, o Electron (Bitwarden) e os apps GTK. Fica no dconf, fora do git, por isso o `setup.sh` reaplica. Ele também roda `pastas grey` (ícones Papirus, pastas cinza no lugar do azul do Adwaita). O Bitwarden não segue o sistema (o Electron enxerga o escuro, o app não): tema fixado em Configurações → Aparência → Escuro, fica no perfil dele, fora do git.
 
-**Arquivos:** `WIN+E` abre o **yazi** no kitty puro (prévia de imagem sem passthrough do tmux; prévias via `ffmpeg`, `poppler`, `imagemagick`, `resvg`, `7zip`), `WIN+SHIFT+E` abre o **Nautilus** (arrastar pro navegador, montar pendrive/celular com `gvfs`/`gvfs-mtp`). O seletor de arquivos dos apps vem do `xdg-desktop-portal-gtk`, não do file manager.
+**Arquivos:** `WIN+F` abre o **yazi** no kitty puro (prévia de imagem sem passthrough do tmux; prévias via `ffmpeg`, `poppler`, `imagemagick`, `resvg`, `7zip`), `WIN+SHIFT+F` abre o **Nautilus** (arrastar pro navegador, montar pendrive/celular com `gvfs`/`gvfs-mtp`). O seletor de arquivos dos apps vem do `xdg-desktop-portal-gtk`, não do file manager.
 
 **Navegadores:** Firefox no dia a dia, Chromium só pros web apps (ver a seção dos web apps). O Firefox leva o [Betterfox](https://github.com/yokoffing/Betterfox): `firefox/` linka `betterfox.js` (o `user.js` upstream, intocado, versão fixa) e `overrides.js` (meus ajustes) em `~/.config/mozilla/firefox/betterfox/`, e o `setup.sh` junta os dois no `user.js` do perfil padrão (lido do `installs.ini`), porque a pasta do perfil tem nome aleatório. Pra atualizar, troque o `betterfox.js` pelo `user.js` da release nova e rode o `setup.sh`.
 
@@ -112,7 +112,9 @@ Os presets ativos são symlinks `*-atual` (estado local, fora do git). O `setup.
 
 `common.skip` lista os pacotes de `common/` que o perfil substitui (`kitty`, `tmux`) ou não usa (`nvim`, `zsh`, `starship`); do `common/` o `main` só pega `ssh-agent` e `webapps`.
 
-**Terminal:** `bash/` (`.bashrc` com prompt ANSI, fzf e zoxide no lugar do `cd`) e `tmux/` (`~/.config/tmux/tmux.conf`, mesmos keybinds do `common/tmux`, tema só com `colour0..15`, então segue o `cor`). `WIN+Q` abre o kitty dentro do tmux (`tmux-entra`), `WIN+SHIFT+Q` sem. `sessao` (ou prefix `f`) escolhe uma pasta do zoxide e entra na sessão dela. O `atalhos` (`WIN+K`) lista Hyprland, tmux (binds com `-N`) e qualquer linha `#: tecla | descrição` do `tmux.conf`, `kitty.conf` e `.bashrc`.
+**Binds de janela/app:** `WIN+W` fecha a janela (no lugar do `WIN+C` do exemplo do Hyprland), `WIN+Enter`/`WIN+SHIFT+Enter` terminal com/sem tmux, `WIN+F`/`WIN+SHIFT+F` yazi/Nautilus.
+
+**Terminal:** `bash/` (`.bashrc` com prompt ANSI, fzf e zoxide no lugar do `cd`) e `tmux/` (`~/.config/tmux/tmux.conf`, mesmos keybinds do `common/tmux`, tema só com `colour0..15`, então segue o `cor`). `WIN+Enter` abre o kitty dentro do tmux (`tmux-entra`), `WIN+SHIFT+Enter` sem. `sessao` (ou prefix `f`) escolhe uma pasta do zoxide e entra na sessão dela. O `atalhos` (`WIN+K`) lista Hyprland, tmux (binds com `-N`) e qualquer linha `#: tecla | descrição` do `tmux.conf`, `kitty.conf` e `.bashrc`.
 
 ## zsh: eza e zoxide
 
