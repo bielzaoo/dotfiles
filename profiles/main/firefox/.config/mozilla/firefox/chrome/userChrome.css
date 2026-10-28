@@ -50,11 +50,17 @@
 #urlbar[focused] .urlbar-background {
     border-color: var(--uc-ativo) !important;
 }
-/* Ícones extras (leitor, favoritos, extensões, tradução) só com o mouse em
- * cima ou digitando. O cadeado (#identity-box) fica sempre visível. */
-#urlbar:not(:hover, [focused]) #page-action-buttons,
+/* Ícones extras (leitor, extensões, tradução) só com o mouse em cima ou
+ * digitando. O cadeado (#identity-box) e a estrela dos favoritos ficam sempre
+ * visíveis: a estrela é o retorno de que o Ctrl+D gravou. */
+#urlbar:not(:hover, [focused]) #page-action-buttons > :not(#star-button-box),
 #urlbar:not(:hover, [focused]) #tracking-protection-icon-container {
     display: none !important;
+}
+
+/* Página nos favoritos: estrela no verde (ok) da paleta */
+#star-button[starred] {
+    fill: var(--uc-ok) !important;
 }
 
 /* Abas verticais (sidebar.verticalTabs no overrides.js): a lateral no mesmo

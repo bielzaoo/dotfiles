@@ -147,6 +147,7 @@ if [ -d "$ffchrome" ]; then
     --uc-fg: $fg;
     --uc-ativo: $ativo;
     --uc-dim: $dim;
+    --uc-ok: $ok;
     --uc-font: "$font";
     --uc-size: ${size}pt;
 }

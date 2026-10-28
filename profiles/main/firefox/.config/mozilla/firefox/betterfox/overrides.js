@@ -15,3 +15,12 @@ user_pref("browser.uidensity", 1);
 user_pref("sidebar.revamp", true);
 user_pref("sidebar.verticalTabs", true);
 user_pref("sidebar.visibility", "expand-on-hover");
+
+// Favoritos: Ctrl+D grava na hora (só um aviso rápido). Com o painel de
+// edição, a página ficava pendente até o "Salvar" e o Esc descartava tudo,
+// menos as pastas criadas no caminho. Ctrl+D numa página já salva abre o
+// painel pra trocar nome/pasta.
+user_pref("browser.bookmarks.editDialog.showForNewBookmarks", false);
+// Barra de favoritos só na nova aba; Ctrl+Shift+B mostra/esconde até reabrir.
+// Ctrl+B abre os favoritos na lateral.
+user_pref("browser.toolbars.bookmarks.visibility", "newtab");
