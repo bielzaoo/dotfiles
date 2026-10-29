@@ -1,0 +1,82 @@
+#!/bin/sh
+# Wallpaper "tela de boot": POST de BIOS + log do systemd, com dados reais da
+# máquina, na paleta e fonte ativas do kitty (mesma fonte da verdade do repinta).
+# Chamado pelo repinta (troca de cor/fonte) e pelo autostart.sh (kernel e
+# services atualizados a cada login). Precisa do imagemagick com pango.
+# Uso: fundo [saida.png]  (default: ~/.config/session/fundo-atual.png)
+set -e
+
+kitty="$HOME/.config/kitty"
+cor="$kitty/cor-atual.conf"
+fonte="$kitty/fonte-atual.conf"
+saida="${1:-$HOME/.config/session/fundo-atual.png}"
+
+val() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ +/, ""); print; exit }' "$2"; }
+
+bg=$(val background "$cor")
+fg=$(val foreground "$cor")
+dim=$(val color8 "$cor")
+ok=$(val color10 "$cor")
+aviso=$(val color11 "$cor")
+claro=$(val color15 "$cor")
+font=$(val font_family "$fonte")
+size=$(val font_size "$fonte")
+
+# Resolução do monitor focado (fallback 1366x768)
+res=$(hyprctl monitors -j 2>/dev/null | awk -F: '/"width"/{gsub(/[ ,]/,"",$2);w=$2} /"height"/{gsub(/[ ,]/,"",$2);print w"x"$2; exit}')
+res=${res:-1366x768}
+
+# Dados da máquina
+host=$(cat /etc/hostname)
+dmi() { tr -s ' ' <"/sys/class/dmi/id/$1" 2>/dev/null | sed 's/ )/)/; s/ *$//'; }
+cpu=$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)
+mem=$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo)
+kernel=$(uname -r)
+disco=$(lsblk -dno TRAN,MODEL,SIZE 2>/dev/null | awk '$1=="nvme"{$1=""; sub(/^ /,""); print; exit}' | tr -s ' ')
+raiz=$(findmnt -no FSTYPE,OPTIONS / | awk '{split($2,o,","); for(i in o) if(o[i]~/^compress/) c=o[i]; print $1 (c?" ("c")":"")}')
+luks=$(lsblk -lno NAME,FSTYPE | awk '$2=="crypto_LUKS"{print $1; exit}')
+sb=$(bootctl status 2>/dev/null | awk -F': ' '/Secure Boot/{print $2; exit}' | awk '{print $1}')
+units=$(systemctl list-units --type=service --state=running --no-legend 2>/dev/null \
+    | awk '{sub(/\.service$/,"",$1); print $1}' | grep -v '^user@' | head -14)
+
+txt=$(mktemp)
+trap 'rm -f "$txt"' EXIT
+
+# Escapa pro markup do pango
+e() { printf '%s' "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g'; }
+c() { printf '<span foreground="%s">%s</span>' "$1" "$(e "$2")"; }
+OK=$(printf '[  %s  ]' "$(c "$ok" OK)")
+
+{
+    printf '\n\n'
+    printf '%s\n' "$(c "$claro" "$(echo "$host" | tr a-z A-Z) Modular BIOS $(dmi bios_version), $(dmi bios_date)")"
+    printf '%s\n\n' "$(c "$dim" "Copyright (C) bielzaoo/dotfiles — paleta $(basename "$(readlink "$cor")" .conf)")"
+    printf '%s\n\n' "$(e "$(dmi sys_vendor) $(dmi product_version)")"
+    printf 'Main Processor : %s\n' "$(e "$cpu ($(nproc) threads)")"
+    printf 'Memory Testing : %s %s\n\n' "$(e "${mem}M")" "$(c "$ok" OK)"
+    printf 'Detecting NVMe ...... %s\n' "$(e "$disco")"
+    printf 'Unlocking LUKS ...... %s %s\n' "$(e "$luks")" "$(c "$ok" OK)"
+    printf 'Mounting root ....... %s %s\n' "$(e "$raiz")" "$(c "$ok" OK)"
+    if [ "$sb" = enabled ]; then s=$(c "$ok" enabled); else s=$(c "$aviso" "${sb:-unknown}"); fi
+    printf 'Secure Boot ......... %s\n\n' "$s"
+    printf '%s\n\n' "$(c "$dim" "Loading Linux $kernel ...")"
+    for u in $units; do printf '%s Started %s\n' "$OK" "$(e "$u.service")"; done
+    printf '%s Reached target %s\n\n' "$OK" "$(c "$claro" "Graphical Interface")"
+    printf '%s %s\n' "$(e "$host login:")" "$(c "$claro" "█")"
+} >"$txt"
+
+# Rodapé à la "Press DEL to enter SETUP"
+rodape=$(printf '%s' "$(c "$dim" "Press ")$(c "$claro" "WIN+R")$(c "$dim" " to enter LAUNCHER, ")$(c "$claro" "WIN+Q")$(c "$dim" " for SHELL")")
+
+mkdir -p "$(dirname "$saida")"
+magick -size "$res" "xc:$bg" +size \
+    \( -background none -density 96 -define pango:markup=true \
+       -font "$font" -pointsize "$size" -fill "$fg" \
+       "pango:<span font_family=\"$font\">$(cat "$txt")</span>" \) \
+    -gravity northwest -geometry +32+24 -composite \
+    \( -background none -density 96 -define pango:markup=true \
+       -font "$font" -pointsize "$size" -fill "$fg" \
+       "pango:<span font_family=\"$font\">$rodape</span>" \) \
+    -gravity southwest -geometry +32+24 -composite \
+    "$saida"
+echo "fundo: $saida ($res)"

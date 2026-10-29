@@ -180,14 +180,16 @@ return {
 }
 EOF
 
-# Wallpaper: cor sólida = fundo da paleta (o autostart.sh lê este arquivo)
+# Wallpaper: tela de boot na paleta (fundo-atual.png, gerado pelo `fundo`);
+# a cor sólida fica de reserva pro autostart.sh se o PNG faltar
 h "$bg" >"$HOME/.config/session/fundo-atual"
+fundo >/dev/null || true
 
 # Recarrega o que estiver rodando
 pkill -USR1 -x kitty || true
 pgrep -x waybar >/dev/null && pkill -USR2 -x waybar
 pgrep -x mako >/dev/null && makoctl reload
-pgrep -x awww-daemon >/dev/null && awww clear "$(h "$bg")"
+pgrep -x awww-daemon >/dev/null && awww img "$HOME/.config/session/fundo-atual.png"
 if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
 # Vicinae relê o tema-atual.json sozinho (fonte), mas o tema tem sempre o
 # mesmo nome: só relê o .toml com o `theme set`

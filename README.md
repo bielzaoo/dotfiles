@@ -87,10 +87,10 @@ No GNOME, `Ctrl+Alt+setas` já trocam de área de trabalho e chegam antes do tmu
 Arch + Hyprland montado do zero (plano e checklist no brain, `artifacts/infra/workstation/`).
 
 - `hypr/` — único pacote específico do compositor. `hyprland.lua` só faz `require` dos módulos.
-- `session/` — `~/.config/session/autostart.sh`, agnóstico de compositor (waybar, mako, `vicinae server`, wallpaper). Trocar de WM = reescrever `hypr/`, o resto fica.
+- `session/` — `~/.config/session/autostart.sh`, agnóstico de compositor (waybar, mako, `vicinae server`, wallpaper). Trocar de WM = reescrever `hypr/`, o resto fica. No login ele regera o wallpaper (`fundo`) e passa pro `awww`; sem PNG, cai na cor sólida do fundo da paleta.
 - `vicinae/` — launcher + histórico do clipboard (`WIN+R`, `WIN+SHIFT+V`), tema `vga`. O Vicinae não está nos repos: instalado à mão em `~/.local/opt/vicinae`.
 - `kitty/` — substitui o `common/kitty` (ver `common.skip`).
-- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista). `pacotes-salva` regrava `pacotes.txt` e `servicos.txt` a partir do sistema atual. `pastas` troca a cor das pastas (`pastas grey`; sem argumento lista): gera o tema `Papirus-Pastas` no usuário, herdando do Papirus-Dark e só trocando os links de pasta, sem root nem `papirus-folders`.
+- `bin/` — `fonte`, `cor` e `espaco`: um script só que troca o preset ativo (`fonte spleen`, `cor fosforo`, `espaco colado`; sem argumento lista). `pacotes-salva` regrava `pacotes.txt` e `servicos.txt` a partir do sistema atual. `pastas` troca a cor das pastas (`pastas grey`; sem argumento lista): gera o tema `Papirus-Pastas` no usuário, herdando do Papirus-Dark e só trocando os links de pasta, sem root nem `papirus-folders`. `fundo` gera o wallpaper "tela de boot" (`fundo-atual.png`): POST de BIOS + log do systemd com dados reais da máquina (DMI, CPU, RAM, NVMe, LUKS, btrfs, Secure Boot, kernel, services rodando) na paleta e fonte do kitty, via ImageMagick + pango. O `repinta` chama ele, então `cor`/`fonte` repintam o wallpaper também.
 - `pacotes.txt` — `pacman -Qqen` (explícitos dos repos): `sudo pacman -S --needed - < pacotes.txt`.
 - `servicos.txt` — units habilitadas, `system <unit>` / `user <unit>`.
 - `manuais.md` — o que vem de fora do pacman (Vicinae, fontes Cozette/Spleen).
