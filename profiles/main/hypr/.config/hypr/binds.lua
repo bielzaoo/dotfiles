@@ -104,8 +104,11 @@ local function no_wallpaper()
     local r = m.reserved -- área da waybar e afins
     if p.x < m.x + r.left or p.x >= m.x + m.width - r.right
         or p.y < m.y + r.top or p.y >= m.y + m.height - r.bottom then return false end
+    -- w.visible é true até em workspace de fundo: quem diz se está na tela é
+    -- o workspace (cobre o special aberto também)
     for _, w in ipairs(hl.get_windows({ mapped = true })) do
-        if w.visible and not w.hidden and p.x >= w.at.x and p.x < w.at.x + w.size.x
+        if w.workspace and w.workspace.visible and not w.hidden
+            and p.x >= w.at.x and p.x < w.at.x + w.size.x
             and p.y >= w.at.y and p.y < w.at.y + w.size.y then return false end
     end
     return true
