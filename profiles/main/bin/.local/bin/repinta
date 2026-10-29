@@ -184,6 +184,7 @@ EOF
 # a cor sólida fica de reserva pro autostart.sh se o PNG faltar
 h "$bg" >"$HOME/.config/session/fundo-atual"
 fundo regera >/dev/null || true
+fundo previas >/dev/null 2>&1 &   # cache do seletor (tema fundo)
 
 # Recarrega o que estiver rodando
 pkill -USR1 -x kitty || true

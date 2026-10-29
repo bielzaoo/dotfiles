@@ -6,6 +6,19 @@
 dm() { vicinae dmenu -n "$1" -p "$1" --no-section --no-quick-look -W 360 -H "$2"; }
 eixo=${1:-$(printf '%s\n' cor fonte espaco fundo | dm tema 260)} || exit 0
 case "$eixo" in cor|fonte|espaco|fundo) ;; *) exit 0 ;; esac
+# fundo: a lista são as prévias (caminhos de PNG), que o Vicinae mostra no
+# quick look ao lado; escolhida, vira o nome do modo. Prévias do cache (o
+# repinta regera a cada cor/fonte), geradas na hora só se faltar alguma
+if [ "$eixo" = fundo ]; then
+    cache="${XDG_CACHE_HOME:-$HOME/.cache}/fundo"
+    atual=$(fundo | sed -n 's/^\* //p')
+    lista=$(fundo | while read -r m; do echo "$cache/${m#\* }.png"; done)
+    for f in $lista; do [ -f "$f" ] || { lista=$(fundo previas); break; }; done
+    png=$(echo "$lista" | vicinae dmenu -n fundo -p "fundo (atual: $atual)" \
+        --no-section --no-metadata -W 900 -H 520) || exit 0
+    [ -n "$png" ] && exec fundo "$(basename "$png" .png)"
+    exit 0
+fi
 preset=$("$eixo" | dm "$eixo" 260) || exit 0
 preset=${preset#[* ] }
 [ -n "$preset" ] && exec "$eixo" "$preset"

@@ -7,12 +7,13 @@
 #   fundo panic    kernel panic (pros dias ruins)
 #   fundo liso     cor sólida do fundo da paleta
 #   fundo regera   regera no modo gravado (default: boot), sem aplicar
+#   fundo previas  gera um PNG por modo em ~/.cache/fundo e lista os caminhos
 #
 # Com modo na linha de comando, grava o modo e já aplica no awww. O repinta
 # (troca de cor/fonte) e o autostart.sh (a cada login, pra pegar kernel e
 # services novos) chamam o `regera`. Seletor: `tema fundo` (WIN+T ou duplo
 # clique no wallpaper). Saída: ~/.config/session/fundo-atual.png
-# (FUNDO_SAIDA troca, pra testar sem mexer no desktop).
+# (FUNDO_SAIDA troca, pra testar sem mexer no desktop: aí o modo não é gravado).
 set -e
 
 kitty="$HOME/.config/kitty"
@@ -26,7 +27,14 @@ atual=$(cat "$sessao/fundo-modo-atual" 2>/dev/null || echo boot)
 case "$1" in
     "") for m in $modos; do [ "$m" = "$atual" ] && echo "* $m" || echo "  $m"; done; exit 0 ;;
     regera) modo=$atual; set -- ;;
-    boot | panic | liso) modo=$1; echo "$modo" >"$sessao/fundo-modo-atual" ;;
+    boot | panic | liso) modo=$1; [ -n "$FUNDO_SAIDA" ] || echo "$modo" >"$sessao/fundo-modo-atual" ;;
+    previas) # um PNG por modo, na paleta atual, pro quick look do seletor
+        cache="${XDG_CACHE_HOME:-$HOME/.cache}/fundo"
+        mkdir -p "$cache"
+        for m in $modos; do FUNDO_SAIDA="$cache/$m.png" "$0" "$m" >/dev/null & done
+        wait
+        for m in $modos; do echo "$cache/$m.png"; done
+        exit 0 ;;
     *) echo "fundo: '$1' não existe (rode sem argumento p/ listar)" >&2; exit 1 ;;
 esac
 
