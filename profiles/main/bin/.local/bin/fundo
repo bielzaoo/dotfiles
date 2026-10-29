@@ -1,82 +1,193 @@
 #!/bin/sh
-# Wallpaper "tela de boot": POST de BIOS + log do systemd, com dados reais da
-# máquina, na paleta e fonte ativas do kitty (mesma fonte da verdade do repinta).
-# Chamado pelo repinta (troca de cor/fonte) e pelo autostart.sh (kernel e
-# services atualizados a cada login). Precisa do imagemagick com pango.
-# Uso: fundo [saida.png]  (default: ~/.config/session/fundo-atual.png)
+# Wallpaper gerado com dados reais da máquina, na paleta e fonte ativas do
+# kitty (mesma fonte da verdade do repinta). Precisa do imagemagick com pango.
+#
+#   fundo          regera no modo gravado (default: boot)
+#   fundo boot     POST de BIOS + log do systemd + protection rings do x86
+#   fundo panic    kernel panic (pros dias ruins)
+#   fundo liso     cor sólida do fundo da paleta
+#
+# Com modo na linha de comando, grava o modo e já aplica no awww. O repinta
+# (troca de cor/fonte) e o autostart.sh (a cada login, pra pegar kernel e
+# services novos) chamam sem argumento. Saída: ~/.config/session/fundo-atual.png
+# (FUNDO_SAIDA troca, pra testar sem mexer no desktop).
 set -e
 
 kitty="$HOME/.config/kitty"
 cor="$kitty/cor-atual.conf"
 fonte="$kitty/fonte-atual.conf"
-saida="${1:-$HOME/.config/session/fundo-atual.png}"
+sessao="$HOME/.config/session"
+saida="${FUNDO_SAIDA:-$sessao/fundo-atual.png}"
+
+case "$1" in
+    "") modo=$(cat "$sessao/fundo-modo-atual" 2>/dev/null || echo boot) ;;
+    boot | panic | liso) modo=$1; echo "$modo" >"$sessao/fundo-modo-atual" ;;
+    *) echo "uso: fundo [boot|panic|liso]" >&2; exit 1 ;;
+esac
 
 val() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ +/, ""); print; exit }' "$2"; }
 
 bg=$(val background "$cor")
 fg=$(val foreground "$cor")
 dim=$(val color8 "$cor")
+erro=$(val color9 "$cor")
 ok=$(val color10 "$cor")
 aviso=$(val color11 "$cor")
 claro=$(val color15 "$cor")
 font=$(val font_family "$fonte")
+bold=$(val bold_font "$fonte")
 size=$(val font_size "$fonte")
 
 # Resolução do monitor focado (fallback 1366x768)
 res=$(hyprctl monitors -j 2>/dev/null | awk -F: '/"width"/{gsub(/[ ,]/,"",$2);w=$2} /"height"/{gsub(/[ ,]/,"",$2);print w"x"$2; exit}')
 res=${res:-1366x768}
+W=${res%x*}; H=${res#*x}
+
+mkdir -p "$(dirname "$saida")"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# Com modo explícito, aplica na hora (o repinta/autostart aplicam por conta)
+aplica() {
+    echo "fundo: $modo ($res)"
+    if [ -n "$1" ] && [ -z "$FUNDO_SAIDA" ] && pgrep -x awww-daemon >/dev/null; then awww img "$saida"; fi
+}
+
+if [ "$modo" = liso ]; then
+    magick -size "$res" "xc:$bg" "$saida"
+    aplica "$1"; exit
+fi
 
 # Dados da máquina
 host=$(cat /etc/hostname)
 dmi() { tr -s ' ' <"/sys/class/dmi/id/$1" 2>/dev/null | sed 's/ )/)/; s/ *$//'; }
-cpu=$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)
-mem=$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo)
 kernel=$(uname -r)
-disco=$(lsblk -dno TRAN,MODEL,SIZE 2>/dev/null | awk '$1=="nvme"{$1=""; sub(/^ /,""); print; exit}' | tr -s ' ')
-raiz=$(findmnt -no FSTYPE,OPTIONS / | awk '{split($2,o,","); for(i in o) if(o[i]~/^compress/) c=o[i]; print $1 (c?" ("c")":"")}')
-luks=$(lsblk -lno NAME,FSTYPE | awk '$2=="crypto_LUKS"{print $1; exit}')
-sb=$(bootctl status 2>/dev/null | awk -F': ' '/Secure Boot/{print $2; exit}' | awk '{print $1}')
-units=$(systemctl list-units --type=service --state=running --no-legend 2>/dev/null \
-    | awk '{sub(/\.service$/,"",$1); print $1}' | grep -v '^user@' | head -14)
 
-txt=$(mktemp)
-trap 'rm -f "$txt"' EXIT
-
-# Escapa pro markup do pango
-e() { printf '%s' "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g'; }
+# Markup do pango: escape, cor, negrito (bold_font do kitty, senão weight).
+# Escape duplo: o magick decodifica as entidades uma vez antes do pango ler
+e() { printf '%s' "$1" | sed 's/&/\&amp;amp;/g; s/</\&amp;lt;/g; s/>/\&amp;gt;/g'; }
 c() { printf '<span foreground="%s">%s</span>' "$1" "$(e "$2")"; }
-OK=$(printf '[  %s  ]' "$(c "$ok" OK)")
+b() {
+    if [ -n "$bold" ]; then printf '<span font_family="%s">%s</span>' "$bold" "$1"
+    else printf '<span weight="bold">%s</span>' "$1"; fi
+}
 
-{
+# Texto (markup) -> PNG transparente na fonte do kitty. $3 = fundo opcional
+texto() {
+    magick -background "${3:-none}" -density 96 -pointsize "$size" -fill "$fg" \
+        -define pango:markup=true "pango:<span font_family=\"$font\">$1</span>" "$2"
+}
+# Tela base na cor de fundo. TrueColor: fundo preto puro vira PNG em escala de
+# cinza e aí tudo que for colado em cima perde a cor
+base() { magick -size "$res" "xc:$bg" -type TrueColor "$@" "PNG24:$saida"; }
+# Cola $1 em $saida: gravity + geometria
+cola() { magick "$saida" "$1" -gravity "$2" -geometry "$3" -composite "PNG24:$saida"; }
+# Geometria pra centralizar algo no ponto (x, y) com gravity center
+centro() { printf '%+d%+d' "$(($1 - W / 2))" "$(($2 - H / 2))"; }
+
+# Diferença entre duas cores (distância euclidiana RGB): em paleta
+# monocromática o verde do OK fica colado no texto, aí o OK vira bloco
+# invertido, como o workspace ativo da waybar
+dist() {
+    printf '%s %s\n' "$1" "$2" | tr -d '#' | awk '{
+        for (i = 1; i <= 5; i += 2) { d = strtonum("0x" substr($1, i, 2)) - strtonum("0x" substr($2, i, 2)); s += d * d }
+        print int(sqrt(s)) }'
+}
+# (sem negrito, que desalinha a grade). $okc = o OK da coluna do systemd
+inv() { printf '<span foreground="%s" background="%s">%s</span>' "$bg" "$ok" "$1"; }
+if [ "$(dist "$ok" "$fg")" -lt 120 ]; then
+    okm=$(inv OK); okc="[ $(inv " OK ") ]"
+else
+    okm=$(c "$ok" OK); okc="[  $okm  ]"
+fi
+
+if [ "$modo" = boot ]; then
+    cpu=$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)
+    mem=$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo)
+    disco=$(lsblk -dno TRAN,MODEL,SIZE 2>/dev/null | awk '$1=="nvme"{$1=""; sub(/^ /,""); print; exit}' | tr -s ' ')
+    raiz=$(findmnt -no FSTYPE,OPTIONS / | awk '{split($2,o,","); for(i in o) if(o[i]~/^compress/) c=o[i]; print $1 (c?" ("c")":"")}')
+    luks=$(lsblk -lno NAME,FSTYPE | awk '$2=="crypto_LUKS"{print $1; exit}')
+    sb=$(bootctl status 2>/dev/null | awk -F': ' '/Secure Boot/{print $2; exit}' | awk '{print $1}')
+    units=$(systemctl list-units --type=service --state=running --no-legend 2>/dev/null \
+        | awk '{sub(/\.service$/,"",$1); print $1}' | grep -v '^user@' | head -14)
+
+    texto "$(
+        printf '\n\n'
+        printf '%s\n' "$(b "$(c "$claro" "$(echo "$host" | tr a-z A-Z) Modular BIOS $(dmi bios_version), $(dmi bios_date)")")"
+        printf '%s\n\n' "$(c "$dim" "Copyright (C) bielzaoo/dotfiles — paleta $(basename "$(readlink "$cor")" .conf)")"
+        printf '%s\n\n' "$(e "$(dmi sys_vendor) $(dmi product_version)")"
+        printf 'Main Processor : %s\n' "$(e "$cpu ($(nproc) threads)")"
+        printf 'Memory Testing : %s %s\n\n' "$(e "${mem}M")" "$okm"
+        printf 'Detecting NVMe ...... %s\n' "$(e "$disco")"
+        printf 'Unlocking LUKS ...... %s %s\n' "$(e "$luks")" "$okm"
+        printf 'Mounting root ....... %s %s\n' "$(e "$raiz")" "$okm"
+        if [ "$sb" = enabled ]; then s=$(c "$ok" enabled); else s=$(c "$aviso" "${sb:-unknown}"); fi
+        printf 'Secure Boot ......... %s\n\n' "$s"
+        printf '%s\n\n' "$(c "$dim" "Loading Linux $kernel ...")"
+        for u in $units; do printf '%s Started %s\n' "$okc" "$(e "$u.service")"; done
+        printf '%s Reached target %s\n\n' "$okc" "$(c "$claro" "Graphical Interface")"
+        printf '%s %s' "$(e "$host login:")" "$(c "$claro" "█")"
+    )" "$tmp/log.png"
+
+    # Rodapé à la "Press DEL to enter SETUP"
+    texto "$(c "$dim" "Press ")$(c "$claro" "WIN+R")$(c "$dim" " to enter LAUNCHER, ")$(c "$claro" "WIN+Q")$(c "$dim" " for SHELL")" "$tmp/rodape.png"
+
+    # Logo no canto (onde as BIOS antigas punham o delas): os protection rings
+    # do x86, de fora pra dentro, ring 3 (user) até ring 0 (kernel), que dá
+    # nome à máquina. Traço sem antialias, pra casar com a fonte em pixel.
+    cx=$((W - 200)); cy=210
+    raio() { echo $((40 + $1 * 38)); }
+    base +antialias -fill none -stroke "$dim" -strokewidth 2 \
+        -draw "circle $cx,$cy $cx,$((cy - $(raio 3)))" \
+        -draw "circle $cx,$cy $cx,$((cy - $(raio 2)))" \
+        -draw "circle $cx,$cy $cx,$((cy - $(raio 1)))" \
+        -stroke none -fill "$ok" -draw "circle $cx,$cy $cx,$((cy - 30))"
+    # Rótulos em cima do traço, com o fundo da paleta abrindo um vão no anel
+    texto "$(c "$dim" " ring 3 (user) ")" "$tmp/r3.png" "$bg"
+    texto "$(c "$dim" " ring 2 ")" "$tmp/r2.png" "$bg"
+    texto "$(c "$dim" " ring 1 ")" "$tmp/r1.png" "$bg"
+    texto "$(b "$(c "$bg" "ring 0")")" "$tmp/r0.png"
+    texto "$(c "$dim" "ring 0: kernel mode, $host")" "$tmp/legenda.png"
+    for r in 3 2 1; do cola "$tmp/r$r.png" center "$(centro "$cx" $((cy - $(raio "$r"))))"; done
+    cola "$tmp/r0.png" center "$(centro "$cx" "$cy")"
+    cola "$tmp/legenda.png" center "$(centro "$cx" $((cy + $(raio 3) + 24)))"
+
+    cola "$tmp/log.png" northwest +32+24
+    cola "$tmp/rodape.png" southwest +32+24
+    aplica "$1"; exit
+fi
+
+# panic: o "Attempted to kill init!" clássico, com kernel, hardware, BIOS e
+# systemd reais. Console cru: texto no fg, timestamp apagado, a linha do panic
+# no erro. Sem logo nem rodapé, que kernel em pânico não tem.
+systemd=$(systemctl --version | awk 'NR==1{print $2}')
+up=$(awk '{print $1}' /proc/uptime)
+motivo="Attempted to kill init! exitcode=0x0000000b"
+texto "$(
+    t=0
+    linha() {
+        t=$((t + 1))
+        printf '%s %s\n' "$(c "$dim" "$(awk -v u="$up" -v t="$t" 'BEGIN{printf "[%12.6f]", u + t / 1000}')")" "$1"
+    }
     printf '\n\n'
-    printf '%s\n' "$(c "$claro" "$(echo "$host" | tr a-z A-Z) Modular BIOS $(dmi bios_version), $(dmi bios_date)")"
-    printf '%s\n\n' "$(c "$dim" "Copyright (C) bielzaoo/dotfiles — paleta $(basename "$(readlink "$cor")" .conf)")"
-    printf '%s\n\n' "$(e "$(dmi sys_vendor) $(dmi product_version)")"
-    printf 'Main Processor : %s\n' "$(e "$cpu ($(nproc) threads)")"
-    printf 'Memory Testing : %s %s\n\n' "$(e "${mem}M")" "$(c "$ok" OK)"
-    printf 'Detecting NVMe ...... %s\n' "$(e "$disco")"
-    printf 'Unlocking LUKS ...... %s %s\n' "$(e "$luks")" "$(c "$ok" OK)"
-    printf 'Mounting root ....... %s %s\n' "$(e "$raiz")" "$(c "$ok" OK)"
-    if [ "$sb" = enabled ]; then s=$(c "$ok" enabled); else s=$(c "$aviso" "${sb:-unknown}"); fi
-    printf 'Secure Boot ......... %s\n\n' "$s"
-    printf '%s\n\n' "$(c "$dim" "Loading Linux $kernel ...")"
-    for u in $units; do printf '%s Started %s\n' "$OK" "$(e "$u.service")"; done
-    printf '%s Reached target %s\n\n' "$OK" "$(c "$claro" "Graphical Interface")"
-    printf '%s %s\n' "$(e "$host login:")" "$(c "$claro" "█")"
-} >"$txt"
-
-# Rodapé à la "Press DEL to enter SETUP"
-rodape=$(printf '%s' "$(c "$dim" "Press ")$(c "$claro" "WIN+R")$(c "$dim" " to enter LAUNCHER, ")$(c "$claro" "WIN+Q")$(c "$dim" " for SHELL")")
-
-mkdir -p "$(dirname "$saida")"
-magick -size "$res" "xc:$bg" +size \
-    \( -background none -density 96 -define pango:markup=true \
-       -font "$font" -pointsize "$size" -fill "$fg" \
-       "pango:<span font_family=\"$font\">$(cat "$txt")</span>" \) \
-    -gravity northwest -geometry +32+24 -composite \
-    \( -background none -density 96 -define pango:markup=true \
-       -font "$font" -pointsize "$size" -fill "$fg" \
-       "pango:<span font_family=\"$font\">$rodape</span>" \) \
-    -gravity southwest -geometry +32+24 -composite \
-    "$saida"
-echo "fundo: $saida ($res)"
+    linha "$(e "systemd[1]: segfault at 0 ip 00007f3a1c2e4b10 sp 00007ffd9b1e8f40 error 4 in libsystemd-shared-$systemd.so")"
+    linha "$(e "Code: 48 8b 07 48 85 c0 74 1d 48 89 fb 48 8b 78 08 e8 <48> 8b 03 48 8b 40 10")"
+    linha "$(b "$(c "$erro" "Kernel panic - not syncing: $motivo")")"
+    linha "$(e "CPU: 3 UID: 0 PID: 1 Comm: systemd Not tainted $kernel #1 PREEMPT(full)")"
+    linha "$(e "Hardware name: $(dmi sys_vendor) $(dmi product_version)/$(dmi board_name), BIOS $(dmi bios_version) $(dmi bios_date)")"
+    linha "Call Trace:"
+    linha " $(e "<TASK>")"
+    for f in dump_stack_lvl+0x5d/0x80 panic+0x118/0x2f0 do_exit.cold+0x15/0x15 \
+        do_group_exit+0x33/0xa0 get_signal+0x8d3/0x8e0 arch_do_signal_or_restart+0x3e/0x250 \
+        irqentry_exit_to_user_mode+0x1c0/0x1e0 asm_exc_page_fault+0x26/0x30; do
+        linha " $f"
+    done
+    linha " RIP: 0033:0x7f3a1c2e4b10"
+    linha " $(e "</TASK>")"
+    linha "Kernel Offset: 0x1a000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)"
+    linha "$(e "---[ end Kernel panic - not syncing: $motivo ]---")"
+    printf '%s' "$(c "$claro" "█")"
+)" "$tmp/log.png"
+base
+cola "$tmp/log.png" northwest +32+24
+aplica "$1"
