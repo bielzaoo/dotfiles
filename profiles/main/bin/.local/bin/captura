@@ -1,0 +1,105 @@
+#!/bin/sh
+# Captura de tela num lugar só, foto e vídeo, com seleção esperta pelo slurp:
+# clicar numa janela pega a janela, clicar no fundo pega a tela inteira,
+# arrastar pega uma área. Esc cancela.
+#
+#   captura foto        seleção esperta -> PNG em ~/Pictures/Capturas + clipboard
+#   captura tela        tela inteira (monitor focado), sem seleção
+#   captura video       grava (seleção esperta) em ~/Videos/Gravacoes; de novo para
+#   captura video-som   idem, com o áudio do sistema (monitor da saída padrão)
+#   captura status      JSON do módulo custom/captura da waybar ("● rec")
+#
+# Vídeo em H.264 pela GPU (VA-API) quando tem /dev/dri; senão, libx264.
+# Clicar na notificação abre o arquivo (swayimg / mpv, pelos apps padrão).
+set -e
+
+estado="${XDG_RUNTIME_DIR:-/tmp}/captura-video" # arquivo sendo gravado
+dri=/dev/dri/renderD128
+nome=$(date +%Y-%m-%d_%H-%M-%S)
+
+# waybar relê o custom/captura no SIGRTMIN+8
+sinal() { pkill -RTMIN+8 -x waybar || true; }
+
+# Notificação com ação: clicar abre o arquivo. Em segundo plano, porque o
+# notify-send fica esperando o clique
+avisa() { # título, arquivo
+    (
+        acao=$(notify-send -a captura -i "$2" --action=default=Abrir "$1" "$(basename "$2")")
+        [ "$acao" = default ] && xdg-open "$2"
+    ) >/dev/null 2>&1 &
+}
+
+# Seleção esperta: as janelas visíveis (workspace ativo de cada monitor e o
+# special aberto) viram caixas pré-definidas do slurp, e o -o põe os monitores.
+# Cores da paleta do kitty, como o resto do desktop
+seleciona() {
+    cor="$HOME/.config/kitty/cor-atual.conf"
+    val() { awk -v k="$1" '$1 == k { print $2; exit }' "$cor"; }
+    ws=$(hyprctl monitors -j | jq -c '[.[] | .activeWorkspace.id, .specialWorkspace.id | select(. != 0)]')
+    hyprctl clients -j | jq -r --argjson ws "$ws" '.[]
+        | select(.mapped and (.hidden | not) and (.workspace.id as $w | $ws | index($w)))
+        | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1]) \(.class)"' |
+        slurp -o -w 2 -b "$(val background)66" -c "$(val color10)ff" \
+            -B "$(val color8)33" -s "00000000"
+}
+
+case "$1" in
+foto | tela)
+    dir="$(xdg-user-dir PICTURES)/Capturas"
+    mkdir -p "$dir"
+    arq="$dir/$nome.png"
+    if [ "$1" = tela ]; then
+        grim -o "$(hyprctl monitors -j | jq -r '.[] | select(.focused).name')" "$arq"
+    else
+        geo=$(seleciona) || exit 0
+        grim -g "$geo" "$arq"
+    fi
+    wl-copy --type image/png <"$arq"
+    avisa "Captura salva e copiada" "$arq"
+    ;;
+
+video | video-som)
+    # Já gravando: o mesmo atalho para (quem gravou cuida do resto)
+    if pgrep -x wf-recorder >/dev/null; then
+        pkill -INT -x wf-recorder
+        exit 0
+    fi
+    geo=$(seleciona) || exit 0
+    # H.264 só aceita largura/altura pares
+    geo=$(echo "$geo" | awk -F'[ x]' '{ printf "%s %dx%d", $1, $2 - $2 % 2, $3 - $3 % 2 }')
+    dir="$(xdg-user-dir VIDEOS)/Gravacoes"
+    mkdir -p "$dir"
+    arq="$dir/$nome.mp4"
+    modo=$1
+    set -- -g "$geo" -f "$arq" -y
+    [ -e "$dri" ] && set -- "$@" -c h264_vaapi -d "$dri"
+    [ "$modo" = video-som ] && set -- "$@" --audio="$(pactl get-default-sink).monitor"
+
+    echo "$arq" >"$estado"
+    sinal
+    # Roda até o SIGINT do próximo `captura video` (ou do clique no "● rec")
+    wf-recorder "$@" >/dev/null 2>&1 || true
+    rm -f "$estado"
+    sinal
+    if [ -s "$arq" ]; then
+        avisa "Gravação salva" "$arq"
+    else
+        rm -f "$arq"
+        notify-send -a captura -u critical "Gravação falhou" "wf-recorder não gravou nada"
+    fi
+    ;;
+
+status)
+    if [ -f "$estado" ]; then
+        echo '{"text": "● rec", "class": "gravando", "tooltip": "Gravando: clique para parar"}'
+    else
+        echo '{"text": ""}'
+    fi
+    exit 0
+    ;;
+
+*)
+    echo "uso: captura foto|tela|video|video-som|status" >&2
+    exit 1
+    ;;
+esac

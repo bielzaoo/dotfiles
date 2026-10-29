@@ -26,9 +26,13 @@ hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("tema"), { desc = "Seletor de cor/fon
 hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("atalhos"), { desc = "Atalhos (esta lista)" })
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("vicinae deeplink 'vicinae://launch/clipboard/history?toggle=true'"), { desc = "Histórico do clipboard" })  -- histórico mora no Vicinae: trocar launcher = resolver clipboard junto
 
--- Screenshot: Print = área selecionada, SHIFT + Print = tela inteira (vai pro clipboard)
-hl.bind("Print",         hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'), { desc = "Screenshot de área (clipboard)" })
-hl.bind("SHIFT + Print", hl.dsp.exec_cmd("grim - | wl-copy"),               { desc = "Screenshot da tela (clipboard)" })
+-- Captura (~/.local/bin/captura): seleção esperta, clicar na janela = janela,
+-- no fundo = tela inteira, arrastar = área. Foto vai pro clipboard e pra
+-- ~/Pictures/Capturas; vídeo pra ~/Videos/Gravacoes e o mesmo atalho para.
+hl.bind("Print",                    hl.dsp.exec_cmd("captura foto"),      { desc = "Screenshot (janela, tela ou área)" })
+hl.bind("SHIFT + Print",            hl.dsp.exec_cmd("captura tela"),      { desc = "Screenshot da tela inteira" })
+hl.bind(mainMod .. " + Print",         hl.dsp.exec_cmd("captura video"),     { desc = "Gravar tela (de novo para)" })
+hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd("captura video-som"), { desc = "Gravar tela com áudio do sistema (de novo para)" })
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }),  { desc = "Foco à esquerda" })

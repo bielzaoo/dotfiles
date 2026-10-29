@@ -10,7 +10,7 @@
     "height": 24,
     "modules-left": ["ext/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "battery", "custom/energia"],
+    "modules-right": ["custom/captura", "hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "battery", "custom/energia"],
     "ext/workspaces": { "format": "{name}", "sort-by-id": true, "on-click": "activate" },
     "battery": {
         "states": { "warning": 20, "critical": 10 },
@@ -46,5 +46,6 @@
     "bluetooth": { "format": "bt", "format-off": "bt off", "format-disabled": "bt off", "format-connected": "bt {device_alias}", "on-click": "tui bluetui" },
     "cpu": { "format": "cpu {usage}%", "on-click": "tui btop" },
     "memory": { "format": "mem {percentage}%", "on-click": "tui btop" },
+    "custom/captura": { "exec": "captura status", "return-type": "json", "interval": "once", "signal": 8, "on-click": "captura video" },
     "custom/energia": { "format": "pwr", "tooltip": false, "on-click": "energia" }
 }

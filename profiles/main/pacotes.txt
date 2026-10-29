@@ -52,6 +52,7 @@ nodejs
 noto-fonts
 noto-fonts-emoji
 npm
+obs-studio
 openssh
 papirus-icon-theme
 pipewire-pulse
@@ -79,6 +80,7 @@ ttf-terminus-nerd
 unzip
 vim
 waybar
+wf-recorder
 wget
 wireguard-tools
 wiremix

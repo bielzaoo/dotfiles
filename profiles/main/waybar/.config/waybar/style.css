@@ -30,6 +30,8 @@ window#waybar {
 #pulseaudio.muted, #network.disconnected, #bluetooth.off, #bluetooth.disabled { color: @dim; }
 #battery.warning:not(.charging) { color: @erro; }
 #battery.critical:not(.charging) { background: @erro; color: @bg; }
+/* Gravando (captura video): "● rec" no erro; some quando para */
+#custom-captura.gravando { padding: 0 8px; color: @erro; }
 
 /* Tooltip (calendar do relógio etc.) na mesma identidade da barra */
 tooltip { background: @bg; border: 1px solid @dim; border-radius: 0; }
