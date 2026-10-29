@@ -31,6 +31,14 @@ hl.window_rule({
     no_focus = true,
 })
 
+-- slurp (camada "selection") sem fade de saída: senão o grim/wf-recorder pega
+-- a borda verde da seleção ainda sumindo (o layersOut dura ~150ms)
+hl.layer_rule({
+    name    = "slurp-sem-anim",
+    match   = { namespace = "^selection$" },
+    no_anim = true,
+})
+
 -- Layer rules also return a handle.
 -- local overlayLayerRule = hl.layer_rule({
 --     name  = "no-anim-overlay",

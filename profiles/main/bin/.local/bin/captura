@@ -6,7 +6,7 @@
 #   captura foto        seleção esperta -> PNG em ~/Pictures/Capturas + clipboard
 #   captura tela        tela inteira (monitor focado), sem seleção
 #   captura video       grava (seleção esperta) em ~/Videos/Gravacoes; de novo para
-#   captura video-som   idem, com o áudio do sistema (monitor da saída padrão)
+#   captura video-som   idem, com áudio: sistema + microfone, misturados
 #   captura status      JSON do módulo custom/captura da waybar ("● rec")
 #
 # Vídeo em H.264 pela GPU (VA-API) quando tem /dev/dri; senão, libx264.
@@ -73,7 +73,21 @@ video | video-som)
     modo=$1
     set -- -g "$geo" -f "$arq" -y
     [ -e "$dri" ] && set -- "$@" -c h264_vaapi -d "$dri"
-    [ "$modo" = video-som ] && set -- "$@" --audio="$(pactl get-default-sink).monitor"
+    # O wf-recorder grava uma fonte só: um sink nulo recebe o sistema (monitor
+    # da saída padrão) e o microfone (entrada padrão) por loopback, e grava o
+    # monitor dele. Não toca nos alto-falantes (sem eco); sai no fim da gravação
+    if [ "$modo" = video-som ]; then
+        # Lidos antes do sink nulo existir, pra ele não virar a própria fonte
+        sistema="$(pactl get-default-sink).monitor"
+        mic=$(pactl get-default-source)
+        mods=$(pactl load-module module-null-sink sink_name=captura-mix \
+            sink_properties=device.description=captura-mix)
+        for src in "$sistema" "$mic"; do
+            mods="$mods $(pactl load-module module-loopback source="$src" sink=captura-mix latency_msec=20)"
+        done
+        trap 'for m in $mods; do pactl unload-module "$m"; done' EXIT
+        set -- "$@" --audio=captura-mix.monitor
+    fi
 
     echo "$arq" >"$estado"
     sinal

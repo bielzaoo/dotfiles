@@ -32,7 +32,7 @@ hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("vicinae deeplink 'vicinae://
 hl.bind("Print",                    hl.dsp.exec_cmd("captura foto"),      { desc = "Screenshot (janela, tela ou área)" })
 hl.bind("SHIFT + Print",            hl.dsp.exec_cmd("captura tela"),      { desc = "Screenshot da tela inteira" })
 hl.bind(mainMod .. " + Print",         hl.dsp.exec_cmd("captura video"),     { desc = "Gravar tela (de novo para)" })
-hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd("captura video-som"), { desc = "Gravar tela com áudio do sistema (de novo para)" })
+hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd("captura video-som"), { desc = "Gravar tela com áudio: sistema + microfone (de novo para)" })
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }),  { desc = "Foco à esquerda" })
