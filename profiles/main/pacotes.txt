@@ -16,11 +16,11 @@ chromium
 compsize
 efibootmgr
 fd
-ffmpeg
 ffmpegthumbnailer
 firefox
 fzf
 git
+gnome-text-editor
 greetd
 greetd-tuigreet
 grim
@@ -43,7 +43,9 @@ lynis
 mako
 mesa
 mkinitcpio
+mpv
 nautilus
+neovim
 networkmanager
 nftables
 nodejs
@@ -67,6 +69,7 @@ snap-pac
 snapper
 stow
 sudo
+swayimg
 syntax-highlighting
 tmux
 tree-sitter-cli
@@ -86,5 +89,7 @@ xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xorg-xwayland
 yazi
+zathura
+zathura-pdf-mupdf
 zoxide
 zram-generator

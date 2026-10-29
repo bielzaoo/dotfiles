@@ -32,3 +32,21 @@ if [ -n "$perfil" ] && [ -d "$ff/$perfil" ]; then
 else
     echo "  aviso: sem perfil do Firefox ainda; abra o Firefox uma vez e rode o setup.sh de novo" >&2
 fi
+
+# Pastas padrão da home (Desktop, Pictures, Music...). A unit de usuário do
+# xdg-user-dirs só dispara com o graphical-session-pre.target, que esta sessão
+# (greetd + Hyprland, sem uwsm) não ativa; o Nautilus monta a barra lateral
+# pelo ~/.config/user-dirs.dirs que ele grava.
+xdg-user-dirs-update
+
+# Apps padrão. O xdg-mime grava no ~/.config/mimeapps.list, que o Firefox
+# também reescreve: por isso aplica aqui, e não como arquivo no stow.
+# Os tipos vêm do MimeType= do .desktop de cada app; a ordem importa (o último
+# ganha): o zathura-pdf-mupdf também reivindica imagem, então fica só com o que
+# não é imagem, e o swayimg vem depois.
+mimes() { sed -n 's/^MimeType=//p' "/usr/share/applications/$1" | tr ';' '\n' | grep .; }
+padrao_app() { app=$1; shift; [ -f "/usr/share/applications/$app" ] && xdg-mime default "$app" "$@"; }
+padrao_app org.pwmt.zathura-pdf-mupdf.desktop $(mimes org.pwmt.zathura-pdf-mupdf.desktop | grep -v '^image/')
+padrao_app swayimg.desktop $(mimes swayimg.desktop)
+padrao_app mpv.desktop $(mimes mpv.desktop)
+padrao_app org.gnome.Nautilus.desktop inode/directory

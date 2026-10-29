@@ -1,0 +1,7 @@
+# zathura: atalhos de vim, sem barra além da de status. Cores e fonte no
+# tema-atual, que o repinta gera da paleta do kitty (vale no próximo PDF aberto).
+# Ctrl+R alterna o modo escuro da página (recolor nas cores da paleta).
+set selection-clipboard clipboard
+set adjust-open best-fit
+set recolor-keephue true
+include tema-atual

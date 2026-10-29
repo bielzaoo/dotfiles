@@ -13,6 +13,7 @@ system reflector.timer
 system snapper-cleanup.timer
 user pipewire-pulse.service
 user wireplumber.service
+user xdg-user-dirs.service
 user p11-kit-server.socket
 user pipewire-pulse.socket
 user pipewire.socket

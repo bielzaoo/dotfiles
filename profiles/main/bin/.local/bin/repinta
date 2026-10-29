@@ -180,6 +180,52 @@ return {
 }
 EOF
 
+# swayimg: o init.lua carrega este (cores 0xAARRGGBB; fonte em px = pt * 4/3).
+# Vale no próximo swayimg aberto
+mkdir -p "$HOME/.config/swayimg"
+cat >"$HOME/.config/swayimg/tema-atual.lua" <<EOF
+-- Gerado pelo repinta (paleta $nome). Não editar: troque com \`cor\`.
+return {
+  font = "$font", size = $((size * 4 / 3)),
+  bg = 0xff$(h "$bg"), fg = 0xff$(h "$fg"), ativo = 0xff$(h "$ativo"),
+  ok = 0xff$(h "$ok"), mix = 0xff$(mix "$bg" "$dim"),
+}
+EOF
+
+# zathura: o zathurarc faz `include tema-atual` (vale no próximo PDF aberto).
+# recolor = modo escuro da página (Ctrl+R): fundo e texto da paleta
+mkdir -p "$HOME/.config/zathura"
+cat >"$HOME/.config/zathura/tema-atual" <<EOF
+# Gerado pelo repinta (paleta $nome). Não editar.
+set font "$font $size"
+set default-bg "$bg"
+set default-fg "$fg"
+set statusbar-bg "$bg"
+set statusbar-fg "$fg"
+set inputbar-bg "$bg"
+set inputbar-fg "$fg"
+set notification-bg "$bg"
+set notification-fg "$fg"
+set notification-error-bg "$bg"
+set notification-error-fg "$erro"
+set notification-warning-bg "$bg"
+set notification-warning-fg "$(val color11 "$cor")"
+set highlight-color "$dim"
+set highlight-active-color "$ok"
+set completion-bg "$bg"
+set completion-fg "$fg"
+set completion-group-bg "$bg"
+set completion-group-fg "$dim"
+set completion-highlight-bg "$ativo"
+set completion-highlight-fg "$bg"
+set index-bg "$bg"
+set index-fg "$fg"
+set index-active-bg "$ativo"
+set index-active-fg "$bg"
+set recolor-lightcolor "$bg"
+set recolor-darkcolor "$fg"
+EOF
+
 # Wallpaper: tela de boot na paleta (fundo-atual.png, gerado pelo `fundo`);
 # a cor sólida fica de reserva pro autostart.sh se o PNG faltar
 h "$bg" >"$HOME/.config/session/fundo-atual"
