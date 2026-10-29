@@ -183,7 +183,7 @@ EOF
 # Wallpaper: tela de boot na paleta (fundo-atual.png, gerado pelo `fundo`);
 # a cor sólida fica de reserva pro autostart.sh se o PNG faltar
 h "$bg" >"$HOME/.config/session/fundo-atual"
-fundo >/dev/null || true
+fundo regera >/dev/null || true
 
 # Recarrega o que estiver rodando
 pkill -USR1 -x kitty || true

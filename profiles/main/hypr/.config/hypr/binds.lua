@@ -22,7 +22,7 @@ hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { desc = "Pseudo-tile (altern
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"), { desc = "Trocar direção do split" })    -- dwindle only
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "Bloquear tela" })
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("energia"), { desc = "Menu de energia" })
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("tema"), { desc = "Seletor de cor/fonte/espaço" })
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("tema"), { desc = "Seletor de cor/fonte/espaço/fundo" })
 hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("atalhos"), { desc = "Atalhos (esta lista)" })
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("vicinae deeplink 'vicinae://launch/clipboard/history?toggle=true'"), { desc = "Histórico do clipboard" })  -- histórico mora no Vicinae: trocar launcher = resolver clipboard junto
 
@@ -90,3 +90,34 @@ hl.bind(mainMod .. " + SHIFT + comma",       hl.dsp.exec_cmd("makoctl dismiss --
 hl.bind(mainMod .. " + ALT + comma",         hl.dsp.exec_cmd("makoctl invoke"),        { desc = "Notificação: ir pra origem" })
 hl.bind(mainMod .. " + SHIFT + ALT + comma", hl.dsp.exec_cmd("makoctl restore"),       { desc = "Notificação: reabrir a última fechada" })
 hl.bind(mainMod .. " + CTRL + comma",        hl.dsp.exec_cmd("makoctl mode -t nao-perturbe && notify-send -a osd -t 1500 \"não perturbe: $(makoctl mode | grep -q nao-perturbe && echo ligado || echo desligado)\""), { desc = "Notificação: não perturbe (alternar)" })
+
+-- Duplo clique no wallpaper (fora de janela e da waybar) abre o seletor de
+-- fundo, à la Omarchy. Bind non_consuming: o clique segue pra quem está embaixo,
+-- e a checagem roda aqui no Lua, sem processo por clique. Lua não tem relógio
+-- em ms, então a janela do duplo clique é um timer oneshot por clique; a
+-- geração descarta o timer de um clique que já foi substituído.
+local CLIQUES, JANELA_MS = 2, 400
+local cliques, geracao = 0, 0
+local function no_wallpaper()
+    local p, m = hl.get_cursor_pos(), hl.get_monitor_at_cursor()
+    if not p or not m then return false end
+    local r = m.reserved -- área da waybar e afins
+    if p.x < m.x + r.left or p.x >= m.x + m.width - r.right
+        or p.y < m.y + r.top or p.y >= m.y + m.height - r.bottom then return false end
+    for _, w in ipairs(hl.get_windows({ mapped = true })) do
+        if w.visible and not w.hidden and p.x >= w.at.x and p.x < w.at.x + w.size.x
+            and p.y >= w.at.y and p.y < w.at.y + w.size.y then return false end
+    end
+    return true
+end
+hl.bind("mouse:272", function()
+    if not no_wallpaper() then cliques = 0; return end
+    cliques, geracao = cliques + 1, geracao + 1
+    if cliques >= CLIQUES then
+        cliques = 0
+        hl.exec_cmd("tema fundo")
+        return
+    end
+    local g = geracao
+    hl.timer(function() if g == geracao then cliques = 0 end end, { timeout = JANELA_MS, type = "oneshot" })
+end, { non_consuming = true, desc = "Duplo clique no wallpaper: seletor de fundo" })

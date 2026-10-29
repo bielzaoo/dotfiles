@@ -16,6 +16,6 @@ awww-daemon &
 (
     sleep 0.5
     png="$HOME/.config/session/fundo-atual.png"
-    if fundo >/dev/null 2>&1 || [ -f "$png" ]; then awww img "$png"
+    if fundo regera >/dev/null 2>&1 || [ -f "$png" ]; then awww img "$png"
     else awww clear "$(cat "$HOME/.config/session/fundo-atual" 2>/dev/null || echo 000000)"; fi
 ) &

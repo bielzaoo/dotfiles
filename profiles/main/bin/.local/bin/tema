@@ -1,9 +1,11 @@
 #!/bin/sh
-# Seletor de cor / fonte / espaco via Vicinae dmenu: escolhe o eixo, depois o
-# preset. A lista vem dos próprios scripts (sem argumento: "* ativo", "  outro").
+# Seletor de cor / fonte / espaco / fundo via Vicinae dmenu: escolhe o eixo,
+# depois o preset. A lista vem dos próprios scripts (sem argumento: "* ativo",
+# "  outro"). `tema <eixo>` pula direto pro preset (o duplo clique no wallpaper
+# abre `tema fundo`).
 dm() { vicinae dmenu -n "$1" -p "$1" --no-section --no-quick-look -W 360 -H "$2"; }
-eixo=$(printf '%s\n' cor fonte espaco | dm tema 220) || exit 0
-case "$eixo" in cor|fonte|espaco) ;; *) exit 0 ;; esac
+eixo=${1:-$(printf '%s\n' cor fonte espaco fundo | dm tema 260)} || exit 0
+case "$eixo" in cor|fonte|espaco|fundo) ;; *) exit 0 ;; esac
 preset=$("$eixo" | dm "$eixo" 260) || exit 0
 preset=${preset#[* ] }
 [ -n "$preset" ] && exec "$eixo" "$preset"
