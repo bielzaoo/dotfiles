@@ -13,6 +13,10 @@ if not (":" .. os.getenv("PATH") .. ":"):find(":" .. localBin .. ":", 1, true) t
     hl.env("PATH", localBin .. ":" .. os.getenv("PATH"))  -- guarda: reload não duplica
 end
 
+-- Idem pro ssh-agent (o environment.d só chega no systemd --user): sem isso app
+-- aberto pelo launcher (Obsidian Git) não acha o agente e pede a senha da chave
+hl.env("SSH_AUTH_SOCK", os.getenv("XDG_RUNTIME_DIR") .. "/ssh-agent.socket")
+
 
 -----------------------
 ----- PERMISSIONS -----
