@@ -53,6 +53,8 @@ for pkg in "profiles/$PROFILE"/*/; do
     # Sem a pasta real, o stow linkaria ~/.config/mozilla inteiro pro repo e
     # o Firefox criaria o perfil dentro do dotfiles
     [ "$name" = firefox ] && mkdir -p "$HOME/.config/mozilla/firefox"
+    # O systemd ignora pasta de drop-in que é symlink: a .d precisa ser real
+    [ "$name" = portal ] && mkdir -p "$HOME/.config/systemd/user/xdg-desktop-portal-gtk.service.d"
     echo "  -> $name"
     stow -d "profiles/$PROFILE" -t "$HOME" "$name"
 done

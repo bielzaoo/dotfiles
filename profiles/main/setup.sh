@@ -10,8 +10,9 @@ padrao "$HOME/.config/hypr"  espaco-atual.lua  espacos/justo.lua
 "$HOME/.local/bin/repinta"
 
 # Modo escuro pros apps de fora do repinta: o portal repassa o color-scheme
-# (Firefox, Chromium, Electron, GTK4); o gtk-theme cobre os GTK3 (polkit,
-# seletor de arquivos). Fica no dconf, fora do git, por isso mora aqui.
+# (Firefox, Chromium, Electron, GTK4); o gtk-theme cobre os GTK3 (polkit).
+# O seletor de arquivos ignora o gsettings: tema dele no pacote portal/.
+# Fica no dconf, fora do git, por isso mora aqui.
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
 # Pastas cinza em vez do azul do Adwaita: gera o tema Papirus-Pastas no usuário
