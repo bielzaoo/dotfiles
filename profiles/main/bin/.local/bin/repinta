@@ -236,7 +236,7 @@ fundo previas >/dev/null 2>&1 &   # cache do seletor (tema fundo)
 pkill -USR1 -x kitty || true
 pgrep -x waybar >/dev/null && pkill -USR2 -x waybar
 pgrep -x mako >/dev/null && makoctl reload
-pgrep -x awww-daemon >/dev/null && awww img "$HOME/.config/session/fundo-atual.png"
+fundo toca final   # cor nova direto na tela final, sem repetir o boot
 if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
 # Vicinae relê o tema-atual.json sozinho (fonte), mas o tema tem sempre o
 # mesmo nome: só relê o .toml com o `theme set`

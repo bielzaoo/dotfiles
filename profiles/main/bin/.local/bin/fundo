@@ -8,12 +8,16 @@
 #   fundo liso     cor sólida do fundo da paleta
 #   fundo regera   regera no modo gravado (default: boot), sem aplicar
 #   fundo previas  gera um PNG por modo em ~/.cache/fundo e lista os caminhos
+#   fundo toca     aplica no awww: o log aparece linha a linha uma vez e fica
+#                  o cursor piscando (`fundo toca final` pula direto pro fim)
 #
-# Com modo na linha de comando, grava o modo e já aplica no awww. O repinta
+# Com modo na linha de comando, grava o modo e já toca no awww. O repinta
 # (troca de cor/fonte) e o autostart.sh (a cada login, pra pegar kernel e
-# services novos) chamam o `regera`. Seletor: `tema fundo` (WIN+T ou duplo
-# clique no wallpaper). Saída: ~/.config/session/fundo-atual.png
-# (FUNDO_SAIDA troca, pra testar sem mexer no desktop: aí o modo não é gravado).
+# services novos) chamam o `regera` e depois o `toca`. Seletor: `tema fundo`
+# (WIN+T ou duplo clique no wallpaper). Saída: ~/.config/session/fundo-atual.png
+# + fundo-atual-intro.gif e fundo-atual-cursor.gif (boot e panic). FUNDO_SAIDA
+# troca o PNG, pra testar sem mexer no desktop: aí o modo não é gravado e os
+# GIFs não são gerados (as prévias do seletor são só o PNG).
 set -e
 
 kitty="$HOME/.config/kitty"
@@ -21,12 +25,32 @@ cor="$kitty/cor-atual.conf"
 fonte="$kitty/fonte-atual.conf"
 sessao="$HOME/.config/session"
 saida="${FUNDO_SAIDA:-$sessao/fundo-atual.png}"
+intro="$sessao/fundo-atual-intro.gif"
+cursor="$sessao/fundo-atual-cursor.gif"
+
+# Toca a intro uma vez e troca pro GIF do cursor quando ela chega no último
+# frame (que fica parado: o awww repete GIF em loop, e o boot não recomeça).
+# Um `toca` novo mata o anterior, senão a troca atrasada pisa no fundo novo.
+toca() {
+    pgrep -x awww-daemon >/dev/null || return 0
+    pid="${XDG_RUNTIME_DIR:-/tmp}/fundo-toca.pid"
+    [ -f "$pid" ] && kill "$(cat "$pid")" 2>/dev/null || true
+    echo $$ >"$pid"
+    if [ "$1" != final ] && [ -f "$intro" ]; then
+        awww img -t none "$intro"
+        # Soma dos delays (centésimos) menos o do último frame, o que fica parado
+        sleep "$(magick identify -format '%T\n' "$intro" | awk '{s += p; p = $1} END {printf "%.2f", s / 100}')"
+    fi
+    if [ -f "$cursor" ]; then awww img -t none "$cursor"; else awww img "$saida"; fi
+    rm -f "$pid"
+}
 
 modos="boot panic liso"
 atual=$(cat "$sessao/fundo-modo-atual" 2>/dev/null || echo boot)
 case "$1" in
     "") for m in $modos; do [ "$m" = "$atual" ] && echo "* $m" || echo "  $m"; done; exit 0 ;;
     regera) modo=$atual; set -- ;;
+    toca) toca "$2"; exit 0 ;;
     boot | panic | liso) modo=$1; [ -n "$FUNDO_SAIDA" ] || echo "$modo" >"$sessao/fundo-modo-atual" ;;
     previas) # um PNG por modo, na paleta atual, pro quick look do seletor
         cache="${XDG_CACHE_HOME:-$HOME/.cache}/fundo"
@@ -60,14 +84,16 @@ mkdir -p "$(dirname "$saida")"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-# Com modo explícito, aplica na hora (o repinta/autostart aplicam por conta)
+# Com modo explícito, toca na hora (o repinta/autostart tocam por conta).
+# setsid: o `tema` chama via exec e a intro dura mais que ele
 aplica() {
     echo "fundo: $modo ($res)"
-    if [ -n "$1" ] && [ -z "$FUNDO_SAIDA" ] && pgrep -x awww-daemon >/dev/null; then awww img "$saida"; fi
+    if [ -n "$1" ] && [ -z "$FUNDO_SAIDA" ]; then setsid -f "$0" toca >/dev/null 2>&1; fi
 }
 
 if [ "$modo" = liso ]; then
     magick -size "$res" "xc:$bg" "$saida"
+    [ -n "$FUNDO_SAIDA" ] || rm -f "$intro" "$cursor"
     aplica "$1"; exit
 fi
 
@@ -114,6 +140,50 @@ else
     okm=$(c "$ok" OK); okc="[  $okm  ]"
 fi
 
+# Log -> log.png (cursor aceso) e log-off.png (cursor na cor do fundo, mesma
+# grade: só o █ some). $1 = função que imprime o markup, com a cor do cursor em $cur
+loga() {
+    cur=$claro; texto "$($1)" "$tmp/log.png"
+    [ -n "$FUNDO_SAIDA" ] && return
+    cur=$bg; texto "$($1)" "$tmp/log-off.png"
+    cur=$claro; $1 | sed 's/<[^>]*>//g' >"$tmp/log.txt"
+}
+
+# Anima o log em cima de $tmp/fundo.png (a tela sem o log), em 2 GIFs:
+#   intro: revela o log linha a linha, como o boot rolando. O delay de cada
+#     frame (centésimos) vem do texto da linha via awk ($1 = programa que
+#     imprime d); linha vazia não ganha frame, sai junto com a próxima.
+#     O último frame fica parado (65535 = ~11 min): quem troca pro cursor é o toca.
+#     Só o 1º frame é a tela cheia; os outros são a faixa das linhas novas,
+#     recortada da tela final e posta no lugar (dispose none acumula). Frame
+#     cheio por linha leva ~15 s pra virar GIF; assim, menos de 1 s
+#   cursor: a tela final com o █ piscando (530 ms, o blink do console)
+anima() {
+    [ -n "$FUNDO_SAIDA" ] && return
+    n=$(wc -l <"$tmp/log.txt"); n=$((n + 1))   # última linha (cursor) sem \n
+    alt=$(magick identify -format '%h' "$tmp/log.png")
+    lw=$(magick identify -format '%w' "$tmp/log.png")
+    awk "$1" "$tmp/log.txt" >"$tmp/delays"
+    set -- -dispose none -delay "${2:-40}" "$tmp/fundo.png"
+    i=0; y=0
+    while read -r d; do
+        i=$((i + 1))
+        [ "$d" -gt 0 ] || continue
+        [ "$i" -lt "$n" ] || d=65535
+        h=$((i * alt / n - y))
+        set -- "$@" -delay "$d" \( "$saida" -crop "${lw}x$h+32+$((24 + y))" -repage "${res}+32+$((24 + y))" \)
+        y=$((y + h))
+    done <"$tmp/delays"
+    # Paleta da tela final (< 256 cores) sem dither: o GIF sai idêntico ao PNG,
+    # e a troca intro -> cursor não mexe em nenhum pixel. Sem isso o magick
+    # quantiza cada frame por conta e as cores variam de um GIF pro outro
+    magick "$saida" -unique-colors "$tmp/pal.png"
+    magick -loop 0 "$@" +dither -remap "$tmp/pal.png" "$tmp/intro.gif"
+    magick "$tmp/fundo.png" "$tmp/log-off.png" -gravity northwest -geometry +32+24 -composite "PNG24:$tmp/off.png"
+    magick -loop 0 -delay 53 "$saida" -delay 53 "$tmp/off.png" +dither -remap "$tmp/pal.png" -layers Optimize "$tmp/cursor.gif"
+    mv "$tmp/intro.gif" "$intro"; mv "$tmp/cursor.gif" "$cursor"
+}
+
 if [ "$modo" = boot ]; then
     cpu=$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)
     mem=$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo)
@@ -124,7 +194,7 @@ if [ "$modo" = boot ]; then
     units=$(systemctl list-units --type=service --state=running --no-legend 2>/dev/null \
         | awk '{sub(/\.service$/,"",$1); print $1}' | grep -v '^user@' | head -14)
 
-    texto "$(
+    log_boot() {
         printf '\n\n'
         printf '%s\n' "$(b "$(c "$claro" "$(echo "$host" | tr a-z A-Z) Modular BIOS $(dmi bios_version), $(dmi bios_date)")")"
         printf '%s\n\n' "$(c "$dim" "Copyright (C) bielzaoo/dotfiles — paleta $(basename "$(readlink "$cor")" .conf)")"
@@ -139,8 +209,9 @@ if [ "$modo" = boot ]; then
         printf '%s\n\n' "$(c "$dim" "Loading Linux $kernel ...")"
         for u in $units; do printf '%s Started %s\n' "$okc" "$(e "$u.service")"; done
         printf '%s Reached target %s\n\n' "$okc" "$(c "$claro" "Graphical Interface")"
-        printf '%s %s' "$(e "$host login:")" "$(c "$claro" "█")"
-    )" "$tmp/log.png"
+        printf '%s %s' "$(e "$host login:")" "$(c "$cur" "█")"
+    }
+    loga log_boot
 
     # Rodapé à la "Press DEL to enter SETUP"
     texto "$(c "$dim" "Press ")$(c "$claro" "WIN+R")$(c "$dim" " to enter LAUNCHER, ")$(c "$claro" "WIN+Q")$(c "$dim" " for SHELL")" "$tmp/rodape.png"
@@ -165,8 +236,18 @@ if [ "$modo" = boot ]; then
     cola "$tmp/r0.png" center "$(centro "$cx" "$cy")"
     cola "$tmp/legenda.png" center "$(centro "$cx" $((cy + $(raio 3) + 24)))"
 
-    cola "$tmp/log.png" northwest +32+24
     cola "$tmp/rodape.png" southwest +32+24
+    cp "$saida" "$tmp/fundo.png"
+    cola "$tmp/log.png" northwest +32+24
+    # Ritmo de boot de verdade: POST rápido, teste de memória e LUKS demoram,
+    # pausa no kernel, os services do systemd pipocando em rajada
+    anima '
+        /^ *$/              { print 0; next }
+        /Memory Testing/    { print 80; next }
+        /Unlocking LUKS/    { print 70; next }
+        /Loading Linux/     { print 120; next }
+        /Started|Reached/   { srand(NR); print 3 + int(rand() * 12); next }
+        { print 18 }' 60
     aplica "$1"; exit
 fi
 
@@ -176,7 +257,7 @@ fi
 systemd=$(systemctl --version | awk 'NR==1{print $2}')
 up=$(awk '{print $1}' /proc/uptime)
 motivo="Attempted to kill init! exitcode=0x0000000b"
-texto "$(
+log_panic() {
     t=0
     linha() {
         t=$((t + 1))
@@ -199,8 +280,15 @@ texto "$(
     linha " $(e "</TASK>")"
     linha "Kernel Offset: 0x1a000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)"
     linha "$(e "---[ end Kernel panic - not syncing: $motivo ]---")"
-    printf '%s' "$(c "$claro" "█")"
-)" "$tmp/log.png"
+    printf '%s' "$(c "$cur" "█")"
+}
+loga log_panic
 base
+cp "$saida" "$tmp/fundo.png"
 cola "$tmp/log.png" northwest +32+24
+# O dump do panic sai de uma vez, quase sem respiro; trava na linha do panic
+anima '
+    /^ *$/              { print 0; next }
+    /Kernel panic - not/ { print 25; next }
+    { print 3 }' 30
 aplica "$1"
