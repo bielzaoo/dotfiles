@@ -1,0 +1,58 @@
+# Gerado pelo `fundo plymouth` (paleta vga, 1366x768): não editar à mão
+Window.SetBackgroundTopColor(0.000, 0.000, 0.000);
+Window.SetBackgroundBottomColor(0.000, 0.000, 0.000);
+
+# Tela centralizada, se o framebuffer não tiver o tamanho em que foi gerada
+fundo.image = Image("fundo.png");
+global.ox = Window.GetX() + Math.Int((Window.GetWidth() - fundo.image.GetWidth()) / 2);
+global.oy = Window.GetY() + Math.Int((Window.GetHeight() - fundo.image.GetHeight()) / 2);
+fundo.sprite = Sprite(fundo.image);
+fundo.sprite.SetPosition(global.ox, global.oy, 0);
+
+# Estado em global.*: dentro de função, atribuição sem o prefixo cria variável
+# local, e o sprite guardado nela morre no fim da chamada (os asteriscos
+# sumiam e o cursor nunca acendia)
+global.bala = Image("bala.png");
+global.cursor = Sprite(Image("cursor.png"));
+global.cursor.SetOpacity(0);
+global.criadas = 0;
+global.digitando = 0;
+global.t = 0;
+
+# Um asterisco por caractere na grade da fonte, cursor logo depois. Sprite
+# criado fica (só some com opacidade 0): apagar caractere reaproveita
+fun senha(prompt, n) {
+    while (global.criadas < n) {
+        global.balas[global.criadas] = Sprite(global.bala);
+        global.balas[global.criadas].SetPosition(global.ox + 296 + global.criadas * 6, global.oy + 189, 1);
+        global.criadas = global.criadas + 1;
+    }
+    i = 0;
+    while (i < global.criadas) {
+        if (i < n) global.balas[i].SetOpacity(1);
+        else global.balas[i].SetOpacity(0);
+        i = i + 1;
+    }
+    global.cursor.SetPosition(global.ox + 296 + n * 6, global.oy + 189, 2);
+    global.cursor.SetOpacity(1);
+    global.digitando = 1;
+    global.t = 0;   # digitou: cursor aceso, o blink recomeça
+}
+Plymouth.SetDisplayPasswordFunction(senha);
+
+# Enter: some o cursor, os asteriscos ficam enquanto o cryptsetup confere
+fun normal() {
+    global.digitando = 0;
+    global.cursor.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(normal);
+
+# Cursor piscando a ~520 ms (refresh do plymouth é 50 Hz)
+fun pisca() {
+    global.t = global.t + 1;
+    if (global.digitando) {
+        if (Math.Int(global.t / 26) - 2 * Math.Int(global.t / 52) == 0) global.cursor.SetOpacity(1);
+        else global.cursor.SetOpacity(0);
+    }
+}
+Plymouth.SetRefreshFunction(pisca);

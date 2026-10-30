@@ -50,13 +50,16 @@ done < <(find "$dir/system" -type f -print0 | sort -z)
 [ ${#mudou[@]} -eq 0 ] && echo "nada mudou"
 
 if [ $seco -eq 0 ]; then
+    uki=0
     for f in "${mudou[@]}"; do
         case "$f" in
-            /etc/mkinitcpio.conf) passo "mkinitcpio.conf mudou: regenerando UKIs"; sudo mkinitcpio -P ;;
+            # O tema do plymouth vai dentro do initramfs: mudou, regera também
+            /etc/mkinitcpio.conf | /etc/plymouth/* | /usr/share/plymouth/*) uki=1 ;;
             /etc/locale.gen)      passo "locale.gen mudou: gerando locales"; sudo locale-gen ;;
             /etc/nftables.conf)   passo "nftables.conf mudou: recarregando"; sudo nft -c -f "$f" && sudo nft -f "$f" ;;
         esac
     done
+    if [ $uki -eq 1 ]; then passo "initramfs mudou (mkinitcpio/plymouth): regenerando UKIs"; sudo mkinitcpio -P; fi
 fi
 
 passo "Dotfiles (install.sh main)"

@@ -57,6 +57,7 @@ openssh
 papirus-icon-theme
 pipewire-pulse
 playerctl
+plymouth
 polkit-gnome
 poppler
 qt5-wayland

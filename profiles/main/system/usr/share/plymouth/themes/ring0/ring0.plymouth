@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=ring0
+Description=POST de BIOS parado no prompt do LUKS (gerado pelo fundo plymouth)
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/ring0
+ScriptFile=/usr/share/plymouth/themes/ring0/ring0.script

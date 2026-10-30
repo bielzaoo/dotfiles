@@ -10,6 +10,9 @@
 #   fundo previas  gera um PNG por modo em ~/.cache/fundo e lista os caminhos
 #   fundo toca     aplica no awww: o log aparece linha a linha uma vez e fica
 #                  o cursor piscando (`fundo toca final` pula direto pro fim)
+#   fundo plymouth tema ring0 do plymouth (a tela da senha do LUKS: o mesmo
+#                  POST parado no prompt) em system/usr/share/plymouth/themes/
+#                  do dotfiles, ou no diretório dado. Instalar: bootstrap.sh
 #
 # Com modo na linha de comando, grava o modo e já toca no awww. O repinta
 # (troca de cor/fonte) e o autostart.sh (a cada login, pra pegar kernel e
@@ -51,6 +54,11 @@ case "$1" in
     "") for m in $modos; do [ "$m" = "$atual" ] && echo "* $m" || echo "  $m"; done; exit 0 ;;
     regera) modo=$atual; set -- ;;
     toca) toca "$2"; exit 0 ;;
+    plymouth) # tema do plymouth (tela do LUKS) no system/ do dotfiles, ou em $2
+        modo=plymouth
+        dest=${2:-$(dirname "$(readlink -f "$0")")/../../../system/usr/share/plymouth/themes/ring0}
+        mkdir -p "$dest"; dest=$(cd "$dest" && pwd)
+        saida="$dest/fundo.png"; FUNDO_SAIDA=$saida; set -- ;;
     boot | panic | liso) modo=$1; [ -n "$FUNDO_SAIDA" ] || echo "$modo" >"$sessao/fundo-modo-atual" ;;
     previas) # um PNG por modo, na paleta atual, pro quick look do seletor
         cache="${XDG_CACHE_HOME:-$HOME/.cache}/fundo"
@@ -180,11 +188,11 @@ anima() {
     magick "$saida" -unique-colors "$tmp/pal.png"
     magick -loop 0 "$@" +dither -remap "$tmp/pal.png" "$tmp/intro.gif"
     magick "$tmp/fundo.png" "$tmp/log-off.png" -gravity northwest -geometry +32+24 -composite "PNG24:$tmp/off.png"
-    magick -loop 0 -delay 53 "$saida" -delay 53 "$tmp/off.png" +dither -remap "$tmp/pal.png" -layers Optimize "$tmp/cursor.gif"
+    magick -loop 0 -delay 53 "$saida" -delay 53 "$tmp/off.png" +dither -remap "$tmp/pal.png" "$tmp/cursor.gif"
     mv "$tmp/intro.gif" "$intro"; mv "$tmp/cursor.gif" "$cursor"
 }
 
-if [ "$modo" = boot ]; then
+if [ "$modo" = boot ] || [ "$modo" = plymouth ]; then
     cpu=$(awk -F': ' '/model name/{print $2; exit}' /proc/cpuinfo)
     mem=$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo)
     disco=$(lsblk -dno TRAN,MODEL,SIZE 2>/dev/null | awk '$1=="nvme"{$1=""; sub(/^ /,""); print; exit}' | tr -s ' ')
@@ -194,7 +202,9 @@ if [ "$modo" = boot ]; then
     units=$(systemctl list-units --type=service --state=running --no-legend 2>/dev/null \
         | awk '{sub(/\.service$/,"",$1); print $1}' | grep -v '^user@' | head -14)
 
-    log_boot() {
+    # POST até o NVMe: comum ao boot e à tela do LUKS (que é o mesmo log parado
+    # no prompt, e o wallpaper continua a história depois do login)
+    post() {
         printf '\n\n'
         printf '%s\n' "$(b "$(c "$claro" "$(echo "$host" | tr a-z A-Z) Modular BIOS $(dmi bios_version), $(dmi bios_date)")")"
         printf '%s\n\n' "$(c "$dim" "Copyright (C) bielzaoo/dotfiles — paleta $(basename "$(readlink "$cor")" .conf)")"
@@ -202,6 +212,9 @@ if [ "$modo" = boot ]; then
         printf 'Main Processor : %s\n' "$(e "$cpu ($(nproc) threads)")"
         printf 'Memory Testing : %s %s\n\n' "$(e "${mem}M")" "$okm"
         printf 'Detecting NVMe ...... %s\n' "$(e "$disco")"
+    }
+    log_boot() {
+        post
         printf 'Unlocking LUKS ...... %s %s\n' "$(e "$luks")" "$okm"
         printf 'Mounting root ....... %s %s\n' "$(e "$raiz")" "$okm"
         if [ "$sb" = enabled ]; then s=$(c "$ok" enabled); else s=$(c "$aviso" "${sb:-unknown}"); fi
@@ -211,32 +224,130 @@ if [ "$modo" = boot ]; then
         printf '%s Reached target %s\n\n' "$okc" "$(c "$claro" "Graphical Interface")"
         printf '%s %s' "$(e "$host login:")" "$(c "$cur" "█")"
     }
-    loga log_boot
-
-    # Rodapé à la "Press DEL to enter SETUP"
-    texto "$(c "$dim" "Press ")$(c "$claro" "WIN+R")$(c "$dim" " to enter LAUNCHER, ")$(c "$claro" "WIN+Q")$(c "$dim" " for SHELL")" "$tmp/rodape.png"
 
     # Logo no canto (onde as BIOS antigas punham o delas): os protection rings
     # do x86, de fora pra dentro, ring 3 (user) até ring 0 (kernel), que dá
     # nome à máquina. Traço sem antialias, pra casar com a fonte em pixel.
-    cx=$((W - 200)); cy=210
-    raio() { echo $((40 + $1 * 38)); }
-    base +antialias -fill none -stroke "$dim" -strokewidth 2 \
-        -draw "circle $cx,$cy $cx,$((cy - $(raio 3)))" \
-        -draw "circle $cx,$cy $cx,$((cy - $(raio 2)))" \
-        -draw "circle $cx,$cy $cx,$((cy - $(raio 1)))" \
-        -stroke none -fill "$ok" -draw "circle $cx,$cy $cx,$((cy - 30))"
-    # Rótulos em cima do traço, com o fundo da paleta abrindo um vão no anel
-    texto "$(c "$dim" " ring 3 (user) ")" "$tmp/r3.png" "$bg"
-    texto "$(c "$dim" " ring 2 ")" "$tmp/r2.png" "$bg"
-    texto "$(c "$dim" " ring 1 ")" "$tmp/r1.png" "$bg"
-    texto "$(b "$(c "$bg" "ring 0")")" "$tmp/r0.png"
-    texto "$(c "$dim" "ring 0: kernel mode, $host")" "$tmp/legenda.png"
-    for r in 3 2 1; do cola "$tmp/r$r.png" center "$(centro "$cx" $((cy - $(raio "$r"))))"; done
-    cola "$tmp/r0.png" center "$(centro "$cx" "$cy")"
-    cola "$tmp/legenda.png" center "$(centro "$cx" $((cy + $(raio 3) + 24)))"
+    # $1 = markup do rodapé, à la "Press DEL to enter SETUP"
+    aneis() {
+        cx=$((W - 200)); cy=210
+        raio() { echo $((40 + $1 * 38)); }
+        texto "$1" "$tmp/rodape.png"
+        base +antialias -fill none -stroke "$dim" -strokewidth 2 \
+            -draw "circle $cx,$cy $cx,$((cy - $(raio 3)))" \
+            -draw "circle $cx,$cy $cx,$((cy - $(raio 2)))" \
+            -draw "circle $cx,$cy $cx,$((cy - $(raio 1)))" \
+            -stroke none -fill "$ok" -draw "circle $cx,$cy $cx,$((cy - 30))"
+        # Rótulos em cima do traço, com o fundo da paleta abrindo um vão no anel
+        texto "$(c "$dim" " ring 3 (user) ")" "$tmp/r3.png" "$bg"
+        texto "$(c "$dim" " ring 2 ")" "$tmp/r2.png" "$bg"
+        texto "$(c "$dim" " ring 1 ")" "$tmp/r1.png" "$bg"
+        texto "$(b "$(c "$bg" "ring 0")")" "$tmp/r0.png"
+        texto "$(c "$dim" "ring 0: kernel mode, $host")" "$tmp/legenda.png"
+        for r in 3 2 1; do cola "$tmp/r$r.png" center "$(centro "$cx" $((cy - $(raio "$r"))))"; done
+        cola "$tmp/r0.png" center "$(centro "$cx" "$cy")"
+        cola "$tmp/legenda.png" center "$(centro "$cx" $((cy + $(raio 3) + 24)))"
+        cola "$tmp/rodape.png" southwest +32+24
+    }
+fi
 
-    cola "$tmp/rodape.png" southwest +32+24
+if [ "$modo" = plymouth ]; then
+    # Tela do LUKS: o POST parado no prompt. O fundo.png traz tudo menos a
+    # senha; asterisco e cursor são PNGs que o ring0.script desenha por cima
+    # (o plymouth não tem a fonte do kitty no initramfs). O script e o
+    # .plymouth saem daqui com a grade (x, y, largura do caractere) já calculada
+    prompt="Unlocking LUKS ...... $luks passphrase: "
+    log_luks() { post; printf '%s' "$(e "$prompt")"; }
+    texto "$(log_luks)" "$tmp/log.png"
+    aneis "$(c "$dim" "Press ")$(c "$claro" "ENTER")$(c "$dim" " to unlock, ")$(c "$claro" "ESC")$(c "$dim" " for boot log")"
+    cola "$tmp/log.png" northwest +32+24
+    texto "*" "PNG32:$dest/bala.png"
+    texto "$(c "$claro" "█")" "PNG32:$dest/cursor.png"
+    # Grade: fonte mono, então largura do caractere = largura de 10 Ms / 10;
+    # linha = altura do log / número de linhas, e o prompt é a última
+    texto MMMMMMMMMM "$tmp/m.png"
+    cw=$(( $(magick identify -format '%w' "$tmp/m.png") / 10 ))
+    n=$(( $(log_luks | wc -l) + 1 ))
+    y=$(( 24 + ($(magick identify -format '%h' "$tmp/log.png") * (n - 1)) / n ))
+    x=$(( 32 + ${#prompt} * cw ))
+    rgb=$(printf '%s\n' "$bg" | tr -d '#' | awk '{ for (i = 1; i <= 5; i += 2) printf "%.3f%s", strtonum("0x" substr($1, i, 2)) / 255, (i < 5 ? ", " : "") }')
+    cat >"$dest/ring0.plymouth" <<EOF
+[Plymouth Theme]
+Name=ring0
+Description=POST de BIOS parado no prompt do LUKS (gerado pelo fundo plymouth)
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/ring0
+ScriptFile=/usr/share/plymouth/themes/ring0/ring0.script
+EOF
+    cat >"$dest/ring0.script" <<EOF
+# Gerado pelo \`fundo plymouth\` (paleta $(basename "$(readlink "$cor")" .conf), ${res}): não editar à mão
+Window.SetBackgroundTopColor($rgb);
+Window.SetBackgroundBottomColor($rgb);
+
+# Tela centralizada, se o framebuffer não tiver o tamanho em que foi gerada
+fundo.image = Image("fundo.png");
+global.ox = Window.GetX() + Math.Int((Window.GetWidth() - fundo.image.GetWidth()) / 2);
+global.oy = Window.GetY() + Math.Int((Window.GetHeight() - fundo.image.GetHeight()) / 2);
+fundo.sprite = Sprite(fundo.image);
+fundo.sprite.SetPosition(global.ox, global.oy, 0);
+
+# Estado em global.*: dentro de função, atribuição sem o prefixo cria variável
+# local, e o sprite guardado nela morre no fim da chamada (os asteriscos
+# sumiam e o cursor nunca acendia)
+global.bala = Image("bala.png");
+global.cursor = Sprite(Image("cursor.png"));
+global.cursor.SetOpacity(0);
+global.criadas = 0;
+global.digitando = 0;
+global.t = 0;
+
+# Um asterisco por caractere na grade da fonte, cursor logo depois. Sprite
+# criado fica (só some com opacidade 0): apagar caractere reaproveita
+fun senha(prompt, n) {
+    while (global.criadas < n) {
+        global.balas[global.criadas] = Sprite(global.bala);
+        global.balas[global.criadas].SetPosition(global.ox + $x + global.criadas * $cw, global.oy + $y, 1);
+        global.criadas = global.criadas + 1;
+    }
+    i = 0;
+    while (i < global.criadas) {
+        if (i < n) global.balas[i].SetOpacity(1);
+        else global.balas[i].SetOpacity(0);
+        i = i + 1;
+    }
+    global.cursor.SetPosition(global.ox + $x + n * $cw, global.oy + $y, 2);
+    global.cursor.SetOpacity(1);
+    global.digitando = 1;
+    global.t = 0;   # digitou: cursor aceso, o blink recomeça
+}
+Plymouth.SetDisplayPasswordFunction(senha);
+
+# Enter: some o cursor, os asteriscos ficam enquanto o cryptsetup confere
+fun normal() {
+    global.digitando = 0;
+    global.cursor.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(normal);
+
+# Cursor piscando a ~520 ms (refresh do plymouth é 50 Hz)
+fun pisca() {
+    global.t = global.t + 1;
+    if (global.digitando) {
+        if (Math.Int(global.t / 26) - 2 * Math.Int(global.t / 52) == 0) global.cursor.SetOpacity(1);
+        else global.cursor.SetOpacity(0);
+    }
+}
+Plymouth.SetRefreshFunction(pisca);
+EOF
+    echo "fundo: plymouth ($res) em $dest"
+    exit
+fi
+
+if [ "$modo" = boot ]; then
+    loga log_boot
+    aneis "$(c "$dim" "Press ")$(c "$claro" "WIN+R")$(c "$dim" " to enter LAUNCHER, ")$(c "$claro" "WIN+Q")$(c "$dim" " for SHELL")"
     cp "$saida" "$tmp/fundo.png"
     cola "$tmp/log.png" northwest +32+24
     # Ritmo de boot de verdade: POST rápido, teste de memória e LUKS demoram,
