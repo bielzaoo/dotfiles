@@ -18,6 +18,7 @@ hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }), { desc = 
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu), { desc = "Launcher (Vicinae)" })
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(programs.arquivos), { desc = "Arquivos (yazi)" })
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(programs.arquivos_gui), { desc = "Arquivos (Nautilus)" })
+hl.bind(mainMod .. " + CTRL + F", hl.dsp.window.fullscreen(), { desc = "Tela cheia (alternar)" })
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo(), { desc = "Pseudo-tile (alternar)" })
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"), { desc = "Trocar direção do split" })    -- dwindle only
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "Bloquear tela" })
