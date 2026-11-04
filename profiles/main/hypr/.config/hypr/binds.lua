@@ -15,7 +15,7 @@ local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close(), { desc
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), { desc = "Sair do Hyprland" })
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }), { desc = "Janela flutuante (alternar)" })
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu), { desc = "Launcher (Vicinae)" })
+hl.bind(mainMod .. " + space", hl.dsp.exec_cmd(programs.menu), { desc = "Launcher (Vicinae)" })
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(programs.arquivos), { desc = "Arquivos (yazi)" })
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(programs.arquivos_gui), { desc = "Arquivos (Nautilus)" })
 hl.bind(mainMod .. " + CTRL + F", hl.dsp.window.fullscreen(), { desc = "Tela cheia (alternar)" })
@@ -26,6 +26,36 @@ hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("energia"), { desc = "Menu de en
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("tema"), { desc = "Seletor de cor/fonte/espaço/fundo" })
 hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("atalhos"), { desc = "Atalhos (esta lista)" })
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("vicinae deeplink 'vicinae://launch/clipboard/history?toggle=true'"), { desc = "Histórico do clipboard" })  -- histórico mora no Vicinae: trocar launcher = resolver clipboard junto
+
+-- Apps: foca a janela se já existe, senão abre (web app abriria uma 2ª janela).
+-- classe = regex da class no Hyprland (`hyprctl clients`)
+local function app(keys, classe, cmd, desc)
+    local seletor = "class:^" .. classe .. "$"
+    hl.bind(mainMod .. " + " .. keys, function()
+        if hl.get_window(seletor) then
+            hl.dispatch(hl.dsp.focus({ window = seletor }))
+        else
+            hl.exec_cmd(cmd)
+        end
+    end, { desc = desc })
+end
+app("B",         "firefox",                           "firefox",                               "Navegador (Firefox)")
+app("SHIFT + B", "Bitwarden",                         "bitwarden-desktop",                     "Senhas (Bitwarden)")
+app("O",         "md.obsidian.Obsidian",              "obsidian",                              "Notas (Obsidian)")
+app("C",         "chrome-claude.ai__-Default",        "chromium --app=https://claude.ai/",     "Claude (web app)")
+app("Z",         "chrome-web.whatsapp.com__-Default", "chromium --app=https://web.whatsapp.com/", "WhatsApp (web app)")
+app("CTRL + V",  "virt-manager",                      "virt-manager",                          "Máquinas virtuais (virt-manager)")
+
+-- Controles do sistema: mesmos painéis da waybar. `tui` faz o toggle (de novo fecha)
+hl.bind(mainMod .. " + ALT + W", hl.dsp.exec_cmd("tui nmtui"),   { desc = "Painel: Wi-Fi/rede" })
+hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd("tui wiremix"), { desc = "Painel: som" })
+hl.bind(mainMod .. " + ALT + B", hl.dsp.exec_cmd("tui bluetui"), { desc = "Painel: Bluetooth" })
+hl.bind(mainMod .. " + ALT + P", hl.dsp.exec_cmd("tui btop"),    { desc = "Painel: processos (btop)" })
+hl.bind(mainMod .. " + ALT + D", hl.dsp.exec_cmd("tui gdu"),     { desc = "Painel: disco (gdu)" })
+hl.bind(mainMod .. " + ALT + U", hl.dsp.exec_cmd("tui systemctl-tui"), { desc = "Painel: serviços (systemctl-tui)" })
+hl.bind(mainMod .. " + ALT + L", hl.dsp.exec_cmd("tui logs"),    { desc = "Painel: logs do boot (lnav)" })
+hl.bind(mainMod .. " + ALT + N", hl.dsp.exec_cmd("tui rede"),    { desc = "Painel: rede por processo (bandwhich, pede sudo)" })
+hl.bind(mainMod .. " + ALT + E", hl.dsp.exec_cmd("tui consumo"), { desc = "Painel: bateria e consumo (powertop, pede sudo)" })
 
 -- Captura (~/.local/bin/captura): seleção esperta, clicar na janela = janela,
 -- no fundo = tela inteira, arrastar = área. Foto vai pro clipboard e pra

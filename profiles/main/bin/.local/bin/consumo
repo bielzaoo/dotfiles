@@ -1,0 +1,4 @@
+#!/bin/sh
+# O que mais gasta bateria. Precisa de root pra ler os contadores do kernel.
+# Painel: tui consumo (WIN+ALT+E)
+exec sudo powertop

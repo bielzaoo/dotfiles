@@ -1,0 +1,4 @@
+#!/bin/sh
+# Tráfego por processo e destino. sudo em vez de setcap: privilégio só enquanto
+# o painel está aberto. Painel: tui rede (WIN+ALT+N)
+exec sudo bandwhich

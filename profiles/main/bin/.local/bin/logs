@@ -1,0 +1,3 @@
+#!/bin/sh
+# Journal do boot atual no lnav (busca e filtro). Painel: tui logs (WIN+ALT+L)
+journalctl -b -o short-iso --no-pager | exec lnav

@@ -66,6 +66,16 @@ hl.window_rule({
     center = true,
 })
 
+-- Bitwarden: janela de consulta rápida, sempre flutuante e do mesmo tamanho
+hl.window_rule({
+    name  = "bitwarden-flutuante",
+    match = { class = "Bitwarden" },
+
+    float  = true,
+    size   = "1000 680",
+    center = true,
+})
+
 -- Workspaces 1-5 sempre existem (persistentes), mesmo vazios: a waybar
 -- (ext/workspaces) mostra o que o compositor anuncia, então é aqui que fixa
 for i = 1, 5 do

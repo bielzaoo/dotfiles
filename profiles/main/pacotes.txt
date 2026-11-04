@@ -3,6 +3,7 @@ amd-ucode
 ansible
 audit
 awww
+bandwhich
 base
 base-devel
 bitwarden
@@ -13,12 +14,16 @@ brightnessctl
 btop
 btrfs-progs
 chromium
+cmatrix
 compsize
+dnsmasq
+edk2-ovmf
 efibootmgr
 fd
 ffmpegthumbnailer
 firefox
 fzf
+gdu
 git
 gnome-text-editor
 greetd
@@ -36,9 +41,11 @@ layer-shell-qt
 lazygit
 less
 libqalculate
+libvirt
 linux
 linux-firmware
 linux-lts
+lnav
 lynis
 mako
 mesa
@@ -53,6 +60,7 @@ noto-fonts
 noto-fonts-emoji
 npm
 obs-studio
+obsidian
 openssh
 papirus-icon-theme
 pipewire-pulse
@@ -60,6 +68,8 @@ playerctl
 plymouth
 polkit-gnome
 poppler
+powertop
+qemu-desktop
 qt5-wayland
 qt6-wayland
 qtkeychain-qt6
@@ -72,7 +82,9 @@ snapper
 stow
 sudo
 swayimg
+swtpm
 syntax-highlighting
+systemctl-tui
 tmux
 tree-sitter-cli
 ttf-dejavu
@@ -80,6 +92,8 @@ ttf-jetbrains-mono
 ttf-terminus-nerd
 unzip
 vim
+virt-manager
+virt-viewer
 waybar
 wf-recorder
 wget
