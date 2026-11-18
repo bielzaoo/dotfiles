@@ -20,6 +20,7 @@ read_only = "  "
 read_only_style = "red"
 truncation_length = 3
 truncation_symbol = "…/"
+truncate_to_repo = false
 format = "[$path]($style)[$read_only]($read_only_style) "
 
 # "on <branch>": "on" apagado, branch em mauve (purple ANSI)
@@ -31,6 +32,16 @@ format = "[on ](bright-black)[$branch](purple) "
 [git_status]
 style = "yellow"
 format = "([$all_status$ahead_behind]($style) )"
+modified = "!${count} "
+untracked = "?${count} "
+staged = "+${count} "
+deleted = "✘${count} "
+renamed = "»${count} "
+stashed = "≡${count} "
+conflicted = "=${count} "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
 
 # Tempo do último comando (só quando passa de 2 s), apagado
 [cmd_duration]
