@@ -1,0 +1,42 @@
+#!/bin/sh
+# Janelas minimizadas (workspace especial `minimizadas`, ver hypr/minimizar.lua).
+#
+#   minimizadas          menu (Vicinae): escolhe uma e ela volta pro workspace atual
+#   minimizadas status   JSON do módulo custom/minimizadas da waybar (󰖰 N)
+#
+# A waybar relê o módulo a cada 2 s e no SIGRTMIN+10.
+set -e
+
+lista() { # "endereço<TAB>título · classe", mais recente primeiro
+    hyprctl clients -j | jq -r '[.[] | select(.workspace.name == "special:minimizadas")]
+        | sort_by(.focusHistoryID) | .[]
+        | "\(.address)\t\(.title | gsub("[\t\n]"; " ")) · \(.class)"'
+}
+
+case "$1" in
+status)
+    lista | jq -Rsc 'split("\n") | map(select(. != "") | split("\t")[1]) as $j
+        | if ($j | length) == 0 then {text: "", class: "vazio"}
+          else {text: "󰖰 \($j | length)", class: "ativo",
+                tooltip: ("Minimizadas:\n" + ($j | map(@html) | join("\n"))
+                          + "\n\n<small>clique: restaurar</small>")}
+          end'
+    ;;
+"")
+    itens=$(lista)
+    [ -n "$itens" ] || { notify-send -a osd -t 1500 "nenhuma janela minimizada"; exit 0; }
+    escolha=$(printf '%s\n' "$itens" | cut -f2 | sed 's/^/󰖯  /' |
+        vicinae dmenu -n minimizadas -p 'restaurar' --no-section --no-quick-look -W 480 -H 300) || exit 0
+    escolha=${escolha#󰖯  }
+    end=$(printf '%s\n' "$itens" | awk -F '\t' -v t="$escolha" '$2 == t { print $1; exit }')
+    [ -n "$end" ] || exit 0
+    ws=$(hyprctl activeworkspace -j | jq -r .id)
+    hyprctl dispatch "hl.dsp.window.move({ workspace = $ws, window = \"address:$end\" })" >/dev/null
+    hyprctl dispatch "hl.dsp.focus({ window = \"address:$end\" })" >/dev/null
+    pkill -RTMIN+10 -x waybar || true
+    ;;
+*)
+    echo "uso: minimizadas [status]" >&2
+    exit 1
+    ;;
+esac
