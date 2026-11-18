@@ -29,6 +29,7 @@ window#waybar {
     min-width: 1px;
     margin: 7px 7px;       /* 28 - 14 = 14 px de altura */
     padding: 0;
+    font-size: 1px;        /* o " " do format não alarga a linha de 1 px */
 }
 
 /* Workspaces: número apagado por padrão; só o ativo (e urgente) viram pílula.
@@ -61,6 +62,7 @@ window#waybar {
 
 /* ---- Direita ---- (módulos de ~24 px: margin 5 px em cima/baixo) */
 #custom-captura,
+#custom-notificacoes,
 #language,
 #pulseaudio,
 #network,
@@ -73,14 +75,14 @@ window#waybar {
     border-radius: 6px;
     color: @t2;
 }
-#language, #pulseaudio, #network, #bluetooth, #cpu, #custom-energia {
+#language, #pulseaudio, #network, #bluetooth, #cpu, #custom-notificacoes, #custom-energia {
     font-size: 13px;
 }
 #battery { color: @fg; }
 
 /* hover genérico */
 #language:hover, #pulseaudio:hover, #network:hover, #bluetooth:hover,
-#cpu:hover, #battery:hover, #custom-energia:hover {
+#cpu:hover, #battery:hover, #custom-notificacoes:hover, #custom-energia:hover {
     background: alpha(@fg, 0.08);
 }
 
@@ -98,6 +100,33 @@ window#waybar {
 /* Bateria baixa: % em vermelho (o ícone segue verde pelo pango) */
 #battery.warning:not(.charging) { color: @erro; }
 #battery.critical:not(.charging) { color: @erro; }
+
+/* Tray: ícones dos apps, com respiro; o que pede atenção ganha fundo de erro */
+#tray { margin: 0 6px 0 2px; padding: 0 4px; }
+#tray > .passive { -gtk-icon-effect: dim; }
+#tray > .needs-attention {
+    background: alpha(@erro, 0.14);
+    border-radius: 6px;
+}
+/* Menu do clique direito dos apps da tray, na identidade do modo */
+#tray menu {
+    background: @bg;
+    color: @fg;
+    border: 1px solid alpha(@fg, 0.12);
+    border-radius: 8px;
+    padding: 4px;
+}
+#tray menu menuitem { padding: 4px 10px; border-radius: 6px; }
+#tray menu menuitem:hover { background: alpha(@ativo, 0.18); color: @fg; }
+#tray menu separator { background: alpha(@fg, 0.08); min-height: 1px; margin: 3px 6px; }
+
+/* Notificações: não lidas = pílula azul; não perturbe = apagado */
+#custom-notificacoes.nao-lidas {
+    color: @ativo;
+    background: alpha(@ativo, 0.14);
+    font-weight: 700;
+}
+#custom-notificacoes.dnd { color: @dim; }
 
 /* Energia em vermelho */
 #custom-energia { color: @erro; }

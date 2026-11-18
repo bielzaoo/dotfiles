@@ -1,0 +1,68 @@
+#!/bin/sh
+# Sino de notificações da waybar (módulo custom/notificacoes), em cima do mako.
+# "Não lidas" = notificações (na tela ou no histórico) com id acima da última
+# marcada como vista. Notificações do app "osd" (volume/brilho, avisos rápidos)
+# não contam.
+#
+#   notificacoes status    JSON do módulo (ícone + contador, tooltip, classe)
+#   notificacoes le        reabre a última e marca tudo como visto  (clique)
+#   notificacoes limpa     fecha todas e marca tudo como visto      (meio)
+#   notificacoes alterna   liga/desliga o não perturbe              (direito)
+#
+# O não perturbe é o modo `nao-perturbe` do mako (config: só crítica e osd
+# aparecem). A waybar relê o módulo a cada 2 s e no SIGRTMIN+9.
+
+vistas="${XDG_RUNTIME_DIR:-/tmp}/notificacoes-vistas"
+sinal() { pkill -RTMIN+9 -x waybar || true; }
+
+# Todas (na tela + histórico), sem o osd, como JSON: [{id, app, resumo}]
+todas() {
+    { makoctl list -j; makoctl history -j; } 2>/dev/null |
+        jq -s '[.[][] | select(.app_name != "osd")
+                | {id, app: .app_name, resumo: .summary}] | unique_by(.id)'
+}
+
+marca_vistas() {
+    todas | jq '[.[].id] | max // 0' >"$vistas"
+}
+
+case "$1" in
+status)
+    visto=$(cat "$vistas" 2>/dev/null || echo 0)
+    lista=$(todas)
+    maior=$(echo "$lista" | jq '[.[].id] | max // 0')
+    # o mako recomeça os ids quando reinicia: aí a marca antiga não vale mais
+    [ "$maior" -lt "$visto" ] && { visto=0; echo 0 >"$vistas"; }
+    dnd=false
+    makoctl mode 2>/dev/null | grep -qx nao-perturbe && dnd=true
+    echo "$lista" | jq -c --argjson visto "$visto" --argjson dnd "$dnd" '
+        ([.[] | select(.id > $visto)] | length) as $n
+        | (sort_by(-.id) | .[:5]
+           | map("<b>\(.app | @html)</b>  \(.resumo | @html)") | join("\n")) as $ult
+        | {
+            text: (if $dnd then "" elif $n > 0 then " \($n)" else "" end),
+            class: (if $dnd then "dnd" elif $n > 0 then "nao-lidas" else "vazio" end),
+            tooltip: ((if $dnd then "Não perturbe ligado\n\n" else "" end)
+                + (if $ult == "" then "Nenhuma notificação" else $ult end)
+                + "\n\n<small>clique: reabrir a última · meio: limpar · direito: não perturbe</small>")
+          }'
+    ;;
+le)
+    makoctl restore 2>/dev/null || true
+    marca_vistas
+    sinal
+    ;;
+limpa)
+    makoctl dismiss -a 2>/dev/null || true
+    marca_vistas
+    sinal
+    ;;
+alterna)
+    makoctl mode -t nao-perturbe >/dev/null
+    sinal
+    ;;
+*)
+    echo "uso: notificacoes status|le|limpa|alterna" >&2
+    exit 1
+    ;;
+esac

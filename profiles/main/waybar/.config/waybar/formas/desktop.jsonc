@@ -9,7 +9,7 @@
     "spacing": 0,
     "modules-left": ["custom/menu", "custom/sep", "ext/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/captura", "hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "battery", "custom/sep2", "custom/energia"],
+    "modules-right": ["tray", "custom/captura", "hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "battery", "custom/notificacoes", "custom/sep2", "custom/energia"],
 
     // Menu (logo do Arch) na cor de destaque: abre o launcher
     "custom/menu": { "format": "󰣇", "tooltip": false, "on-click": "vicinae toggle" },
@@ -32,6 +32,20 @@
             "format": { "today": "<b><u>{}</u></b>" }
         },
         "actions": { "on-click-right": "mode", "on-scroll-up": "shift_down", "on-scroll-down": "shift_up" }
+    },
+
+    // Tray: ícones dos apps em segundo plano (Discord, Steam, KDE Connect...).
+    // Clique direito abre o menu do app. Some quando não há nenhum.
+    "tray": { "icon-size": 15, "spacing": 8, "show-passive-items": true },
+
+    // Notificações (mako): sino + não lidas; tooltip com as últimas 5.
+    // Clique reabre a última, meio limpa, direito liga/desliga o não perturbe.
+    "custom/notificacoes": {
+        "exec": "notificacoes status", "return-type": "json",
+        "interval": 2, "signal": 9, "escape": false,
+        "on-click": "notificacoes le",
+        "on-click-middle": "notificacoes limpa",
+        "on-click-right": "notificacoes alterna"
     },
 
     // Gravando: pílula vermelha "● rec 00:42" (some quando não grava)

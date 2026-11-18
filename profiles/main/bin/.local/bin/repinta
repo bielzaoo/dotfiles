@@ -738,7 +738,12 @@ if pgrep -f 'tmux: server' >/dev/null; then
     tmux refresh-client -S >/dev/null 2>&1 || true
 fi
 fundo toca final   # cor nova direto na tela final, sem repetir o boot
-if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
+if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+    # o reload volta o teclado pro 1º layout (us): guarda o ativo e devolve
+    kb=$(hyprctl devices -j 2>/dev/null | jq -r '[.keyboards[] | select(.main)][0].active_layout_index // empty' 2>/dev/null || true)
+    hyprctl reload >/dev/null
+    [ -n "$kb" ] && hyprctl switchxkblayout all "$kb" >/dev/null 2>&1 || true
+fi
 # Servidores que só lêem a forma/tema quando sobem: reiniciam na TROCA DE MODO,
 # não numa troca só de cor (evita reindexar/piscar à toa).
 aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null || true)  # 1ª vez: sem arquivo (set -e!)
