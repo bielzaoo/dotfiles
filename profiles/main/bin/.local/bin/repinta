@@ -31,6 +31,16 @@ rgba() {
 argb() { printf '#%02x%s' "$(awk -v a="$2" 'BEGIN { printf "%d", a * 255 + 0.5 }')" "$(h "$1")"; }
 # Hex + alpha (0-1) -> RRGGBBAA (hyprlock rgba(), mako #RRGGBBAA)
 hexa() { printf '%s%02x' "$(h "$1")" "$(awk -v a="$2" 'BEGIN { printf "%d", a * 255 + 0.5 }')"; }
+# $1 por cima de $2 com alpha $3 (0-1) -> #hex sólido (pra onde só cabe cor chapada)
+blend() {
+    f=$(h "$1"); b=$(h "$2")
+    printf '#'
+    for i in 1 3 5; do
+        fc=$(printf '%d' "0x$(echo "$f" | cut -c$i-$((i + 1)))")
+        bc=$(printf '%d' "0x$(echo "$b" | cut -c$i-$((i + 1)))")
+        awk -v f="$fc" -v b="$bc" -v a="$3" 'BEGIN { printf "%02x", f * a + b * (1 - a) + 0.5 }'
+    done
+}
 
 modo=$(basename "$(readlink "$tema/modo-atual.conf" 2>/dev/null)" .conf)
 [ -n "$modo" ] || modo=terminal
@@ -216,9 +226,33 @@ EOF
 forma "$HOME/.config/waybar" forma-atual.css  css
 forma "$HOME/.config/waybar" config-atual.jsonc jsonc
 
-# --- mako: incluído no fim do config (abre a seção [urgency=critical])
+# --- mako: incluído no fim do config (abre a seção [urgency=critical]). O que
+# vem aqui sobrescreve os globais do config (o include é lido depois), então a
+# FORMA por modo mora aqui: Desktop = cartão raio 8, borda a 12%, ícone 36 px
+# arredondado; Terminal = reto, sem ícone (como antes). mako não tem sombra.
 mkdir -p "$HOME/.config/mako"
-cat >"$HOME/.config/mako/tema-atual" <<EOF
+if [ "$modo" = desktop ]; then
+    cat >"$HOME/.config/mako/tema-atual" <<EOF
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
+font=$font $size
+background-color=$bg
+text-color=$fg
+border-color=#$(hexa "$fg" 0.12)
+progress-color=over $sup
+border-radius=8
+border-size=1
+padding=14
+margin=12
+icons=1
+max-icon-size=36
+icon-border-radius=8
+width=380
+
+[urgency=critical]
+border-color=$erro
+EOF
+else
+    cat >"$HOME/.config/mako/tema-atual" <<EOF
 # Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
 font=$font $size
 background-color=$bg
@@ -229,8 +263,18 @@ progress-color=over $borda
 [urgency=critical]
 border-color=$erro
 EOF
+fi
 
-# --- hyprlock: variáveis lidas pelo hyprlock.conf (vale no próximo lock)
+# --- hyprlock: cores + forma por modo (lidas pelo hyprlock.conf, vale no próximo
+# lock). Desktop: campo 236x40, cantos 6, borda 2 px em degradê blue->lavender,
+# relógio 72. Terminal: 20%x5%, cantos 0, borda 1 px sólida, relógio 64.
+if [ "$modo" = desktop ]; then
+    lock_outer="rgba($(hexa "$ativo" 1)) rgba($(hexa "$d2" 1)) 45deg"
+    lock_round=6; lock_outline=2; lock_size="236, 40"; lock_clock=72; lock_clock_font="$font"
+else
+    lock_outer="\$dim"
+    lock_round=0; lock_outline=1; lock_size="20%, 5%"; lock_clock=64; lock_clock_font="$font"
+fi
 cat >"$HOME/.config/hypr/hyprlock-atual.conf" <<EOF
 # Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
 \$bg = rgb($(h "$bg"))
@@ -240,11 +284,30 @@ cat >"$HOME/.config/hypr/hyprlock-atual.conf" <<EOF
 \$ok = rgb($(h "$ok"))
 \$ativo = rgb($(h "$ativo"))
 \$font = $font
+\$outer = $lock_outer
+\$round = $lock_round
+\$outline = $lock_outline
+\$fieldsize = $lock_size
+\$clocksize = $lock_clock
 EOF
 
-# --- Vicinae: tema (.toml) + fonte (.json), via "imports" do settings.json.
-# No Desktop Mode a seleção e o foco usam o destaque; superfície separa o fundo.
+# --- Vicinae: tema (.toml) + fonte/janela (.json), via "imports" do settings.json.
+# A forma da janela (cantos, borda, sombra) mora no .json importado, porque o
+# repinta precisa trocá-la por modo (o settings.json não tem mais launcher_window).
+# Desktop Mode: janela com cantos 10, borda azul 2 px, sombra; seleção azul a 18%
+# chapada (o Vicinae não faz borda/alpha em item de lista). Terminal: reto, como antes.
 mkdir -p "$HOME/.local/share/vicinae/themes"
+if [ "$modo" = desktop ]; then
+    mw_border="$ativo"                       # borda da janela do launcher = azul (decidido)
+    sel_bg=$(blend "$ativo" "$bg" 0.18)      # seleção azul a 18% sobre o fundo
+    sel_sec="$sup"; grid_bg="$sup"           # tiles em superfície
+    win_rounding=10; win_border=2; win_shadow=20
+else
+    mw_border="$dim"
+    sel_bg="$ativo"
+    sel_sec="$dim"; grid_bg="$bg"            # idêntico ao que havia
+    win_rounding=0; win_border=1; win_shadow=0
+fi
 cat >"$HOME/.local/share/vicinae/themes/tema-atual.toml" <<EOF
 # Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
 [meta]
@@ -256,10 +319,13 @@ variant = "dark"
 [colors.core]
 background = "$bg"
 foreground = "$fg"
-secondary_background = "$bg"
+secondary_background = "$barra"
 border = "$dim"
 accent = "$ativo"
 accent_foreground = "$bg"
+
+[colors.main_window]
+border = "$mw_border"
 
 [colors.accents]
 blue = "$(c 12)"
@@ -277,13 +343,13 @@ border_focus = "$ativo"
 border_error = "$erro"
 
 [colors.list.item.selection]
-background = "$ativo"
-foreground = "$bg"
-secondary_background = "$dim"
+background = "$sel_bg"
+foreground = "$fg"
+secondary_background = "$sel_sec"
 secondary_foreground = "$fg"
 
 [colors.grid.item]
-background = "$bg"
+background = "$grid_bg"
 EOF
 cat >"$HOME/.config/vicinae/tema-atual.json" <<EOF
 {
@@ -291,6 +357,20 @@ cat >"$HOME/.config/vicinae/tema-atual.json" <<EOF
 	"theme": {
 		"light": { "name": "tema-atual", "icon_theme": "auto" },
 		"dark":  { "name": "tema-atual", "icon_theme": "auto" }
+	},
+	"launcher_window": {
+		"rounding": $win_rounding,
+		"material": "none",
+		"client_side_decorations": {
+			"enabled": true,
+			"border_width": $win_border,
+			"shadow_size": $win_shadow
+		},
+		"layer_shell": {
+			"layer": "top",
+			"keyboard_interactivity": "exclusive",
+			"enabled": true
+		}
 	}
 }
 EOF
@@ -405,7 +485,17 @@ if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
 for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
     [ -S "$sock" ] && nvim --server "$sock" --remote-expr 'execute("lua Repinta()")' >/dev/null 2>&1 || true
 done
-# Vicinae relê o tema-atual.json sozinho (fonte); o .toml tem sempre o mesmo
-# nome, então só recarrega com o `theme set`
-pgrep -x vicinae-server >/dev/null && vicinae theme set tema-atual >/dev/null 2>&1 || true
+# Vicinae: o tema (cores) recarrega com `theme set`. A forma da janela (cantos,
+# borda, sombra) só é lida quando o servidor sobe, então numa TROCA DE MODO o
+# servidor é reiniciado; numa troca só de cor, não (evita reindexar à toa).
+if pgrep -x vicinae-server >/dev/null; then
+    aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null)
+    if [ "$aplicado" != "$modo" ]; then
+        pkill -x vicinae-server 2>/dev/null || true
+        setsid -f vicinae server >/dev/null 2>&1
+    else
+        vicinae theme set tema-atual >/dev/null 2>&1 || true
+    fi
+fi
+echo "$modo" >"$tema/.modo-aplicado"
 echo "repinta: modo $modo · paleta $nome · $font $size"

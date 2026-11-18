@@ -28,19 +28,7 @@
    },
    "telemetry": {
       "system_info": false
-   },
-   "launcher_window": {
-      "rounding": 0,
-      "client_side_decorations": {
-         "enabled": true,
-         "border_width": 1,
-         "shadow_size": 0
-      },
-      "layer_shell": {
-         "layer": "top",
-         "keyboard_interactivity": "exclusive",
-         "enabled": true
-      },
-      "material": "none"
    }
+   // launcher_window (cantos, borda, sombra, layer_shell) é gerado pelo repinta
+   // em tema-atual.json, porque muda por modo (ver imports acima).
 }

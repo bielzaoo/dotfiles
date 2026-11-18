@@ -4,3 +4,6 @@
 *-atual.*
 *.bak*
 *-atual-*
+
+# Estado do modo aplicado (repinta: reinício do vicinae só na troca de modo)
+.modo-aplicado
