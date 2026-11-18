@@ -1,0 +1,75 @@
+// Forma da barra no Desktop Mode (mockup). Barra de 34 px colada no topo, ícones
+// da JetBrainsMono Nerd Font. Mesma lógica de módulos do Terminal Mode, só muda
+// o formato (ícone + valor) e a decoração (ver desktop.css).
+// Clique em wifi/bt/áudio abre a TUI flutuante (tui), como no mockup.
+{
+    "layer": "top",
+    "position": "top",
+    "height": 34,
+    "spacing": 0,
+    "modules-left": ["custom/menu", "ext/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["custom/captura", "hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "battery", "custom/energia"],
+
+    // Menu (logo do Arch) na cor de destaque: abre o launcher
+    "custom/menu": { "format": "󰣇", "tooltip": false, "on-click": "vicinae toggle" },
+
+    "ext/workspaces": { "format": "{name}", "sort-by-id": true, "on-click": "activate" },
+
+    // Centro: dia por extenso (texto-2) + hora em negrito. Tooltip = calendário.
+    "clock": {
+        "format": "<span color='#bac2de'>{0:L%A}</span>  <b>{0:L%H:%M}</b>",
+        "format-alt": "<span color='#bac2de'>{0:L%d/%m}</span>  <b>{0:L%H:%M:%S}</b>",
+        "interval": 1,
+        "locale": "pt_BR.UTF-8",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "mode-mon-col": 3,
+            "on-scroll": 1,
+            "format": { "today": "<b><u>{}</u></b>" }
+        },
+        "actions": { "on-click-right": "mode", "on-scroll-up": "shift_down", "on-scroll-down": "shift_up" }
+    },
+
+    // Gravando: pílula vermelha "● rec 00:42" (some quando não grava)
+    "custom/captura": { "exec": "captura status", "return-type": "json", "interval": "once", "signal": 8, "on-click": "captura video" },
+
+    // Teclado: ícone + layout curto
+    "hyprland/language": { "format": "󰌌 {short}", "on-click": "hyprctl switchxkblayout current next" },
+
+    // Volume: ícone + %. Clique abre a TUI de áudio
+    "pulseaudio": { "format": "󰕾 {volume}%", "format-muted": "󰝟 {volume}%", "on-click": "tui wiremix" },
+
+    // Wi-Fi: só ícone (essid no tooltip). Clique abre a TUI de rede
+    "network": {
+        "format-wifi": "󰖩", "format-ethernet": "󰈀", "format-disconnected": "󰖪",
+        "tooltip-format-wifi": "{essid}  {signalStrength}%",
+        "tooltip-format-ethernet": "{ifname}",
+        "tooltip-format-disconnected": "sem rede",
+        "on-click": "tui nmtui"
+    },
+
+    // Bluetooth: só ícone. Clique abre a TUI de bluetooth
+    "bluetooth": {
+        "format": "󰂯", "format-off": "󰂲", "format-disabled": "󰂲", "format-connected": "󰂱",
+        "tooltip-format": "{status}", "tooltip-format-connected": "{device_alias}",
+        "on-click": "tui bluetui"
+    },
+
+    // CPU: só ícone, valor no tooltip
+    "cpu": { "format": "", "tooltip": true, "tooltip-format": "cpu {usage}%", "on-click": "tui btop" },
+
+    // Bateria: ícone (verde quando ok) + %
+    "battery": {
+        "states": { "warning": 20, "critical": 10 },
+        "format": "<span color='#a6e3a1'>{icon}</span> {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰂅 {capacity}%",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip-format": "{timeTo}, {power:.1f}W"
+    },
+
+    // Energia: ícone (vermelho) com o menu de energia
+    "custom/energia": { "format": "󰐥", "tooltip": false, "on-click": "energia" }
+}

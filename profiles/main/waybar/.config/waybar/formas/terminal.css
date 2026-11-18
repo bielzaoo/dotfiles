@@ -1,0 +1,38 @@
+/* Forma do Terminal Mode: barra reta, sem cantos, estilo console. Cores e fonte
+ * vêm do tema-atual.css (importado pelo style.css). */
+
+* {
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+}
+
+window#waybar {
+    background: @bg;
+    color: @fg;
+    border-bottom: 1px solid @dim;
+}
+
+/* Workspace ativo invertido, como a seleção do console VGA */
+#workspaces button {
+    padding: 0 6px;
+    color: @fg;
+    background: transparent;
+    box-shadow: none;
+    text-shadow: none;
+}
+#workspaces button:hover { background: @dim; }
+#workspaces button.active { background: @ativo; color: @bg; }
+#workspaces button.empty { color: @dim; }
+#workspaces button.urgent { background: @erro; color: @bg; }
+
+#language, #clock, #pulseaudio, #network, #bluetooth, #cpu, #memory, #battery, #custom-energia { padding: 0 8px; }
+#pulseaudio.muted, #network.disconnected, #bluetooth.off, #bluetooth.disabled { color: @dim; }
+#battery.warning:not(.charging) { color: @erro; }
+#battery.critical:not(.charging) { background: @erro; color: @bg; }
+/* Gravando (captura video): "● rec" no erro; some quando para */
+#custom-captura.gravando { padding: 0 8px; color: @erro; }
+
+/* Tooltip (calendar do relógio etc.) na mesma identidade da barra */
+tooltip { background: @bg; border: 1px solid @dim; border-radius: 0; }
+tooltip label { color: @fg; }

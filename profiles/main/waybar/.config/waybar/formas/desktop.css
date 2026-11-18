@@ -1,0 +1,132 @@
+/* Forma da barra no Desktop Mode (mockup). Cores e fonte vêm do tema-atual.css
+ * (importado pelo style.css). Estados por transparência: alpha(@cor, fração). */
+
+* {
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    /* corpo 13 px (9.75pt vem do tema); ícones 15 px nas regras abaixo */
+}
+
+/* Barra colada no topo: fundo mantle, linha inferior a 8%, padding lateral 10 */
+window#waybar {
+    background: @barra;
+    color: @fg;
+    border-bottom: 1px solid alpha(@fg, 0.08);
+}
+#window { padding: 0; }
+
+/* ---- Esquerda ---- */
+/* Logo do Arch na cor de destaque */
+#custom-menu {
+    color: @ativo;
+    font-size: 15px;
+    padding: 0 8px 0 10px;
+}
+/* Separador vertical fino entre o menu e os workspaces */
+#workspaces {
+    margin-left: 4px;
+    padding-left: 8px;
+    border-left: 1px solid @borda;
+}
+/* Workspaces como pílulas (24x22, gap 6). Ocupado = base */
+#workspaces button {
+    min-width: 24px;
+    margin: 0 3px;
+    padding: 0 6px;
+    border-radius: 6px;
+    color: @fg;
+    background: alpha(@fg, 0.04);
+    border: 1px solid alpha(@fg, 0.16);
+}
+#workspaces button:hover {
+    background: alpha(@fg, 0.08);
+    border-color: alpha(@fg, 0.25);
+}
+#workspaces button.active {
+    color: @ativo;
+    background: alpha(@ativo, 0.18);
+    border: 1px solid @ativo;
+    font-weight: 700;
+}
+#workspaces button.empty {
+    color: @dim;
+    background: transparent;
+    border-color: transparent;
+}
+#workspaces button.urgent {
+    color: @erro;
+    background: alpha(@erro, 0.14);
+    border: 1px solid @erro;
+}
+
+/* ---- Centro ---- */
+#clock {
+    color: @fg;
+    padding: 0 10px;
+    border-radius: 6px;
+}
+
+/* ---- Direita ---- */
+/* Botões de 24 px, gap ~2, cantos 6. Ícones a 15 px */
+#custom-captura,
+#language,
+#pulseaudio,
+#network,
+#bluetooth,
+#cpu,
+#battery,
+#custom-energia {
+    margin: 0 1px;
+    padding: 0 8px;
+    border-radius: 6px;
+    color: @fg;
+}
+#language, #pulseaudio, #network, #bluetooth, #cpu, #custom-energia {
+    font-size: 15px;
+}
+#language, #pulseaudio, #battery { /* ícone + valor: texto no corpo */
+    color: @t2;
+}
+#battery { color: @fg; }
+
+/* ícones só (wifi, bluetooth, cpu) um pouco mais largos p/ caber o glifo */
+#network, #bluetooth, #cpu, #custom-energia { padding: 0 7px; }
+
+/* hover genérico */
+#language:hover, #pulseaudio:hover, #network:hover, #bluetooth:hover,
+#cpu:hover, #battery:hover, #custom-energia:hover {
+    background: alpha(@fg, 0.08);
+}
+
+/* Gravando: pílula vermelha "● rec 00:42" */
+#custom-captura.gravando {
+    color: @erro;
+    background: alpha(@erro, 0.12);
+    margin-right: 6px;
+}
+
+/* Estados apagados */
+#pulseaudio.muted, #network.disconnected, #bluetooth.off, #bluetooth.disabled {
+    color: @dim;
+}
+/* Bateria baixa: % em vermelho (o ícone segue verde pelo pango) */
+#battery.warning:not(.charging) { color: @erro; }
+#battery.critical:not(.charging) { color: @erro; }
+
+/* Energia em vermelho, com um separador fino antes */
+#custom-energia {
+    color: @erro;
+    margin-left: 6px;
+    padding-left: 8px;
+    border-left: 1px solid @borda;
+    border-radius: 0 6px 6px 0;
+}
+
+/* Tooltip (calendário etc.) na identidade do Desktop Mode */
+tooltip {
+    background: @bg;
+    border: 1px solid alpha(@fg, 0.12);
+    border-radius: 8px;
+}
+tooltip label { color: @fg; padding: 2px; }

@@ -211,6 +211,10 @@ cat >"$HOME/.config/waybar/tema-atual.css" <<EOF
 @define-color numero $numero;
 * { font-family: "$font"; font-size: ${size}pt; }
 EOF
+# Forma da barra por modo: layout (config-atual.jsonc) + estilo (forma-atual.css).
+# O style.css importa forma-atual.css; o config.jsonc inclui config-atual.jsonc.
+forma "$HOME/.config/waybar" forma-atual.css  css
+forma "$HOME/.config/waybar" config-atual.jsonc jsonc
 
 # --- mako: incluído no fim do config (abre a seção [urgency=critical])
 mkdir -p "$HOME/.config/mako"
