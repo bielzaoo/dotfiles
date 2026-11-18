@@ -641,7 +641,8 @@ EOF
 
 # --- tmux: tema por modo (tema-atual.conf, lido pelo tmux.conf). ANSI puro, mas
 # o destaque muda: Terminal = verde (colour10/colour2), Desktop = azul
-# (colour4), com o inativo apagado (colour8). A forma é a mesma.
+# (colour4), com o inativo apagado (colour8). A barra de status muda de forma
+# por modo (abaixo).
 if [ "$modo" = desktop ]; then
     tac=colour4; tac2=colour4; tmuted=colour8
 else
@@ -664,6 +665,29 @@ set -g display-panes-colour colour8
 set -g status-position top
 set -g status-interval 5
 set -g status-justify left
+EOF
+# Barra: Desktop = forma à la tokyo-night-tmux (sessão em bloco com ícone de
+# prefix, janela ativa em bloco superfície, caminho/branch com ícone, relógio em
+# bloco), fundo mantle, cores da paleta em hex. Terminal = ANSI puro, sem ícone
+# (Spleen/Cozette não têm Nerd Font), como sempre.
+if [ "$modo" = desktop ]; then
+    cat >>"$HOME/.config/tmux/tema-atual.conf" <<EOF
+set -g status-style "fg=$t2,bg=$barra"
+set -g status-left-length 40
+set -g status-right-length 120
+set -g status-left "#[fg=$ativo,bg=$barra]#[fg=$barra,bg=$ativo,bold]#{?client_prefix, , }#S#[fg=$ativo,bg=$barra,nobold] #{?pane_in_mode,#[fg=$barra bg=$aviso bold] #{pane_mode} #[bg=$barra nobold] ,}"
+set -g window-status-separator ""
+set -g window-status-style "default"
+set -g window-status-current-style "default"
+set -g window-status-current-format "#[fg=$sup,bg=$barra]#[fg=$icone,bg=$sup] #[fg=$fg,bold]#I#[nobold,fg=$dim]:#[fg=$fg,bold]#W#{?window_zoomed_flag, #[fg=$aviso],}#[fg=$sup,bg=$barra]#[default]"
+set -g window-status-format "#[fg=$dim]  #[fg=$t2]#I#[fg=$dim]:#[fg=$t2]#W#{?window_zoomed_flag, #[fg=$aviso],}#{?window_last_flag, #[fg=$dim],} #[default]"
+set -g window-status-activity-style "fg=$aviso"
+set -g window-status-bell-style "fg=$erro,bold"
+set -g @home "$HOME"
+set -g status-right "#[fg=$dim] #[fg=$t2]#{s|^#{@home}|~|:pane_current_path} #[fg=$icone]#(cd #{q:pane_current_path} && git branch --show-current 2>/dev/null | sed 's/#/##/g; s/^/ /; s/$/ /')#[fg=$sup,bg=$barra]#[fg=$fg,bg=$sup,bold] %H:%M#[fg=$sup,bg=$barra,nobold]#[default]"
+EOF
+else
+    cat >>"$HOME/.config/tmux/tema-atual.conf" <<EOF
 set -g status-style "fg=colour7,bg=default"
 set -g status-left-length 40
 set -g status-right-length 100
@@ -676,6 +700,7 @@ set -g window-status-bell-style "fg=colour9,bold"
 set -g @home "$HOME"
 set -g status-right "#[fg=colour8]#{s|^#{@home}|~|:pane_current_path}#[fg=$tmuted]#(cd #{q:pane_current_path} && git branch --show-current 2>/dev/null | sed 's/#/##/g; s/^/  /') "
 EOF
+fi
 
 # REPINTA_SO_GERA=1: só gera os arquivos, sem mexer no wallpaper nem recarregar
 # nada (pra conferir a saída de um modo sem repintar a sessão viva).
