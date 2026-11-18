@@ -91,3 +91,13 @@ hl.window_rule({
 
     focus_on_activate = true,
 })
+
+-- Desktop Mode: sombra só no que flutua (spec). A sombra global (forma-atual.lua)
+-- vale pros flutuantes (launcher, TUIs); nas janelas lado a lado ela sai. No
+-- Terminal Mode a sombra já é desligada, então a regra não muda nada lá.
+hl.window_rule({
+    name  = "sem-sombra-lado-a-lado",
+    match = { float = false },
+
+    no_shadow = true,
+})

@@ -7,12 +7,14 @@
     "position": "top",
     "height": 34,
     "spacing": 0,
-    "modules-left": ["custom/menu", "ext/workspaces"],
+    "modules-left": ["custom/menu", "custom/sep", "ext/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/captura", "hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "battery", "custom/energia"],
+    "modules-right": ["custom/captura", "hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "battery", "custom/sep2", "custom/energia"],
 
     // Menu (logo do Arch) na cor de destaque: abre o launcher
     "custom/menu": { "format": "󰣇", "tooltip": false, "on-click": "vicinae toggle" },
+    "custom/sep":  { "format": " ", "tooltip": false },
+    "custom/sep2": { "format": " ", "tooltip": false },
 
     "ext/workspaces": { "format": "{name}", "sort-by-id": true, "on-click": "activate" },
 

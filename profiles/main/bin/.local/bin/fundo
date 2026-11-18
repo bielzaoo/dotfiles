@@ -60,6 +60,9 @@ case "$1" in
         mkdir -p "$dest"; dest=$(cd "$dest" && pwd)
         saida="$dest/fundo.png"; FUNDO_SAIDA=$saida; set -- ;;
     boot | panic | liso) modo=$1; [ -n "$FUNDO_SAIDA" ] || echo "$modo" >"$sessao/fundo-modo-atual" ;;
+    grade) modo=grade ;;  # wallpaper do Desktop Mode (grade de pontos); não entra
+                          # no rodízio do `tema fundo` nem persiste em fundo-modo-atual,
+                          # pra não pisar na escolha do Terminal Mode
     previas) # um PNG por modo, na paleta atual, pro quick look do seletor
         cache="${XDG_CACHE_HOME:-$HOME/.cache}/fundo"
         mkdir -p "$cache"
@@ -101,6 +104,24 @@ aplica() {
 
 if [ "$modo" = liso ]; then
     magick -size "$res" "xc:$bg" "$saida"
+    [ -n "$FUNDO_SAIDA" ] || rm -f "$intro" "$cursor"
+    aplica "$1"; exit
+fi
+
+# Grade de pontos do Desktop Mode: fundo crust + ponto lavender a 10% a cada
+# 22 px (marcador do mockup). Cores vêm da paleta por papéis (paleta-atual.conf).
+if [ "$modo" = grade ]; then
+    pal="$HOME/.config/tema/paleta-atual.conf"
+    crust=$(val fundo-fundo "$pal"); [ -n "$crust" ] || crust=$bg
+    lav=$(val destaque-2 "$pal");    [ -n "$lav" ] || lav=$fg
+    # cor do ponto = lavender a 10% sobre o crust (chapada, sem alpha no PNG)
+    dot=$(printf '#%s' "$(for i in 2 4 6; do
+        c=$(printf '%d' "0x$(echo "$crust" | cut -c$i-$((i + 1)))")
+        l=$(printf '%d' "0x$(echo "$lav"   | cut -c$i-$((i + 1)))")
+        awk -v c="$c" -v l="$l" 'BEGIN { printf "%02x", l * 0.10 + c * 0.90 + 0.5 }'
+    done)")
+    magick -size 22x22 "xc:$crust" -fill "$dot" -draw "point 0,0" "$tmp/tile.png"
+    magick -size "$res" "tile:$tmp/tile.png" "PNG24:$saida"
     [ -n "$FUNDO_SAIDA" ] || rm -f "$intro" "$cursor"
     aplica "$1"; exit
 fi

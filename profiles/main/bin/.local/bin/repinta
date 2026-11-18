@@ -469,11 +469,16 @@ if [ -n "$REPINTA_SO_GERA" ]; then
     exit 0
 fi
 
-# --- Wallpaper: cor sólida de reserva (autostart.sh se o PNG faltar); a tela de
-# boot na paleta é regerada pelo `fundo`. Arte do Desktop Mode: a decidir.
+# --- Wallpaper: cor sólida de reserva (autostart.sh se o PNG faltar). Desktop Mode
+# = grade de pontos (fixa do modo). Terminal Mode = o fundo escolhido no `tema
+# fundo` (boot/panic/liso), regerado pra pegar kernel/services novos.
 h "$bg" >"$HOME/.config/session/fundo-atual"
-fundo regera >/dev/null 2>&1 || true
-fundo previas >/dev/null 2>&1 &   # cache do seletor (tema fundo)
+if [ "$modo" = desktop ]; then
+    fundo grade >/dev/null 2>&1 || true
+else
+    fundo regera >/dev/null 2>&1 || true
+    fundo previas >/dev/null 2>&1 &   # cache do seletor (só vale no Terminal Mode)
+fi
 
 # --- Recarrega o que estiver de pé
 pkill -USR1 -x kitty || true
