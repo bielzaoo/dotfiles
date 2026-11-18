@@ -39,7 +39,7 @@ local function app(keys, classe, cmd, desc)
         end
     end, { desc = desc })
 end
-app("B",         "firefox",                           "firefox",                               "Navegador (Firefox)")
+app("B",         "google-chrome",                     "google-chrome-stable",                  "Navegador (Chrome)")
 app("SHIFT + B", "Bitwarden",                         "bitwarden-desktop",                     "Senhas (Bitwarden)")
 app("O",         "md.obsidian.Obsidian",              "obsidian",                              "Notas (Obsidian)")
 app("C",         "chrome-claude.ai__-Default",        "chromium --app=https://claude.ai/",     "Claude (web app)")
