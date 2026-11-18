@@ -531,6 +531,103 @@ set recolor-lightcolor "$bg"
 set recolor-darkcolor "$fg"
 EOF
 
+# --- btop: tema do mockup (tema-atual.theme). O btop.conf é local e o btop o
+# reescreve ao sair, então aqui só muda a linha color_theme: Desktop =
+# tema-atual, Terminal = Default (como sempre). Vale no próximo btop aberto.
+mkdir -p "$HOME/.config/btop/themes"
+cat >"$HOME/.config/btop/themes/tema-atual.theme" <<EOF
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
+theme[main_bg]="$bg"
+theme[main_fg]="$fg"
+theme[title]="$fg"
+theme[hi_fg]="$ativo"
+theme[selected_bg]="$sup"
+theme[selected_fg]="$ativo"
+theme[inactive_fg]="$borda"
+theme[graph_text]="$dim"
+theme[meter_bg]="$sup"
+theme[proc_misc]="$icone"
+theme[cpu_box]="$icone"
+theme[mem_box]="$ativo"
+theme[net_box]="$info"
+theme[proc_box]="$borda"
+theme[div_line]="$borda"
+theme[temp_start]="$ok"
+theme[temp_mid]="$aviso"
+theme[temp_end]="$numero"
+theme[cpu_start]="$ok"
+theme[cpu_mid]="$aviso"
+theme[cpu_end]="$numero"
+theme[free_start]="$info"
+theme[free_mid]="$info"
+theme[free_end]="$info"
+theme[cached_start]="$d2"
+theme[cached_mid]="$d2"
+theme[cached_end]="$d2"
+theme[available_start]="$info"
+theme[available_mid]="$info"
+theme[available_end]="$info"
+theme[used_start]="$ativo"
+theme[used_mid]="$ativo"
+theme[used_end]="$ativo"
+theme[download_start]="$info"
+theme[download_mid]="$info"
+theme[download_end]="$info"
+theme[upload_start]="$icone"
+theme[upload_mid]="$icone"
+theme[upload_end]="$icone"
+theme[process_start]="$ok"
+theme[process_mid]="$aviso"
+theme[process_end]="$numero"
+EOF
+btopconf="$HOME/.config/btop/btop.conf"
+if [ -f "$btopconf" ]; then
+    if [ "$modo" = desktop ]; then bt=tema-atual; else bt=Default; fi
+    sed -i "s|^color_theme = .*|color_theme = \"$bt\"|" "$btopconf"
+fi
+
+# --- Nautilus (e demais apps libadwaita/GTK4): só as cores-base, sem tema
+# completo (spec). Desktop = mocha; Terminal = sem override (Adwaita-dark puro,
+# como sempre) — remove o arquivo só se foi gerado aqui. Vale no próximo app aberto.
+gtk4="$HOME/.config/gtk-4.0/gtk.css"
+if [ "$modo" = desktop ]; then
+    mkdir -p "$HOME/.config/gtk-4.0"
+    cat >"$gtk4" <<EOF
+/* Gerado pelo repinta (paleta $nome, modo desktop). Não editar. */
+:root {
+  --window-bg-color: $bg;      --window-fg-color: $fg;
+  --view-bg-color: $bg;        --view-fg-color: $fg;
+  --headerbar-bg-color: $barra; --headerbar-fg-color: $fg;
+  --headerbar-backdrop-color: $barra;
+  --sidebar-bg-color: $barra;  --sidebar-fg-color: $fg;
+  --sidebar-backdrop-color: $barra;
+  --secondary-sidebar-bg-color: $barra;
+  --card-bg-color: $sup;       --card-fg-color: $fg;
+  --dialog-bg-color: $bg;      --dialog-fg-color: $fg;
+  --popover-bg-color: $barra;  --popover-fg-color: $fg;
+  --thumbnail-bg-color: $sup;
+  --accent-bg-color: $ativo;   --accent-fg-color: $fundofundo;  --accent-color: $ativo;
+  --destructive-bg-color: $erro; --destructive-color: $erro;
+  --success-color: $ok; --warning-color: $aviso; --error-color: $erro;
+}
+@define-color window_bg_color $bg;
+@define-color window_fg_color $fg;
+@define-color view_bg_color $bg;
+@define-color view_fg_color $fg;
+@define-color headerbar_bg_color $barra;
+@define-color headerbar_fg_color $fg;
+@define-color sidebar_bg_color $barra;
+@define-color card_bg_color $sup;
+@define-color popover_bg_color $barra;
+@define-color dialog_bg_color $bg;
+@define-color accent_bg_color $ativo;
+@define-color accent_fg_color $fundofundo;
+@define-color accent_color $ativo;
+EOF
+elif [ -f "$gtk4" ] && head -1 "$gtk4" | grep -q 'Gerado pelo repinta'; then
+    rm -f "$gtk4"
+fi
+
 # --- tmux: tema por modo (tema-atual.conf, lido pelo tmux.conf). ANSI puro, mas
 # o destaque muda: Terminal = verde (colour10/colour2), Desktop = azul
 # (colour4), com o inativo apagado (colour8). A forma é a mesma.
