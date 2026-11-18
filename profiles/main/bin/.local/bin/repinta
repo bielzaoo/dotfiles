@@ -1,44 +1,125 @@
 #!/bin/sh
-# Repinta o desktop a partir do preset ativo do kitty: cor-atual.conf e
-# fonte-atual.conf são a fonte da verdade, o resto é gerado daqui.
-# Chamado pelo `cor` e pelo `fonte`; o setup.sh roda na instalação.
+# Repinta o desktop a partir do modo e da paleta ativos (~/.config/tema/):
+#   modo-atual.conf -> modos/terminal.conf | modos/desktop.conf  (`modo`)
+#   cor-atual.conf  -> paletas/<nome>.conf, paleta do Terminal Mode (`cor`)
+#   kitty/fonte-atual.conf -> fonte do Terminal Mode (`fonte`)
+# No Desktop Mode paleta e fonte vêm do modos/desktop.conf.
+# O modo troca FORMA e COR: além das cores, cada app aponta pra sua forma
+# (symlink *-forma-atual -> formas/<modo>.*) quando a forma do modo existe.
+# Chamado pelo `modo`, `cor` e `fonte`; o setup.sh roda na instalação.
 # Gera arquivos *-atual (estado local, fora do git) e recarrega quem está de pé.
 #
-# Papéis da paleta: fundo = background, texto = foreground,
-# ativo = color7, apagado/borda = color8, erro = color9, ok = color10.
+# Papéis (paletas/*.conf): fundo-fundo, fundo-barra, fundo, superficie, borda,
+# apagado, texto-2, texto, destaque, destaque-2, icone, info, ok, aviso,
+# numero, erro (+ color0..15 do terminal). Nas paletas do Terminal Mode os
+# papéis são as cores ANSI de sempre, então o modo sai idêntico.
 set -e
 
+tema="$HOME/.config/tema"
 kitty="$HOME/.config/kitty"
-cor="$kitty/cor-atual.conf"
-fonte="$kitty/fonte-atual.conf"
-nome=$(basename "$(readlink "$cor")" .conf)
 
-# Valor de uma chave no formato do kitty ("chave valor")
+# Valor de uma chave no formato "chave valor"
 val() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ +/, ""); print; exit }' "$2"; }
 # Hex sem o '#'
 h() { echo "$1" | tr -d '#'; }
+# Hex + alpha (0-1) -> rgba(r,g,b,a), pro CSS do GTK
+rgba() {
+    x=$(h "$1")
+    printf 'rgba(%d,%d,%d,%s)' "0x$(echo "$x" | cut -c1-2)" "0x$(echo "$x" | cut -c3-4)" "0x$(echo "$x" | cut -c5-6)" "$2"
+}
+# Hex + alpha (0-1) -> #AARRGGBB (Qt: Vicinae)
+argb() { printf '#%02x%s' "$(awk -v a="$2" 'BEGIN { printf "%d", a * 255 + 0.5 }')" "$(h "$1")"; }
+# Hex + alpha (0-1) -> RRGGBBAA (hyprlock rgba(), mako #RRGGBBAA)
+hexa() { printf '%s%02x' "$(h "$1")" "$(awk -v a="$2" 'BEGIN { printf "%d", a * 255 + 0.5 }')"; }
 
-bg=$(val background "$cor")
-fg=$(val foreground "$cor")
-ativo=$(val color7 "$cor")
-dim=$(val color8 "$cor")
-erro=$(val color9 "$cor")
-ok=$(val color10 "$cor")
-font=$(val font_family "$fonte")
-size=$(val font_size "$fonte")
+modo=$(basename "$(readlink "$tema/modo-atual.conf" 2>/dev/null)" .conf)
+[ -n "$modo" ] || modo=terminal
+if [ "$modo" = desktop ]; then
+    nome=$(val paleta "$tema/modos/desktop.conf")
+    pal="$tema/paletas/$nome.conf"
+    font=$(val fonte "$tema/modos/desktop.conf")
+    size=$(val tamanho "$tema/modos/desktop.conf")
+else
+    pal="$tema/cor-atual.conf"
+    nome=$(basename "$(readlink "$pal")" .conf)
+    fonte="$kitty/fonte-atual.conf"
+    font=$(val font_family "$fonte")
+    size=$(val font_size "$fonte")
+fi
+# Paleta resolvida, pra quem lê papéis fora daqui (fundo, prompt)
+cp "$pal" "$tema/paleta-atual.conf"
 
-# Hyprland: bordas das janelas
-cat >"$HOME/.config/hypr/cor-atual.lua" <<EOF
--- Gerado pelo repinta (paleta $nome). Não editar: troque com \`cor\`.
-hl.config({ general = { col = {
-    active_border   = "rgb($(h "$ativo"))",
-    inactive_border = "rgb($(h "$dim"))",
-} } })
+p() { val "$1" "$pal"; }
+c() { val "color$1" "$pal"; }
+bg=$(p fundo)
+fg=$(p texto)
+ativo=$(p destaque)
+dim=$(p apagado)
+borda=$(p borda)
+erro=$(p erro)
+ok=$(p ok)
+aviso=$(p aviso)
+# Desktop Mode: papéis que só ele usa
+fundofundo=$(p fundo-fundo)
+barra=$(p fundo-barra)
+sup=$(p superficie)
+t2=$(p texto-2)
+d2=$(p destaque-2)
+icone=$(p icone)
+info=$(p info)
+numero=$(p numero)
+# pt -> px (96 dpi)
+px() { awk -v s="$1" 'BEGIN { printf "%d", s * 4 / 3 }'; }
+
+# Forma do app no modo: <dir>/<link> -> formas/<modo>.<ext> (terminal se o
+# modo não tiver forma própria pra esse app)
+forma() {
+    dir=$1 link=$2 ext=$3
+    f="formas/$modo.$ext"
+    [ -e "$dir/$f" ] || f="formas/terminal.$ext"
+    ln -sfn "$f" "$dir/$link"
+}
+
+# --- kitty: paleta (cor-atual.conf, lido também pelo `fundo`) + tema-atual.conf
+# (fonte, paleta, abas e o que for do modo). O cor-atual.conf era symlink pro
+# preset: remove antes, senão o > escreveria em cima do preset
+rm -f "$kitty/cor-atual.conf" "$kitty/abas-atual.conf"
+{
+    echo "# Gerado pelo repinta (paleta $nome). Não editar: troque com \`cor\` / \`modo\`."
+    echo "background $bg"
+    echo "foreground $fg"
+    for k in cursor cursor_text_color selection_background selection_foreground; do
+        v=$(p "$k"); [ -n "$v" ] && echo "$k $v"
+    done
+    for i in $(seq 0 15); do echo "color$i $(c "$i")"; done
+} >"$kitty/cor-atual.conf"
+if [ "$modo" = desktop ]; then
+    cat >"$kitty/tema-atual.conf" <<EOF
+# Gerado pelo repinta (modo desktop, paleta $nome). Não editar.
+font_family      $font
+bold_font        auto
+italic_font      auto
+bold_italic_font auto
+font_size        $size
+include cor-atual.conf
+# Respiro do texto dentro da janela (pt; 18x20 px no mockup)
+window_padding_width 13.5 15
+tab_bar_background $barra
+active_tab_foreground $fundofundo
+active_tab_background $ativo
+active_tab_font_style bold
+inactive_tab_foreground $dim
+inactive_tab_background $barra
+inactive_tab_font_style normal
+active_border_color $ativo
+inactive_border_color $borda
 EOF
-
-# kitty: abas e bordas de split (o resto da paleta já vem do cor-atual.conf)
-cat >"$kitty/abas-atual.conf" <<EOF
-# Gerado pelo repinta (paleta $nome). Não editar.
+else
+    {
+        echo "# Gerado pelo repinta (modo terminal, paleta $nome). Não editar."
+        grep -v '^#' "$fonte"
+        cat <<EOF
+include cor-atual.conf
 tab_bar_background $bg
 active_tab_foreground $bg
 active_tab_background $ativo
@@ -47,52 +128,125 @@ inactive_tab_foreground $dim
 inactive_tab_background $bg
 inactive_tab_font_style normal
 active_border_color $ativo
-inactive_border_color $dim
+inactive_border_color $borda
 EOF
+    } >"$kitty/tema-atual.conf"
+fi
 
-# hyprlock: variáveis lidas pelo hyprlock.conf (vale no próximo lock)
-cat >"$HOME/.config/hypr/hyprlock-atual.conf" <<EOF
-# Gerado pelo repinta (paleta $nome). Não editar.
-\$bg = rgb($(h "$bg"))
-\$fg = rgb($(h "$fg"))
-\$dim = rgb($(h "$dim"))
-\$erro = rgb($(h "$erro"))
-\$ok = rgb($(h "$ok"))
-\$font = $font
+# --- Hyprland: cores+borda (cor-atual.lua) e forma do modo (forma-atual.lua,
+# carregado pelo hyprland.lua depois do espaco-atual, então ganha dele no
+# Desktop Mode; no Terminal Mode manda o espaco).
+hypr="$HOME/.config/hypr"
+if [ "$modo" = desktop ]; then
+    # Borda ativa em degradê 45° destaque -> destaque-2; inativa sólida.
+    cat >"$hypr/cor-atual.lua" <<EOF
+-- Gerado pelo repinta (modo desktop, paleta $nome). Não editar: troque com \`modo\`.
+hl.config({ general = { col = {
+    active_border   = { colors = { "rgb($(h "$ativo"))", "rgb($(h "$d2"))" }, angle = 45 },
+    inactive_border = "rgb($(h "$borda"))",
+} } })
 EOF
+    # Forma: cantos 6 (interno 4 pela borda 2), gaps 6/12, sombra de flutuante,
+    # entrada popin 90% ~300ms easeOutQuint. Sombra global ligada (o que flutua
+    # ganha); rules.lua tira dos lado-a-lado (no_shadow em float=false).
+    cat >"$hypr/forma-atual.lua" <<EOF
+-- Gerado pelo repinta (modo desktop). Não editar: troque com \`modo\`.
+hl.config({
+    general = { border_size = 2, gaps_in = 6, gaps_out = 12 },
+    decoration = {
+        rounding = 6,
+        rounding_power = 2,
+        active_opacity = 1.0, inactive_opacity = 1.0,
+        shadow = { enabled = true, range = 18, render_power = 3, color = "rgba(0,0,0,0.55)" },
+        blur = { enabled = false },
+    },
+})
+hl.animation({ leaf = "windowsIn",  enabled = true, speed = 4.1, bezier = "easeOutQuint", style = "popin 90%" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 4.1, bezier = "easeOutQuint", style = "popin 90%" })
+EOF
+else
+    cat >"$hypr/cor-atual.lua" <<EOF
+-- Gerado pelo repinta (modo terminal, paleta $nome). Não editar: troque com \`cor\`.
+hl.config({ general = { col = {
+    active_border   = "rgb($(h "$ativo"))",
+    inactive_border = "rgb($(h "$borda"))",
+} } })
+EOF
+    # Terminal Mode: forma reta (cantos 0, sem sombra, sem blur). O gaps fica
+    # a cargo do `espaco`; aqui só zera o resto da decoração.
+    cat >"$hypr/forma-atual.lua" <<EOF
+-- Gerado pelo repinta (modo terminal). Não editar: troque com \`modo\`.
+hl.config({
+    general = { border_size = 1 },
+    decoration = {
+        rounding = 0,
+        active_opacity = 1.0, inactive_opacity = 1.0,
+        shadow = { enabled = false },
+        blur = { enabled = false },
+    },
+})
+hl.animation({ leaf = "windowsIn",  enabled = true, speed = 4.1, spring = "easy", style = "popin 87%" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.49, bezier = "linear", style = "popin 87%" })
+EOF
+fi
 
-# waybar: o style.css importa este
+# --- waybar: o style.css importa o tema-atual.css (cores+fonte). As variáveis
+# extras (barra, superfície, papéis coloridos) só o Desktop Mode usa.
 cat >"$HOME/.config/waybar/tema-atual.css" <<EOF
-/* Gerado pelo repinta (paleta $nome). Não editar. */
+/* Gerado pelo repinta (paleta $nome, modo $modo). Não editar. */
 @define-color bg $bg;
 @define-color fg $fg;
 @define-color ativo $ativo;
 @define-color dim $dim;
 @define-color erro $erro;
+@define-color barra $barra;
+@define-color sup $sup;
+@define-color borda $borda;
+@define-color t2 $t2;
+@define-color d2 $d2;
+@define-color icone $icone;
+@define-color info $info;
+@define-color ok $ok;
+@define-color aviso $aviso;
+@define-color numero $numero;
 * { font-family: "$font"; font-size: ${size}pt; }
 EOF
 
-# mako: incluído no fim do config
+# --- mako: incluído no fim do config (abre a seção [urgency=critical])
 mkdir -p "$HOME/.config/mako"
 cat >"$HOME/.config/mako/tema-atual" <<EOF
-# Gerado pelo repinta (paleta $nome). Não editar.
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
 font=$font $size
 background-color=$bg
 text-color=$fg
-border-color=$dim
-progress-color=over $dim
+border-color=$borda
+progress-color=over $borda
 
 [urgency=critical]
 border-color=$erro
 EOF
 
-# Vicinae: tema gerado da paleta + fonte, via "imports" do settings.json
+# --- hyprlock: variáveis lidas pelo hyprlock.conf (vale no próximo lock)
+cat >"$HOME/.config/hypr/hyprlock-atual.conf" <<EOF
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
+\$bg = rgb($(h "$bg"))
+\$fg = rgb($(h "$fg"))
+\$dim = rgb($(h "$dim"))
+\$erro = rgb($(h "$erro"))
+\$ok = rgb($(h "$ok"))
+\$ativo = rgb($(h "$ativo"))
+\$font = $font
+EOF
+
+# --- Vicinae: tema (.toml) + fonte (.json), via "imports" do settings.json.
+# No Desktop Mode a seleção e o foco usam o destaque; superfície separa o fundo.
+mkdir -p "$HOME/.local/share/vicinae/themes"
 cat >"$HOME/.local/share/vicinae/themes/tema-atual.toml" <<EOF
-# Gerado pelo repinta (paleta $nome). Não editar.
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
 [meta]
 version = 1
 name = "atual ($nome)"
-description = "Paleta $nome, gerada do kitty"
+description = "Paleta $nome, gerada pelo repinta"
 variant = "dark"
 
 [colors.core]
@@ -104,14 +258,14 @@ accent = "$ativo"
 accent_foreground = "$bg"
 
 [colors.accents]
-blue = "$(val color12 "$cor")"
+blue = "$(c 12)"
 green = "$ok"
-magenta = "$(val color13 "$cor")"
-orange = "$(val color3 "$cor")"
-purple = "$(val color5 "$cor")"
+magenta = "$(c 13)"
+orange = "$(c 3)"
+purple = "$(c 5)"
 red = "$erro"
-yellow = "$(val color11 "$cor")"
-cyan = "$(val color14 "$cor")"
+yellow = "$(c 11)"
+cyan = "$(c 14)"
 
 [colors.input]
 border = "$dim"
@@ -137,11 +291,11 @@ cat >"$HOME/.config/vicinae/tema-atual.json" <<EOF
 }
 EOF
 
-# Firefox: o userChrome.css importa este (vale no próximo start do Firefox)
+# --- Firefox: o userChrome.css importa este (vale no próximo start)
 ffchrome="$HOME/.config/mozilla/firefox/chrome"
 if [ -d "$ffchrome" ]; then
     cat >"$ffchrome/tema-atual.css" <<EOF
-/* Gerado pelo repinta (paleta $nome). Não editar. */
+/* Gerado pelo repinta (paleta $nome, modo $modo). Não editar. */
 :root {
     --uc-bg: $bg;
     --uc-fg: $fg;
@@ -154,10 +308,10 @@ if [ -d "$ffchrome" ]; then
 EOF
 fi
 
-# Neovim: paleta base16 pro mini.base16 (lua/plugins/tema.lua). Sintaxe nas
-# cores claras (8-15): as escuras somem no fundo preto. base01 (linha do
-# cursor, barras) é um terço do caminho entre fundo e apagado, porque o color0
-# costuma ser igual ao fundo.
+# --- Neovim: paleta base16 pro mini.base16 (lua/tema-atual.lua). base01 (linha
+# do cursor, menus) é um terço do caminho fundo -> apagado. Papéis batem com a
+# sintaxe do mockup: funções no destaque, campos no destaque-2, operadores no
+# info, números no numero, comentário/pontuação no apagado.
 mix() {
     a=$(h "$1"); b=$(h "$2")
     for i in 1 3 5; do
@@ -167,82 +321,87 @@ mix() {
     done
 }
 cat >"$HOME/.config/nvim/lua/tema-atual.lua" <<EOF
--- Gerado pelo repinta (paleta $nome). Não editar: troque com \`cor\`.
+-- Gerado pelo repinta (paleta $nome, modo $modo). Não editar: troque com \`cor\`/\`modo\`.
 return {
   base00 = "$bg", base01 = "#$(mix "$bg" "$dim")",
   base02 = "$dim", base03 = "$dim",
   base04 = "$ativo", base05 = "$fg",
-  base06 = "$(val color15 "$cor")", base07 = "$(val color15 "$cor")",
-  base08 = "$erro", base09 = "$(val color3 "$cor")",
-  base0A = "$(val color11 "$cor")", base0B = "$ok",
-  base0C = "$(val color14 "$cor")", base0D = "$(val color12 "$cor")",
-  base0E = "$(val color13 "$cor")", base0F = "$(val color1 "$cor")",
+  base06 = "$(c 15)", base07 = "$(c 15)",
+  base08 = "$erro", base09 = "$(c 3)",
+  base0A = "$(c 11)", base0B = "$ok",
+  base0C = "$(c 14)", base0D = "$(c 12)",
+  base0E = "$(c 13)", base0F = "$(c 1)",
 }
 EOF
 
-# swayimg: o init.lua carrega este (cores 0xAARRGGBB; fonte em px = pt * 4/3).
-# Vale no próximo swayimg aberto
+# --- swayimg: init.lua carrega este (0xAARRGGBB; fonte px = pt * 4/3)
 mkdir -p "$HOME/.config/swayimg"
 cat >"$HOME/.config/swayimg/tema-atual.lua" <<EOF
--- Gerado pelo repinta (paleta $nome). Não editar: troque com \`cor\`.
+-- Gerado pelo repinta (paleta $nome, modo $modo). Não editar: troque com \`cor\`/\`modo\`.
 return {
-  font = "$font", size = $((size * 4 / 3)),
+  font = "$font", size = $(px "$size"),
   bg = 0xff$(h "$bg"), fg = 0xff$(h "$fg"), ativo = 0xff$(h "$ativo"),
   ok = 0xff$(h "$ok"), mix = 0xff$(mix "$bg" "$dim"),
 }
 EOF
 
-# zathura: o zathurarc faz `include tema-atual` (vale no próximo PDF aberto).
-# recolor = modo escuro da página (Ctrl+R): fundo e texto da paleta
+# --- zathura: o zathurarc faz `include tema-atual` (próximo PDF aberto)
 mkdir -p "$HOME/.config/zathura"
 cat >"$HOME/.config/zathura/tema-atual" <<EOF
-# Gerado pelo repinta (paleta $nome). Não editar.
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar.
 set font "$font $size"
 set default-bg "$bg"
 set default-fg "$fg"
-set statusbar-bg "$bg"
+set statusbar-bg "$barra"
 set statusbar-fg "$fg"
-set inputbar-bg "$bg"
+set inputbar-bg "$barra"
 set inputbar-fg "$fg"
 set notification-bg "$bg"
 set notification-fg "$fg"
 set notification-error-bg "$bg"
 set notification-error-fg "$erro"
 set notification-warning-bg "$bg"
-set notification-warning-fg "$(val color11 "$cor")"
-set highlight-color "$dim"
+set notification-warning-fg "$aviso"
+set highlight-color "$borda"
 set highlight-active-color "$ok"
 set completion-bg "$bg"
 set completion-fg "$fg"
 set completion-group-bg "$bg"
 set completion-group-fg "$dim"
 set completion-highlight-bg "$ativo"
-set completion-highlight-fg "$bg"
+set completion-highlight-fg "$fundofundo"
 set index-bg "$bg"
 set index-fg "$fg"
 set index-active-bg "$ativo"
-set index-active-fg "$bg"
+set index-active-fg "$fundofundo"
 set recolor-lightcolor "$bg"
 set recolor-darkcolor "$fg"
 EOF
 
-# Wallpaper: tela de boot na paleta (fundo-atual.png, gerado pelo `fundo`);
-# a cor sólida fica de reserva pro autostart.sh se o PNG faltar
+# REPINTA_SO_GERA=1: só gera os arquivos, sem mexer no wallpaper nem recarregar
+# nada (pra conferir a saída de um modo sem repintar a sessão viva).
+if [ -n "$REPINTA_SO_GERA" ]; then
+    echo "repinta: modo $modo · paleta $nome · $font $size (só gerou, sem recarregar)"
+    exit 0
+fi
+
+# --- Wallpaper: cor sólida de reserva (autostart.sh se o PNG faltar); a tela de
+# boot na paleta é regerada pelo `fundo`. Arte do Desktop Mode: a decidir.
 h "$bg" >"$HOME/.config/session/fundo-atual"
-fundo regera >/dev/null || true
+fundo regera >/dev/null 2>&1 || true
 fundo previas >/dev/null 2>&1 &   # cache do seletor (tema fundo)
 
-# Recarrega o que estiver rodando
+# --- Recarrega o que estiver de pé
 pkill -USR1 -x kitty || true
 pgrep -x waybar >/dev/null && pkill -USR2 -x waybar
 pgrep -x mako >/dev/null && makoctl reload
 fundo toca final   # cor nova direto na tela final, sem repetir o boot
 if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
-# Vicinae relê o tema-atual.json sozinho (fonte), mas o tema tem sempre o
-# mesmo nome: só relê o .toml com o `theme set`
 # Neovim: cada instância abre um socket em $XDG_RUNTIME_DIR/nvim.<pid>.0
 for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
     [ -S "$sock" ] && nvim --server "$sock" --remote-expr 'execute("lua Repinta()")' >/dev/null 2>&1 || true
 done
+# Vicinae relê o tema-atual.json sozinho (fonte); o .toml tem sempre o mesmo
+# nome, então só recarrega com o `theme set`
 pgrep -x vicinae-server >/dev/null && vicinae theme set tema-atual >/dev/null 2>&1 || true
-echo "repinta: $nome + $font $size"
+echo "repinta: modo $modo · paleta $nome · $font $size"
