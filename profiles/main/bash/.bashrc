@@ -9,6 +9,7 @@
 
 export PATH="$HOME/.local/bin:$PATH"
 export EDITOR=vim VISUAL=vim
+export CLAUDE_OLLAMA_MODEL=glm-5.3
 
 # Histórico: grande, sem duplicata, compartilhado entre terminais abertos
 HISTSIZE=50000
@@ -33,11 +34,11 @@ alias ...='cd ../..'
 # fzf: Ctrl+R histórico, Ctrl+T arquivo, Alt+C entra em pasta.
 # --color=16 = usa só as 16 cores ANSI do kitty (segue a paleta ativa)
 if command -v fzf >/dev/null; then
-    #: Ctrl+R | Buscar no histórico (fzf)
-    #: Ctrl+T | Buscar arquivo e colar o caminho (fzf)
-    #: Alt+C | Buscar pasta e entrar (fzf)
-    export FZF_DEFAULT_OPTS='--color=16 --layout=reverse --height=40% --border=sharp --info=inline'
-    eval "$(fzf --bash)"
+  #: Ctrl+R | Buscar no histórico (fzf)
+  #: Ctrl+T | Buscar arquivo e colar o caminho (fzf)
+  #: Alt+C | Buscar pasta e entrar (fzf)
+  export FZF_DEFAULT_OPTS='--color=16 --layout=reverse --height=40% --border=sharp --info=inline'
+  eval "$(fzf --bash)"
 fi
 
 # zoxide no lugar do cd: `cd caminho` funciona igual, `cd parte-do-nome` pula
@@ -51,18 +52,18 @@ command -v zoxide >/dev/null && eval "$(zoxide init bash --cmd cd)"
 # se o último comando deu certo. Papéis iguais aos do repinta (color7/8/9/10).
 # user@host só aparece em SSH.
 if [[ -r /usr/share/git/completion/git-prompt.sh ]]; then
-    . /usr/share/git/completion/git-prompt.sh
-    GIT_PS1_SHOWDIRTYSTATE=1 GIT_PS1_SHOWUNTRACKEDFILES=1 GIT_PS1_SHOWUPSTREAM=auto
+  . /usr/share/git/completion/git-prompt.sh
+  GIT_PS1_SHOWDIRTYSTATE=1 GIT_PS1_SHOWUNTRACKEDFILES=1 GIT_PS1_SHOWUPSTREAM=auto
 fi
 __prompt() {
-    local s=$? g=''
-    local dim='\[\e[90m\]' erro='\[\e[91m\]' ok='\[\e[92m\]' ativo='\[\e[37m\]' r='\[\e[0m\]'
-    PS1=''
-    [[ -n $SSH_CONNECTION ]] && PS1+="$dim\u@\h$r "
-    PS1+="$ativo\w$r"
-    declare -F __git_ps1 >/dev/null && g=$(__git_ps1 ' %s')
-    PS1+="$dim$g$r"
-    if (( s )); then PS1+=" $erro[$s]$r $erro\$$r "; else PS1+=" $ok\$$r "; fi
+  local s=$? g=''
+  local dim='\[\e[90m\]' erro='\[\e[91m\]' ok='\[\e[92m\]' ativo='\[\e[37m\]' r='\[\e[0m\]'
+  PS1=''
+  [[ -n $SSH_CONNECTION ]] && PS1+="$dim\u@\h$r "
+  PS1+="$ativo\w$r"
+  declare -F __git_ps1 >/dev/null && g=$(__git_ps1 ' %s')
+  PS1+="$dim$g$r"
+  if ((s)); then PS1+=" $erro[$s]$r $erro\$$r "; else PS1+=" $ok\$$r "; fi
 }
 PROMPT_COMMAND=(__prompt "${PROMPT_COMMAND[@]}")
 
