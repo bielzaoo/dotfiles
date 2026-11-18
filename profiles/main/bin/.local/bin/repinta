@@ -493,6 +493,8 @@ if pgrep -x vicinae-server >/dev/null; then
     if [ "$aplicado" != "$modo" ]; then
         pkill -x vicinae-server 2>/dev/null || true
         setsid -f vicinae server >/dev/null 2>&1
+        # o servidor recém-subido ainda precisa do theme set p/ aplicar o .toml
+        (sleep 1.5; vicinae theme set tema-atual >/dev/null 2>&1) &
     else
         vicinae theme set tema-atual >/dev/null 2>&1 || true
     fi
