@@ -628,6 +628,31 @@ elif [ -f "$gtk4" ] && head -1 "$gtk4" | grep -q 'Gerado pelo repinta'; then
     rm -f "$gtk4"
 fi
 
+# --- Painéis TUI flutuantes (clique na waybar). Desktop: ancorados logo abaixo
+# do ícone (8 px abaixo da barra), borda direita alinhada à do ícone, como o
+# painel de wifi do mockup. Terminal: a regra genérica do rules.lua (900x560 no
+# centro). Carregado depois do rules.lua, então ganha dele.
+if [ "$modo" = desktop ]; then
+    # borda direita de cada ícone, contada da direita da tela (barra de 28 px)
+    cat >"$hypr/paineis-atual.lua" <<EOF
+-- Gerado pelo repinta (modo desktop). Não editar.
+local function painel(nome, classe, w, h, dir)
+    hl.window_rule({
+        name  = "painel-" .. nome,
+        match = { class = classe },
+        float = true,
+        size  = w .. " " .. h,
+        move  = "monitor_w-" .. (w + dir) .. " 36",
+    })
+end
+painel("wifi",  "tui-nmtui-connect", 380, 360, 152)
+painel("bt",    "tui-bluetui",       460, 380, 134)
+painel("audio", "tui-wiremix",       520, 400, 182)
+EOF
+else
+    echo "-- Gerado pelo repinta (modo terminal): painéis seguem o rules.lua." >"$hypr/paineis-atual.lua"
+fi
+
 # --- tmux: tema por modo (tema-atual.conf, lido pelo tmux.conf). ANSI puro, mas
 # o destaque muda: Terminal = verde (colour10/colour2), Desktop = azul
 # (colour4), com o inativo apagado (colour8). A forma é a mesma.
