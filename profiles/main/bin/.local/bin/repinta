@@ -272,43 +272,45 @@ fi
 # (o repinta reinicia na troca de modo).
 mkdir -p "$HOME/.config/swayosd"
 if [ "$modo" = desktop ]; then
-    osd_round=8; osd_track="$sup"; osd_iconsz=20
+    osd_round=8; osd_track="$sup"
 else
-    osd_round=0; osd_track="$borda"; osd_iconsz=18
+    osd_round=0; osd_track="$borda"
 fi
+# Compacto (~250x30): o swayosd 0.3.2 fixa a largura em 250 px no código e o
+# ícone em ~24 px, então o padding vai pra dentro e o ícone encolhe por
+# transform (GTK4). Era 327x58.
 cat >"$HOME/.config/swayosd/style.css" <<EOF
 /* Gerado pelo repinta (paleta $nome, modo $modo). Não editar. */
 window {
     background: transparent;
 }
 #osd {
-    padding: 12px 16px;
+    padding: 2px 0;
     border-radius: ${osd_round}px;
     border: 1px solid $(rgba "$fg" 0.12);
     background-color: $bg;
 }
-#container { margin: 0; }
+#container { margin: 0; padding: 0 2px 0 4px; }
 image {
-    min-width: ${osd_iconsz}px;
-    min-height: ${osd_iconsz}px;
     color: $ativo;
-    margin-right: 12px;
+    margin: -4px -2px -4px 0;
+    transform: scale(0.72);
 }
-label { color: $fg; margin-left: 10px; }
+label { color: $fg; margin-left: 2px; font-size: 11px; }
 progressbar {
-    min-height: 6px;
-    border-radius: 3px;
+    min-height: 4px;
+    border-radius: 2px;
     background: $osd_track;
     border: none;
 }
 progress {
-    min-height: 6px;
-    border-radius: 3px;
+    min-height: 4px;
+    border-radius: 2px;
     background-color: $ativo;
 }
 trough {
-    min-height: 6px;
-    border-radius: 3px;
+    min-height: 4px;
+    border-radius: 2px;
     background: $osd_track;
     border: none;
 }
