@@ -62,6 +62,8 @@ command -v zoxide >/dev/null && eval "$(zoxide init bash --cmd cd)"
 # pasta (ativo) · branch git (apagado) · código de saída (erro), $ verde se o
 # último comando deu certo. Papéis iguais aos do repinta (color7/8/9/10).
 if command -v starship >/dev/null; then
+  # O repinta aponta este link pro prompt do modo (Desktop = pílulas powerline)
+  [[ -e ~/.config/tema/starship-atual.toml ]] && export STARSHIP_CONFIG=~/.config/tema/starship-atual.toml
   eval "$(starship init bash)"
 else
   if [[ -r /usr/share/git/completion/git-prompt.sh ]]; then

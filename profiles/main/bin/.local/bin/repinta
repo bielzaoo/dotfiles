@@ -702,6 +702,13 @@ set -g status-right "#[fg=colour8]#{s|^#{@home}|~|:pane_current_path}#[fg=$tmute
 EOF
 fi
 
+# --- starship: prompt do modo (o .bashrc exporta STARSHIP_CONFIG pra este link;
+# o starship relê a cada prompt, então a troca vale até nos shells abertos).
+# Desktop = pílulas powerline (Nerd Font); Terminal = o starship.toml ANSI.
+if [ "$modo" = desktop ]; then sprompt="$HOME/.config/starship-desktop.toml"
+else sprompt="$HOME/.config/starship.toml"; fi
+[ -f "$sprompt" ] && ln -sfn "$sprompt" "$tema/starship-atual.toml"
+
 # REPINTA_SO_GERA=1: só gera os arquivos, sem mexer no wallpaper nem recarregar
 # nada (pra conferir a saída de um modo sem repintar a sessão viva).
 if [ -n "$REPINTA_SO_GERA" ]; then
