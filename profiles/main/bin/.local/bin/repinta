@@ -265,6 +265,54 @@ border-color=$erro
 EOF
 fi
 
+# --- swayosd: OSD de volume/brilho (ícone + barra). CSS por modo: Desktop =
+# cartão base, cantos 8, ícone no destaque, trilho surface0 + barra destaque;
+# Terminal = reto, nas cores da paleta. Vale quando o swayosd-server reinicia
+# (o repinta reinicia na troca de modo).
+mkdir -p "$HOME/.config/swayosd"
+if [ "$modo" = desktop ]; then
+    osd_round=8; osd_track="$sup"; osd_iconsz=20
+else
+    osd_round=0; osd_track="$borda"; osd_iconsz=18
+fi
+cat >"$HOME/.config/swayosd/style.css" <<EOF
+/* Gerado pelo repinta (paleta $nome, modo $modo). Não editar. */
+window {
+    background: transparent;
+}
+#osd {
+    padding: 12px 16px;
+    border-radius: ${osd_round}px;
+    border: 1px solid $(rgba "$fg" 0.12);
+    background-color: $bg;
+}
+#container { margin: 0; }
+image {
+    min-width: ${osd_iconsz}px;
+    min-height: ${osd_iconsz}px;
+    color: $ativo;
+    margin-right: 12px;
+}
+label { color: $fg; margin-left: 10px; }
+progressbar {
+    min-height: 6px;
+    border-radius: 3px;
+    background: $osd_track;
+    border: none;
+}
+progress {
+    min-height: 6px;
+    border-radius: 3px;
+    background-color: $ativo;
+}
+trough {
+    min-height: 6px;
+    border-radius: 3px;
+    background: $osd_track;
+    border: none;
+}
+EOF
+
 # --- hyprlock: cores + forma por modo (lidas pelo hyprlock.conf, vale no próximo
 # lock). Desktop: campo 236x40, cantos 6, borda 2 px em degradê blue->lavender,
 # relógio 72. Terminal: 20%x5%, cantos 0, borda 1 px sólida, relógio 64.
@@ -554,11 +602,11 @@ if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
 for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
     [ -S "$sock" ] && nvim --server "$sock" --remote-expr 'execute("lua Repinta()")' >/dev/null 2>&1 || true
 done
-# Vicinae: o tema (cores) recarrega com `theme set`. A forma da janela (cantos,
-# borda, sombra) só é lida quando o servidor sobe, então numa TROCA DE MODO o
-# servidor é reiniciado; numa troca só de cor, não (evita reindexar à toa).
+# Servidores que só lêem a forma/tema quando sobem: reiniciam na TROCA DE MODO,
+# não numa troca só de cor (evita reindexar/piscar à toa).
+aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null)
+# Vicinae: cor recarrega com `theme set`; a forma da janela só no restart.
 if pgrep -x vicinae-server >/dev/null; then
-    aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null)
     if [ "$aplicado" != "$modo" ]; then
         pkill -x vicinae-server 2>/dev/null || true
         setsid -f vicinae server >/dev/null 2>&1
@@ -567,6 +615,11 @@ if pgrep -x vicinae-server >/dev/null; then
     else
         vicinae theme set tema-atual >/dev/null 2>&1 || true
     fi
+fi
+# swayosd: lê o style.css ao subir; reinicia na troca de modo pra pegar a forma
+if [ "$aplicado" != "$modo" ] && pgrep -x swayosd-server >/dev/null; then
+    pkill -x swayosd-server 2>/dev/null || true
+    setsid -f swayosd-server >/dev/null 2>&1
 fi
 echo "$modo" >"$tema/.modo-aplicado"
 echo "repinta: modo $modo · paleta $nome · $font $size"

@@ -1,0 +1,45 @@
+# Prompt do Terminal/Desktop Mode. Usa NOMES ANSI (blue, purple, yellow...),
+# não hex: assim segue a paleta ativa do kitty sozinho (mocha no Desktop,
+# vga/fosforo/grafite no Terminal), igual ao tmux e ao nvim. Precisa de Nerd Font.
+# Forma do mockup: ~/brain on main !1 ?1  /  › 
+"$schema" = "https://starship.rs/config-schema.json"
+add_newline = true
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$cmd_duration\
+$line_break\
+$character"""
+
+# Pasta em azul negrito (destaque)
+[directory]
+style = "bold blue"
+read_only = "  "
+read_only_style = "red"
+truncation_length = 3
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+# "on <branch>": "on" apagado, branch em mauve (purple ANSI)
+[git_branch]
+symbol = ""
+format = "[on ](bright-black)[$branch](purple) "
+
+# Status do git em amarelo (aviso)
+[git_status]
+style = "yellow"
+format = "([$all_status$ahead_behind]($style) )"
+
+# Tempo do último comando (só quando passa de 2 s), apagado
+[cmd_duration]
+min_time = 2000
+style = "bright-black"
+format = "[ $duration]($style) "
+
+# Caractere do prompt: › verde quando deu certo, vermelho quando falhou
+[character]
+success_symbol = "[›](bold green)"
+error_symbol = "[›](bold red)"
+vicmd_symbol = "[‹](bold green)"

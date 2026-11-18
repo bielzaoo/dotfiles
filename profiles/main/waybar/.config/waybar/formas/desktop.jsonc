@@ -5,7 +5,7 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 34,
+    "height": 28,
     "spacing": 0,
     "modules-left": ["custom/menu", "custom/sep", "ext/workspaces"],
     "modules-center": ["clock"],

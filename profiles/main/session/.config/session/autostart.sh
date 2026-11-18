@@ -9,6 +9,7 @@ waybar &
 mako &
 bateria &         # aviso de bateria baixa (20% / 10%) via mako
 vicinae server &   # launcher + histórico do clipboard (layer-shell, agnóstico)
+command -v swayosd-server >/dev/null && swayosd-server &   # OSD de volume/brilho (ícone + barra)
 
 # Wallpaper: tela de boot (fundo-atual.png + GIFs, regerados pelo `fundo` a
 # cada login pra pegar kernel e services novos), tocada uma vez pelo `fundo

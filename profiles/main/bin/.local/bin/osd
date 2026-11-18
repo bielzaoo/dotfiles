@@ -1,7 +1,20 @@
 #!/bin/sh
-# OSD de volume/brilho via mako: aplica a mudança e mostra uma notificação com
-# barra (hint value), sempre substituindo a anterior (id em $XDG_RUNTIME_DIR).
-# Uso: osd vol up|down|mute · osd mic mute · osd luz up|down
+# OSD de volume/brilho. Com swayosd instalado, usa o OSD bonito (ícone + barra,
+# tema em ~/.config/swayosd/style.css, gerado pelo repinta). Sem ele, cai no
+# mako (notificação com barra). Uso: osd vol up|down|mute · osd mic mute · osd luz up|down
+if command -v swayosd-client >/dev/null 2>&1; then
+    case "$1 $2" in
+        "vol up")   exec swayosd-client --output-volume raise ;;
+        "vol down") exec swayosd-client --output-volume lower ;;
+        "vol mute") exec swayosd-client --output-volume mute-toggle ;;
+        "mic mute") exec swayosd-client --input-volume mute-toggle ;;
+        "luz up")   exec swayosd-client --brightness raise ;;
+        "luz down") exec swayosd-client --brightness lower ;;
+        *) echo "uso: osd vol up|down|mute | mic mute | luz up|down" >&2; exit 1 ;;
+    esac
+fi
+
+# --- Fallback mako (sem swayosd) ---
 id_f="${XDG_RUNTIME_DIR:-/tmp}/osd.id"
 case "$1 $2" in
     "vol up")   wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ ;;

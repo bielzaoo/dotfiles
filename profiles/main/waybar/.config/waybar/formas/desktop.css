@@ -14,20 +14,20 @@ window#waybar {
     background: @barra;
     color: @fg;
     border-bottom: 1px solid alpha(@fg, 0.08);
-    font-size: 13px;
+    font-size: 12px;
 }
 
 /* ---- Esquerda ---- */
 #custom-menu {
     color: @ativo;
-    font-size: 15px;
+    font-size: 14px;
     padding: 0 6px 0 10px;
 }
 /* Separadores verticais de 14 px (1 px, surface1). Módulos custom/sep* */
 #custom-sep, #custom-sep2 {
     background: @borda;
     min-width: 1px;
-    margin: 10px 7px;      /* 34 - 20 = 14 px de altura */
+    margin: 7px 7px;       /* 28 - 14 = 14 px de altura */
     padding: 0;
 }
 
@@ -36,7 +36,7 @@ window#waybar {
 #workspaces { margin: 0; padding: 0; }
 #workspaces button {
     min-width: 22px;
-    margin: 6px 3px;
+    margin: 5px 3px;
     padding: 0 6px;
     border-radius: 6px;
     color: @dim;
@@ -68,13 +68,13 @@ window#waybar {
 #cpu,
 #battery,
 #custom-energia {
-    margin: 5px 1px;
+    margin: 4px 1px;
     padding: 0 7px;
     border-radius: 6px;
     color: @t2;
 }
 #language, #pulseaudio, #network, #bluetooth, #cpu, #custom-energia {
-    font-size: 14px;
+    font-size: 13px;
 }
 #battery { color: @fg; }
 

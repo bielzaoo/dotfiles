@@ -22,9 +22,18 @@ PROMPT_COMMAND+=('history -a; history -n')
 # ** recursivo, corrige typo no cd, digitar só a pasta entra nela
 shopt -s checkwinsize globstar cdspell dirspell autocd
 
-alias ls='ls --color=auto --group-directories-first'
-alias ll='ls -lh'
-alias la='ls -lhA'
+# Listagem: eza (ícones Nerd Font, git, pastas primeiro) quando houver; senão o
+# ls de sempre. `ll` detalhado, `la` com ocultos, `lt` em árvore.
+if command -v eza >/dev/null; then
+    alias ls='eza --group-directories-first --icons=auto'
+    alias ll='eza -lh  --group-directories-first --icons=auto --git'
+    alias la='eza -lha --group-directories-first --icons=auto --git'
+    alias lt='eza --tree --level=2 --group-directories-first --icons=auto'
+else
+    alias ls='ls --color=auto --group-directories-first'
+    alias ll='ls -lh'
+    alias la='ls -lhA'
+fi
 alias grep='grep --color=auto'
 alias diff='diff --color=auto'
 alias ip='ip -color=auto'
@@ -48,24 +57,29 @@ fi
 #: sessao | Escolher pasta e entrar na sessão tmux dela
 command -v zoxide >/dev/null && eval "$(zoxide init bash --cmd cd)"
 
-# Prompt: pasta (ativo) · branch git (apagado) · código de saída (erro), $ verde
-# se o último comando deu certo. Papéis iguais aos do repinta (color7/8/9/10).
-# user@host só aparece em SSH.
-if [[ -r /usr/share/git/completion/git-prompt.sh ]]; then
-  . /usr/share/git/completion/git-prompt.sh
-  GIT_PS1_SHOWDIRTYSTATE=1 GIT_PS1_SHOWUNTRACKEDFILES=1 GIT_PS1_SHOWUPSTREAM=auto
+# Prompt: starship quando houver (tema em ~/.config/starship.toml, cores em
+# nomes ANSI pra seguir a paleta do kitty). Sem starship, cai no prompt antigo:
+# pasta (ativo) · branch git (apagado) · código de saída (erro), $ verde se o
+# último comando deu certo. Papéis iguais aos do repinta (color7/8/9/10).
+if command -v starship >/dev/null; then
+  eval "$(starship init bash)"
+else
+  if [[ -r /usr/share/git/completion/git-prompt.sh ]]; then
+    . /usr/share/git/completion/git-prompt.sh
+    GIT_PS1_SHOWDIRTYSTATE=1 GIT_PS1_SHOWUNTRACKEDFILES=1 GIT_PS1_SHOWUPSTREAM=auto
+  fi
+  __prompt() {
+    local s=$? g=''
+    local dim='\[\e[90m\]' erro='\[\e[91m\]' ok='\[\e[92m\]' ativo='\[\e[37m\]' r='\[\e[0m\]'
+    PS1=''
+    [[ -n $SSH_CONNECTION ]] && PS1+="$dim\u@\h$r "
+    PS1+="$ativo\w$r"
+    declare -F __git_ps1 >/dev/null && g=$(__git_ps1 ' %s')
+    PS1+="$dim$g$r"
+    if ((s)); then PS1+=" $erro[$s]$r $erro\$$r "; else PS1+=" $ok\$$r "; fi
+  }
+  PROMPT_COMMAND=(__prompt "${PROMPT_COMMAND[@]}")
 fi
-__prompt() {
-  local s=$? g=''
-  local dim='\[\e[90m\]' erro='\[\e[91m\]' ok='\[\e[92m\]' ativo='\[\e[37m\]' r='\[\e[0m\]'
-  PS1=''
-  [[ -n $SSH_CONNECTION ]] && PS1+="$dim\u@\h$r "
-  PS1+="$ativo\w$r"
-  declare -F __git_ps1 >/dev/null && g=$(__git_ps1 ' %s')
-  PS1+="$dim$g$r"
-  if ((s)); then PS1+=" $erro[$s]$r $erro\$$r "; else PS1+=" $ok\$$r "; fi
-}
-PROMPT_COMMAND=(__prompt "${PROMPT_COMMAND[@]}")
 
 # ssh-agent do systemd (ssh-agent.socket); chave entra no 1º uso via AddKeysToAgent
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
