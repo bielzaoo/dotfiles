@@ -8,4 +8,8 @@ classe="tui-$(basename "$1")"
 if pkill -f -- "kitty --class $classe "; then
     exit 0
 fi
+# Aparência do painel (fundo + nmtui), gerada pelo repinta; só o `--class ... `
+# (com o espaço) é o que o pkill acima casa, então o toggle segue valendo.
+cfg="$HOME/.config/kitty/tui-atual.conf"
+[ -f "$cfg" ] && exec kitty --class "$classe" --config "$cfg" -e "$@"
 exec kitty --class "$classe" -e "$@"

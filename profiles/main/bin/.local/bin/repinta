@@ -645,13 +645,36 @@ local function painel(nome, classe, w, h, dir)
         move  = "monitor_w-" .. (w + dir) .. " 36",
     })
 end
-painel("wifi",  "tui-nmtui-connect", 380, 360, 152)
-painel("bt",    "tui-bluetui",       460, 380, 134)
-painel("audio", "tui-wiremix",       520, 400, 182)
+painel("wifi",  "tui-wifitui", 460, 440, 152)
+painel("bt",    "tui-bluetui", 540, 380, 134)
+painel("audio", "tui-wiremix", 640, 400, 182)
 EOF
 else
     echo "-- Gerado pelo repinta (modo terminal): painéis seguem o rules.lua." >"$hypr/paineis-atual.lua"
 fi
+
+# --- Painéis TUI: aparência da janela kitty que o ~/.local/bin/tui abre (lida
+# via --config). Herda o kitty.conf e só troca o fundo do painel (Desktop =
+# mantle, como o mockup; Terminal = base). O wifitui (painel de wifi) usa o
+# tema PRÓPRIO dele (acento âmbar) — fica melhor que forçar a paleta, então só
+# damos o fundo mantle. O NEWT_COLORS fica de reserva pro nmtui (se usado): só
+# aceita NOMES de cor (não hex), que caem nos ANSI do kitty (já Catppuccin);
+# `color0` vira o fundo do painel pra o "black" do newt bater com a janela.
+if [ "$modo" = desktop ]; then painelbg=$barra; else painelbg=$bg; fi
+newt="root=gray,black;window=lightgray,black;border=blue,black;shadow=black,black"
+newt="$newt;title=white,black;button=blue,black;actbutton=black,blue;compactbutton=blue,black"
+newt="$newt;checkbox=lightgray,black;actcheckbox=black,blue;entry=lightgray,black;disentry=gray,black"
+newt="$newt;label=gray,black;listbox=lightgray,black;actlistbox=black,blue;sellistbox=lightgray,black"
+newt="$newt;actsellistbox=black,blue;textbox=lightgray,black;acttextbox=black,blue;helpline=gray,black"
+newt="$newt;roottext=gray,black;emptyscale=gray,black;fullscale=black,blue"
+cat >"$kitty/tui-atual.conf" <<EOF
+# Gerado pelo repinta (paleta $nome, modo $modo). Não editar: troque com \`modo\`/\`cor\`.
+# Painel TUI flutuante (~/.local/bin/tui): kitty normal + fundo do painel + nmtui themed.
+include kitty.conf
+background $painelbg
+color0 $painelbg
+env NEWT_COLORS=$newt
+EOF
 
 # --- tmux: tema por modo (tema-atual.conf, lido pelo tmux.conf). ANSI puro, mas
 # o destaque muda: Terminal = verde (colour10/colour2), Desktop = azul
@@ -727,7 +750,7 @@ for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
 done
 # Servidores que só lêem a forma/tema quando sobem: reiniciam na TROCA DE MODO,
 # não numa troca só de cor (evita reindexar/piscar à toa).
-aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null)
+aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null || true)  # 1ª vez: sem arquivo (set -e!)
 # Vicinae: cor recarrega com `theme set`; a forma da janela só no restart.
 if pgrep -x vicinae-server >/dev/null; then
     if [ "$aplicado" != "$modo" ]; then
