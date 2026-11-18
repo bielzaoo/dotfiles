@@ -45,7 +45,7 @@ require("lazy").setup({
     version = false, -- always use the latest git commit
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
-  install = { colorscheme = { "habamax" } }, -- o tema de verdade vem do repinta (plugins/tema.lua)
+  install = { colorscheme = { "catppuccin", "habamax" } },
   checker = {
     enabled = false, -- update só na mão (:Lazy update), versão travada no lazy-lock.json
     notify = false, -- notify on update

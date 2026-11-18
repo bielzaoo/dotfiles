@@ -441,10 +441,7 @@ if [ -d "$ffchrome" ]; then
 EOF
 fi
 
-# --- Neovim: paleta base16 pro mini.base16 (lua/tema-atual.lua). base01 (linha
-# do cursor, menus) é um terço do caminho fundo -> apagado. Papéis batem com a
-# sintaxe do mockup: funções no destaque, campos no destaque-2, operadores no
-# info, números no numero, comentário/pontuação no apagado.
+# mix A B: cor a um terço do caminho A -> B (usada pelo swayimg abaixo).
 mix() {
     a=$(h "$1"); b=$(h "$2")
     for i in 1 3 5; do
@@ -453,40 +450,6 @@ mix() {
         printf '%02x' $(((2 * x + y) / 3))
     done
 }
-if [ "$modo" = desktop ]; then
-    # Desktop: base16 à la Catppuccin pelos papéis — funções blue, strings green,
-    # números peach, operadores/regex teal, keywords mauve, campos lavender,
-    # linha do cursor em superfície (surface0), comentário apagado.
-    cat >"$HOME/.config/nvim/lua/tema-atual.lua" <<EOF
--- Gerado pelo repinta (paleta $nome, modo $modo). Não editar: troque com \`cor\`/\`modo\`.
-return {
-  base00 = "$bg", base01 = "$sup",
-  base02 = "$borda", base03 = "$dim",
-  base04 = "$t2", base05 = "$fg",
-  base06 = "$(c 15)", base07 = "$d2",
-  base08 = "$d2", base09 = "$numero",
-  base0A = "$aviso", base0B = "$ok",
-  base0C = "$info", base0D = "$ativo",
-  base0E = "$icone", base0F = "$erro",
-}
-EOF
-else
-    # Terminal: base16 das cores ANSI do preset (como sempre).
-    cat >"$HOME/.config/nvim/lua/tema-atual.lua" <<EOF
--- Gerado pelo repinta (paleta $nome, modo $modo). Não editar: troque com \`cor\`/\`modo\`.
-return {
-  base00 = "$bg", base01 = "#$(mix "$bg" "$dim")",
-  base02 = "$dim", base03 = "$dim",
-  base04 = "$ativo", base05 = "$fg",
-  base06 = "$(c 15)", base07 = "$(c 15)",
-  base08 = "$erro", base09 = "$(c 3)",
-  base0A = "$(c 11)", base0B = "$ok",
-  base0C = "$(c 14)", base0D = "$(c 12)",
-  base0E = "$(c 13)", base0F = "$(c 1)",
-}
-EOF
-fi
-
 # --- swayimg: init.lua carrega este (0xAARRGGBB; fonte px = pt * 4/3)
 mkdir -p "$HOME/.config/swayimg"
 cat >"$HOME/.config/swayimg/tema-atual.lua" <<EOF
@@ -744,10 +707,6 @@ if pgrep -f 'tmux: server' >/dev/null; then
 fi
 fundo toca final   # cor nova direto na tela final, sem repetir o boot
 if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then hyprctl reload >/dev/null; fi
-# Neovim: cada instância abre um socket em $XDG_RUNTIME_DIR/nvim.<pid>.0
-for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
-    [ -S "$sock" ] && nvim --server "$sock" --remote-expr 'execute("lua Repinta()")' >/dev/null 2>&1 || true
-done
 # Servidores que só lêem a forma/tema quando sobem: reiniciam na TROCA DE MODO,
 # não numa troca só de cor (evita reindexar/piscar à toa).
 aplicado=$(cat "$tema/.modo-aplicado" 2>/dev/null || true)  # 1ª vez: sem arquivo (set -e!)
