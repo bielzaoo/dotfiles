@@ -1,0 +1,86 @@
+# desktop-mocha.toml — prompt do Desktop Mode, avulso (não depende do repinta).
+# Cópia de profiles/main/starship/.config/starship-desktop.toml: se mudar lá,
+# atualize aqui. Precisa de Nerd Font. Pra usar em qualquer máquina:
+#   export STARSHIP_CONFIG=~/.config/starship/desktop-mocha.toml
+#
+#
+# Linha 1:  (󰣇 ~/b/notes/raw)  ( main !1 ?1)      2s        ( 16:46)
+# Linha 2:  ›           <- o comando sempre começa na coluna 0
+"$schema" = "https://starship.rs/config-schema.json"
+add_newline = true
+palette = "mocha"
+
+format = """
+[](fg:blue)[ ](bg:blue fg:crust)[](fg:blue bg:surface1)\
+$directory[](fg:surface1) \
+($git_branch$git_status[](fg:surface0) )\
+$cmd_duration\
+$fill\
+$time\
+$line_break\
+$character"""
+
+[palettes.mocha]
+crust = "#11111b"
+mantle = "#181825"
+surface0 = "#313244"
+surface1 = "#45475a"
+overlay1 = "#7f849c"
+subtext1 = "#bac2de"
+text = "#cdd6f4"
+blue = "#89b4fa"
+lavender = "#b4befe"
+mauve = "#cba6f7"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+peach = "#fab387"
+red = "#f38ba8"
+
+# Pasta: no máximo 3 níveis; os de cima viram 1 letra (estilo fish), então o
+# prompt não cresce com nome de pasta comprido. Dentro de repo, parte do repo.
+[directory]
+style = "bold fg:text bg:surface1"
+format = "[ $path]($style)[$read_only]($read_only_style)"
+truncation_length = 3
+truncate_to_repo = true
+fish_style_pwd_dir_length = 1
+truncation_symbol = "…/"
+home_symbol = "~"
+read_only = " "
+read_only_style = "fg:red bg:surface1"
+
+[git_branch]
+symbol = ""
+format = "[](fg:surface0)[$symbol $branch](fg:mauve bg:surface0)"
+
+[git_status]
+format = "[$all_status$ahead_behind](fg:yellow bg:surface0)"
+modified = " !${count}"
+untracked = " ?${count}"
+staged = " +${count}"
+deleted = " ✘${count}"
+renamed = " »${count}"
+stashed = " ≡${count}"
+conflicted = " =${count}"
+ahead = " ⇡${count}"
+behind = " ⇣${count}"
+diverged = " ⇕⇡${ahead_count}⇣${behind_count}"
+
+# Tempo do último comando (só quando passa de 2 s), apagado, fora das pílulas
+[cmd_duration]
+min_time = 2000
+format = "[ $duration](fg:overlay1)"
+
+[fill]
+symbol = " "
+
+[time]
+disabled = false
+time_format = "%H:%M"
+format = "[](fg:surface0)[ $time](fg:subtext1 bg:surface0)[](fg:surface0)"
+
+# Caractere: › verde quando deu certo, vermelho quando falhou
+[character]
+success_symbol = "[›](bold fg:green)"
+error_symbol = "[›](bold fg:red)"
+vimcmd_symbol = "[‹](bold fg:green)"

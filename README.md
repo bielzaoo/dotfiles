@@ -61,6 +61,7 @@ for pkg in profiles/classic/*/; do stow -D -d profiles/classic -t "$HOME" "$(bas
 - `common/tmux/.tmux/themes/tokyo-night-black.conf` — layout do [tokyo-night-tmux](https://github.com/janoamaral/tokyo-night-tmux) (sessão com ícone que muda no prefix, janelas com ícone, pasta, branch e data ❬ hora) nas cores do Catppuccin. É tmux puro, sem os scripts do plugin nem TPM.
 - `common/tmux/.tmux/themes/catppuccin-black.conf` — mesmas cores do Mocha, mas com fundo preto puro pra combinar com o kitty.
 - `common/tmux/.tmux/themes/catppuccin-mocha.conf` — Catppuccin Mocha original.
+- `common/tmux/.tmux/themes/desktop-mocha.conf` — o tema do Desktop Mode do perfil main (barra no topo, pílulas azuis, Catppuccin Mocha), congelado em hex: o mesmo visual sem depender do `repinta`. O par no starship é `common/starship/.config/starship/desktop-mocha.toml` (use com `export STARSHIP_CONFIG=~/.config/starship/desktop-mocha.toml`). São cópias: se o visual mudar no `repinta`/`starship-desktop.toml`, atualize os dois.
 
 Pra trocar de tema, mude o `source-file` no fim do `.tmux.conf`. Os temas têm só o esquema de cores e são auto-contidos: dá pra copiar só o arquivo pra `~/.tmux/themes/` em outra máquina e importar em qualquer `.tmux.conf`, sem arrastar keybinds.
 
