@@ -187,7 +187,10 @@ O que ele faz (idempotente, precisa de sudo):
 - Habilita e inicia o `libvirtd.service`.
 - Adiciona seu usuário aos grupos `libvirt` e `kvm` (precisa logout/login pra valer).
 - Ativa e marca como autostart a rede NAT padrão do libvirt (`virbr0`).
-- Libera `virbr0` no UFW (`ufw allow in on virbr0` + `ufw route allow in on virbr0`) — é essa liberação que resolve o problema clássico de VM sem internet até mexer no firewall na mão.
+- Libera `virbr0` no firewall — é essa liberação que resolve o problema clássico de VM sem internet até mexer no firewall na mão:
+  - **firewalld**: recarrega o firewalld (pra ele enxergar a zona `libvirt` recém-instalada) e garante a `virbr0` nessa zona.
+  - **UFW**: `ufw allow in on virbr0` + `ufw route allow in on virbr0`.
+  - **nftables puro**: só confere o `/etc/nftables.conf` e avisa o que falta.
 
 ## WireGuard
 

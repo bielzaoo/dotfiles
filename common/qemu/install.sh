@@ -3,8 +3,8 @@
 # (virbr0) no firewall — resolve o problema de toda VM nova não ter
 # internet até liberar a interface na mão.
 #
-# Funciona no Arch (pacman + UFW ou nftables) e no Fedora (dnf + firewalld). No
-# Fedora o libvirt já integra com o firewalld (põe o virbr0 na zona
+# Funciona com pacman ou dnf e com firewalld, UFW ou nftables. Com firewalld
+# o libvirt já integra sozinho (põe o virbr0 na zona
 # "libvirt"), então aqui só confere se isso aconteceu e corrige se não.
 #
 # Idempotente: pode rodar de novo (outra máquina, ou pra reaplicar as
@@ -42,8 +42,17 @@ fi
 echo "== Adicionando $USER aos grupos libvirt/kvm =="
 sudo usermod -aG libvirt,kvm "$USER"
 
+# O pacote libvirt instala a zona "libvirt" em /usr/lib/firewalld/zones, mas
+# um firewalld já rodando só a enxerga depois de reload. Sem isso o net-start
+# falha com INVALID_ZONE e a virbr0 nem sobe.
+if systemctl is-active --quiet firewalld; then
+    sudo firewall-cmd --reload
+fi
+
 echo "== Ativando a rede NAT padrão do libvirt (virbr0) =="
-sudo virsh net-start default 2>/dev/null || true
+if ! sudo virsh net-info default 2>/dev/null | grep -q '^Active:.*yes'; then
+    sudo virsh net-start default
+fi
 sudo virsh net-autostart default
 
 if systemctl is-active --quiet firewalld; then
