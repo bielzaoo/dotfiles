@@ -14,6 +14,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 │   ├── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
 │   ├── wireguard/        → sobe o túnel WireGuard no boot (ver seção abaixo)
 │   ├── plymouth/         → tela gráfica de boot + senha do disco (ver seção abaixo)
+│   ├── gnome-shell/      → GNOME: dock estilo macOS (Dhruva) + painel translúcido, bandeja, clipboard, caffeine (ver seção abaixo)
 │   └── webapps/          → sites como apps (WhatsApp etc.) com ícone e janela próprios (ver seção abaixo)
 ├── profiles/
 │   ├── main/            → **perfil principal**: Arch + Hyprland (Lua modular), Vicinae, rodízio fonte/cor/espaço (ver seção abaixo)
@@ -238,6 +239,22 @@ O que o `profiles/fedora-gnome/setup.sh` aplica (idempotente, via `gsettings`):
 - **Shell de login**: troca pra zsh com `chsh` (o Ptyxis e o tmux usam a shell de login).
 - **ssh-agent**: roda o `common/ssh-agent/install.sh` (ver seção do ssh-agent), que também desliga o `gcr-ssh-agent` do GNOME.
 - **Prompt no lugar do starship** (`zsh/.config/zsh/prompt.zsh`): o starship não está nos repositórios do Fedora, então o prompt é feito em zsh puro minimalista numa linha só (raio, seta que fica vermelha quando o comando falha e o nome da pasta, mais git, venv e tempo do último comando quando houver). Ele é montado sem `prompt_subst` e escapa o nome da branch, então um repositório clonado com uma branch tipo `$(comando)` não executa nada.
+
+## GNOME Shell (dock e painel)
+
+Extensões e visual pro GNOME, testado no Arch com GNOME 51 (não depende de distro). Ele baixa cada extensão do extensions.gnome.org na versão feita pro GNOME instalado, ativa e aplica as configs com `gsettings` (idempotente).
+
+```bash
+bash ~/dotfiles/common/gnome-shell/install.sh     # SKIP_DOWNLOAD=1 só reaplica as configs
+```
+
+- **Dhruva Dock**: dock flutuante embaixo com o preset "macOS Dock" da própria extensão: ícones de 48px, zoom ao passar o mouse, pulinho ao clicar, minimizar com magic lamp e some quando uma janela encosta. Por cima do preset, o vidro fica mais transparente (opacidade 40, blur ligado) e o botão do menu usa o logo do Arch, copiado pra `~/.local/share/icons/dhruva-grid.svg` (troque o arquivo pra mudar o ícone).
+- **Blur my Shell**: painel de cima translúcido. O blur da dock fica desligado nele, porque quem faz isso é a Dhruva.
+- **AppIndicator**: ícones de bandeja (Discord, Steam etc.).
+- **Clipboard Indicator**: histórico dos últimos 30 itens copiados, sem notificações.
+- **Caffeine**: botão no menu rápido que impede a tela de apagar ou suspender.
+
+Extensão roda dentro do gnome-shell sem sandbox, então confira a página de cada uma antes de adicionar outra na lista do script. No Wayland, a extensão recém-instalada só aparece depois de sair e entrar na sessão (as configs já ficam salvas antes disso).
 
 ## Fedora + KDE Plasma
 
