@@ -147,6 +147,36 @@ ext_set "${C[@]}" notify-on-clear false
 echo "== Caffeine: sem notificação =="
 ext_set caffeine@patapon.info org.gnome.shell.extensions.caffeine show-notifications false
 
+if command -v ptyxis &>/dev/null; then
+    echo "== Ptyxis: Catppuccin Mocha, JetBrainsMono Nerd Font =="
+    # Paleta como link pro repo (editar aqui vale direto no terminal)
+    DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    mkdir -p "$HOME/.local/share/org.gnome.Ptyxis/palettes"
+    ln -sf "$DIR/ptyxis/catppuccin-mocha.palette" \
+        "$HOME/.local/share/org.gnome.Ptyxis/palettes/catppuccin-mocha.palette"
+    gsettings set org.gnome.Ptyxis use-system-font false
+    if fc-list | grep -q "JetBrainsMono Nerd Font"; then
+        gsettings set org.gnome.Ptyxis font-name 'JetBrainsMono Nerd Font 11'
+    fi
+    gsettings set org.gnome.Ptyxis interface-style 'dark'
+    gsettings set org.gnome.Ptyxis cursor-shape 'ibeam'
+    PROFILE=$(gsettings get org.gnome.Ptyxis default-profile-uuid | tr -d "'")
+    if [ -n "$PROFILE" ]; then
+        PP="org.gnome.Ptyxis.Profile:/org/gnome/Ptyxis/Profiles/$PROFILE/"
+        gsettings set "$PP" palette 'catppuccin-mocha'
+        gsettings set "$PP" opacity 0.95
+        gsettings set "$PP" label 'Catppuccin Mocha'
+    fi
+fi
+
+# Terminal padrão do GNOME (Ctrl+Alt+T, "abrir no terminal" do Nautilus):
+# Ghostty (config em common/ghostty) se tiver, senão o Ptyxis
+if command -v ghostty &>/dev/null; then
+    echo com.mitchellh.ghostty.desktop >"$HOME/.config/xdg-terminals.list"
+elif command -v ptyxis &>/dev/null; then
+    echo org.gnome.Ptyxis.desktop >"$HOME/.config/xdg-terminals.list"
+fi
+
 echo ""
 echo "Pronto! Se alguma extensão foi instalada agora, saia e entre de novo"
 echo "na sessão (no Wayland o GNOME só carrega extensões novas no login)."

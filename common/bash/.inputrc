@@ -1,0 +1,19 @@
+# Tab do bash (readline). Linkado em ~/.inputrc pelo common/bash/install.sh.
+$include /etc/inputrc
+
+# "doc<Tab>" completa "Documents": ignora maiúscula/minúscula
+set completion-ignore-case on
+# ...e trata - e _ como iguais
+set completion-map-case on
+# Mais de uma opção: lista na hora, sem precisar do segundo Tab
+set show-all-if-ambiguous on
+# Cores do ls na lista (pasta, link, executável) e / no fim das pastas
+set colored-stats on
+set colored-completion-prefix on
+set mark-symlinked-directories on
+# Não pergunta "Display all 120 possibilities?" a toda hora
+set completion-query-items 200
+set page-completions off
+# Seta pra cima/baixo busca no histórico pelo que já foi digitado
+"\e[A": history-search-backward
+"\e[B": history-search-forward

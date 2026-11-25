@@ -7,8 +7,10 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 ├── common/
 │   ├── nvim/           → LazyVim + tema crimson
 │   ├── kitty/.config/kitty → JetBrains Mono, rastro no cursor, abas estilizadas, tema Vantablack (igual ao Neovim) ou Catppuccin black
+│   ├── ghostty/.config/ghostty → Catppuccin Mocha "chapado" (barra, padding e fundo na mesma cor), sem transparência
 │   ├── tmux/             → keybinds do Omarchy + tema Vantablack (layout do tokyo-night) (ver seção abaixo)
 │   ├── zsh/              → ls vira eza, cd vira zoxide (ver seção abaixo)
+│   ├── bash/             → o mesmo no bash (eza, zoxide) + prompt do starship + Tab que ignora maiúscula/minúscula (`.inputrc`): `bash common/bash/install.sh`
 │   ├── starship/         → prompt com logo do Arch, fundo preto
 │   ├── ssh-agent/        → ssh-agent via systemd --user (ver seção abaixo)
 │   ├── qemu/             → QEMU/KVM + libvirt + firewall (ver seção abaixo)
@@ -253,6 +255,8 @@ bash ~/dotfiles/common/gnome-shell/install.sh     # SKIP_DOWNLOAD=1 só reaplica
 - **AppIndicator**: ícones de bandeja (Discord, Steam etc.).
 - **Clipboard Indicator**: histórico dos últimos 30 itens copiados, sem notificações.
 - **Caffeine**: botão no menu rápido que impede a tela de apagar ou suspender.
+- **Ptyxis no Catppuccin Mocha** (se o `ptyxis` estiver instalado): paleta `common/gnome-shell/ptyxis/catppuccin-mocha.palette` (linkada em `~/.local/share/org.gnome.Ptyxis/palettes`), JetBrainsMono Nerd Font 11, cursor em barra, 95% de opacidade. O Console (kgx) não aceita paleta própria, por isso o Ptyxis.
+- **Terminal padrão** (`~/.config/xdg-terminals.list`, usado no Ctrl+Alt+T e no "abrir no terminal" do Nautilus): Ghostty se estiver instalado (config em `common/ghostty`), senão o Ptyxis.
 
 Extensão roda dentro do gnome-shell sem sandbox, então confira a página de cada uma antes de adicionar outra na lista do script. No Wayland, a extensão recém-instalada só aparece depois de sair e entrar na sessão (as configs já ficam salvas antes disso).
 

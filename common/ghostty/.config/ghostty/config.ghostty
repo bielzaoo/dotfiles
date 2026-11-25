@@ -1,0 +1,22 @@
+# Ghostty: Catppuccin Mocha "chapado": barra de título, padding e fundo na
+# mesma cor (#1E1E2E), sem transparência. Ctrl+Shift+, recarrega.
+
+theme = Catppuccin Mocha
+background-opacity = 1
+
+# Barra de título na cor do terminal, sem o degradê/sombra do GTK
+window-theme = ghostty
+window-titlebar-background = #1E1E2E
+window-titlebar-foreground = #CDD6F4
+gtk-toolbar-style = flat
+
+# Padding com a cor do fundo; balance centraliza a sobra de pixels
+window-padding-x = 14
+window-padding-y = 10
+window-padding-balance = true
+window-padding-color = extend
+
+font-family = JetBrainsMono Nerd Font
+font-size = 11
+cursor-style = bar
+mouse-hide-while-typing = true
