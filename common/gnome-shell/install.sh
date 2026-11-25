@@ -8,6 +8,7 @@
 # - AppIndicator: ícones de bandeja (Discord, Steam...)
 # - Clipboard Indicator: histórico do que foi copiado (30 itens, sem notificação)
 # - Caffeine: botão no menu rápido que impede a tela de apagar/suspender
+# - Just Perfection: só pra deixar o painel de cima mais fino (26px)
 #
 # As extensões vêm do extensions.gnome.org, na versão feita pro GNOME
 # instalado. Elas rodam dentro do gnome-shell sem sandbox: confira a página
@@ -28,6 +29,7 @@ EXTENSIONS=(
     appindicatorsupport@rgcjonas.gmail.com
     clipboard-indicator@tudmotu.com
     caffeine@patapon.info
+    just-perfection-desktop@just-perfection
 )
 
 if ! command -v gnome-extensions &>/dev/null; then
@@ -146,6 +148,37 @@ ext_set "${C[@]}" notify-on-clear false
 
 echo "== Caffeine: sem notificação =="
 ext_set caffeine@patapon.info org.gnome.shell.extensions.caffeine show-notifications false
+
+echo "== Modo escuro em tudo (GTK4 pelo color-scheme, GTK3 pelo gtk-theme) =="
+# Apps GTK3 (virt-manager, polkit...) ignoram o color-scheme: precisam de um
+# tema escuro. O adw-gtk3-dark (pacote adw-gtk-theme) deixa eles iguais aos
+# libadwaita; sem ele, cai no Adwaita-dark que já vem no GTK3.
+gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+if [ -d /usr/share/themes/adw-gtk3-dark ] || [ -d "$HOME/.local/share/themes/adw-gtk3-dark" ]; then
+    gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark'
+else
+    gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+    echo "  dica: instale adw-gtk-theme (Arch) / adw-gtk3-theme (Fedora) e rode de novo"
+fi
+
+echo "== Botões de janela estilo macOS (esquerda: fechar, minimizar, maximizar) =="
+gsettings set org.gnome.desktop.wm.preferences button-layout 'close,minimize,maximize:appmenu'
+# Bolinhas coloridas via CSS do usuário (GTK3 e GTK4/libadwaita). Só cria o
+# link se não houver um gtk.css seu lá, pra não sobrescrever nada.
+GTK_CSS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gtk/window-buttons.css"
+for v in gtk-3.0 gtk-4.0; do
+    dest="$HOME/.config/$v/gtk.css"
+    mkdir -p "$(dirname "$dest")"
+    if [ -L "$dest" ] || [ ! -e "$dest" ]; then
+        ln -sf "$GTK_CSS" "$dest"
+    else
+        echo "  $dest já existe e não é link: pulei (adicione @import url(\"file://$GTK_CSS\"); nele)"
+    fi
+done
+
+echo "== Just Perfection: painel de cima mais fino =="
+# 0 = altura padrão do GNOME (~32px); o resto da extensão fica no padrão
+ext_set just-perfection-desktop@just-perfection org.gnome.shell.extensions.just-perfection panel-size 26
 
 if command -v ptyxis &>/dev/null; then
     echo "== Ptyxis: Catppuccin Mocha, JetBrainsMono Nerd Font =="

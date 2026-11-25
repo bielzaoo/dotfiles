@@ -258,6 +258,9 @@ bash ~/dotfiles/common/gnome-shell/install.sh     # SKIP_DOWNLOAD=1 só reaplica
 - **AppIndicator**: ícones de bandeja (Discord, Steam etc.).
 - **Clipboard Indicator**: histórico dos últimos 30 itens copiados, sem notificações.
 - **Caffeine**: botão no menu rápido que impede a tela de apagar ou suspender.
+- **Just Perfection**: usada só pra deixar o painel de cima mais fino (`panel-size` 26px; 0 volta pro padrão do GNOME, ~32px). O resto da extensão fica no padrão.
+- **Modo escuro em tudo**: `color-scheme` em `prefer-dark` (GTK4/libadwaita, Firefox, Electron) e `gtk-theme` escuro pros apps GTK3 que ignoram o color-scheme (virt-manager etc.): `adw-gtk3-dark` se o pacote `adw-gtk-theme` estiver instalado (fica igual aos apps libadwaita), senão `Adwaita-dark`.
+- **Botões de janela estilo macOS**: fechar, minimizar e maximizar à esquerda (`button-layout`), pintados como as bolinhas vermelha/amarela/verde pelo `common/gnome-shell/gtk/window-buttons.css` (linkado em `~/.config/gtk-3.0/gtk.css` e `~/.config/gtk-4.0/gtk.css`; não sobrescreve um `gtk.css` seu). O símbolo aparece ao passar o mouse e ficam cinzas na janela sem foco. Apps abertos só mudam ao reabrir.
 - **Ptyxis no Catppuccin Mocha** (se o `ptyxis` estiver instalado): paleta `common/gnome-shell/ptyxis/catppuccin-mocha.palette` (linkada em `~/.local/share/org.gnome.Ptyxis/palettes`), JetBrainsMono Nerd Font 11, cursor em barra, 95% de opacidade. O Console (kgx) não aceita paleta própria, por isso o Ptyxis.
 - **Terminal padrão** (`~/.config/xdg-terminals.list`, usado no Ctrl+Alt+T e no "abrir no terminal" do Nautilus): Ghostty se estiver instalado (config em `common/ghostty`), senão o Ptyxis.
 
