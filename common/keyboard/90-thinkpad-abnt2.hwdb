@@ -1,0 +1,11 @@
+# ThinkPad com teclado brasileiro: a tecla do "/?" é fisicamente o Ctrl
+# direito (scancode 9d). O layout br+thinkpad troca o símbolo, mas o app
+# continua vendo a tecla Ctrl: Ghostty (e outros que leem a tecla física)
+# tratam como modificador e não digitam nada.
+#
+# Aqui o kernel passa a mandar KEY_RO (a tecla "/?" do ABNT2), então ela é
+# uma tecla normal pra todo mundo e funciona com br (abnt2) ou br+thinkpad.
+#
+# Instalar: sudo bash common/keyboard/install.sh
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO*:pvrThinkPad*
+ KEYBOARD_KEY_9d=ro

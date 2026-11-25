@@ -7,6 +7,7 @@ Estrutura: **common** (compartilhado entre qualquer perfil) + **profiles** (espe
 ├── common/
 │   ├── nvim/           → LazyVim + tema crimson
 │   ├── kitty/.config/kitty → JetBrains Mono, rastro no cursor, abas estilizadas, tema Vantablack (igual ao Neovim) ou Catppuccin black
+│   ├── keyboard/         → ThinkPad br: tecla "/?" (fisicamente Ctrl direito) vira tecla normal via hwdb (`sudo bash common/keyboard/install.sh`)
 │   ├── ghostty/.config/ghostty → Catppuccin Mocha "chapado" (barra, padding e fundo na mesma cor), sem transparência
 │   ├── tmux/             → keybinds do Omarchy + tema Vantablack (layout do tokyo-night) (ver seção abaixo)
 │   ├── zsh/              → ls vira eza, cd vira zoxide (ver seção abaixo)
